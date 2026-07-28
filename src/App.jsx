@@ -8,7 +8,8 @@ import {
   Moon, 
   History, 
   FileText,
-  ArrowLeft
+  ArrowLeft,
+  BookOpen
 } from 'lucide-react';
 
 import { 
@@ -28,6 +29,7 @@ import InventoryManager from './components/InventoryManager';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import SettingsPanel from './components/SettingsPanel';
 import PrintInvoiceModal from './components/PrintInvoiceModal';
+import PartyLedgerConsole from './components/PartyLedgerConsole';
 
 import './App.css';
 
@@ -40,7 +42,9 @@ export default function App() {
   const [invoices, setInvoices] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [ledgerEntries, setLedgerEntries] = useState([]);
   const [dbStatus, setDbStatus] = useState('Connecting...');
+
 
   // UI management states
   const [activeTab, setActiveTab] = useState('pos');
@@ -172,7 +176,9 @@ export default function App() {
         setInvoices(dbInvoices);
         setInventory(dbInventory);
         setSettings(dbSettings);
+        setLedgerEntries(data.ledgerEntries || []);
         setDbStatus('🟢 MySQL/SQLite Database Synced');
+
 
         // Seed backend DB if backend DB has 0 invoices
         if ((!data.invoices || data.invoices.length === 0) && dbInvoices.length > 0) {
@@ -409,7 +415,29 @@ export default function App() {
     });
   };
 
+  // Ledger Voucher handlers
+  const handleSaveLedgerEntry = (newEntry) => {
+    setLedgerEntries(prev => [newEntry, ...prev]);
+
+    fetch('/api/ledger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: systemMode, entry: newEntry })
+    }).catch(console.error);
+  };
+
+  const handleDeleteLedgerEntry = (id) => {
+    setLedgerEntries(prev => prev.filter(e => e.id !== id));
+
+    fetch('/api/ledger', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: systemMode, id })
+    }).catch(console.error);
+  };
+
   if (!systemMode) {
+
     return (
       <div className="home-container d-flex flex-column align-center justify-center w-full" style={{
         minHeight: '100vh',
@@ -687,6 +715,16 @@ export default function App() {
             </li>
             <li>
               <button 
+                className={`nav-item w-full ${activeTab === 'ledger' ? 'active' : ''}`}
+                onClick={() => setActiveTab('ledger')}
+                style={{ background: 'none', border: 'none', textAlign: 'left' }}
+              >
+                <BookOpen size={18} /> Party Ledger / खाता बही
+              </button>
+            </li>
+
+            <li>
+              <button 
                 className={`nav-item w-full ${activeTab === 'inventory' ? 'active' : ''}`}
                 onClick={() => setActiveTab('inventory')}
                 style={{ background: 'none', border: 'none', textAlign: 'left' }}
@@ -740,10 +778,12 @@ export default function App() {
             <h1 className="brand-heading text-gold" style={{ fontSize: '1.8rem', fontWeight: '700' }}>
               {activeTab === 'pos' && (systemMode === 'reoti_cn' ? 'Create Credit Note (GST Return)' : (systemMode === 'ambekar_pn' ? 'Create Purchase Note (Non-GST)' : 'Create Sale Invoices'))}
               {activeTab === 'invoices' && (systemMode === 'reoti_cn' ? 'Credit Notes Archive Ledger' : (systemMode === 'ambekar_pn' ? 'Purchase Notes Archive Ledger' : 'Invoices Archive Ledger'))}
+              {activeTab === 'ledger' && 'Party Ledger Statement (खाता बही)'}
               {activeTab === 'inventory' && 'Handloom Stock Warehouse'}
               {activeTab === 'analytics' && 'Operational reports & Trends'}
               {activeTab === 'settings' && 'Configure Business Profile'}
             </h1>
+
             <p className="text-muted" style={{ fontSize: '0.85rem' }}>
               Logged in: Admin counter desk | Current local workspace: <strong style={{ color: systemMode === 'reoti_cn' ? '#f87171' : (systemMode === 'ambekar_pn' ? '#a855f7' : 'var(--text-gold)') }}>{systemMode === 'reoti' ? 'Reoti Handloom (Invoice)' : (systemMode === 'reoti_cn' ? 'Reoti Credit Note Console' : (systemMode === 'ambekar_pn' ? 'Ambekar Purchase Note Console' : 'Ambekar Handloom House'))}</strong>
             </p>
@@ -795,6 +835,18 @@ export default function App() {
               onSaveInvoice={handleSaveInvoice}
             />
           )}
+
+          {activeTab === 'ledger' && (
+            <PartyLedgerConsole 
+              invoices={invoices}
+              ledgerEntries={ledgerEntries}
+              settings={settings}
+              systemMode={systemMode}
+              onSaveLedgerEntry={handleSaveLedgerEntry}
+              onDeleteLedgerEntry={handleDeleteLedgerEntry}
+            />
+          )}
+
 
           {activeTab === 'inventory' && (
             <InventoryManager 

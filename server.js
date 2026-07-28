@@ -70,6 +70,22 @@ function initTables() {
       )
     `);
 
+    // Ledger table (for manual payment/receipt vouchers & party entries)
+    db.run(`
+      CREATE TABLE IF NOT EXISTS ledger (
+        id TEXT PRIMARY KEY,
+        store_mode TEXT NOT NULL,
+        party_name TEXT NOT NULL,
+        date TEXT,
+        vch_type TEXT,
+        vch_no TEXT,
+        debit REAL DEFAULT 0,
+        credit REAL DEFAULT 0,
+        data_json TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Update Ambekar settings shopName & Bank details in DB if stored as old values
     db.all(`SELECT store_mode, data_json FROM settings WHERE store_mode = 'ambekar'`, (err, rows) => {
       if (!err && rows && rows.length > 0) {
@@ -231,16 +247,81 @@ app.get('/api/data', (req, res) => {
             return res.status(500).json({ error: err.message });
           }
 
-          const invoices = invRows ? invRows.map(r => JSON.parse(r.data_json)) : [];
-          const inventory = invenRows ? invenRows.map(r => JSON.parse(r.data_json)) : [];
-          const settings = setRow ? JSON.parse(setRow.data_json) : null;
+          db.all(`SELECT data_json FROM ledger WHERE store_mode = ? ORDER BY date ASC`, [mode], (err, ledgRows) => {
+            const invoices = invRows ? invRows.map(r => JSON.parse(r.data_json)) : [];
+            const inventory = invenRows ? invenRows.map(r => JSON.parse(r.data_json)) : [];
+            const settings = setRow ? JSON.parse(setRow.data_json) : null;
+            const ledgerEntries = ledgRows ? ledgRows.map(r => JSON.parse(r.data_json)) : [];
 
-          res.json({ invoices, inventory, settings });
+            res.json({ invoices, inventory, settings, ledgerEntries });
+          });
         });
       });
     });
   });
 });
+
+// API endpoint to save/update a single ledger entry
+app.post('/api/ledger', (req, res) => {
+  const { mode, entry } = req.body;
+  if (!mode || !entry || !entry.id) {
+    return res.status(400).json({ error: 'Invalid ledger payload' });
+  }
+
+  const id = `${mode}_${entry.id}`;
+  const now = new Date().toISOString();
+
+  db.run(
+    `INSERT INTO ledger (id, store_mode, party_name, date, vch_type, vch_no, debit, credit, data_json, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       party_name = excluded.party_name,
+       date = excluded.date,
+       vch_type = excluded.vch_type,
+       vch_no = excluded.vch_no,
+       debit = excluded.debit,
+       credit = excluded.credit,
+       data_json = excluded.data_json,
+       updated_at = excluded.updated_at`,
+    [
+      id,
+      mode,
+      entry.partyName || '',
+      entry.date || '',
+      entry.vchType || '',
+      entry.vchNo || '',
+      entry.debit || 0,
+      entry.credit || 0,
+      JSON.stringify(entry),
+      now
+    ],
+    function (err) {
+      if (err) {
+        console.error('Save ledger error:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ success: true, id });
+    }
+  );
+});
+
+// API endpoint to delete a ledger entry
+app.delete('/api/ledger', (req, res) => {
+  const { mode, id } = req.body;
+  if (!mode || !id) {
+    return res.status(400).json({ error: 'Missing mode or entry id' });
+  }
+
+  const dbId = `${mode}_${id}`;
+  db.run(`DELETE FROM ledger WHERE id = ?`, [dbId], function (err) {
+    if (err) {
+      console.error('Delete ledger error:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ success: true, deleted: this.changes });
+  });
+});
+
 
 // 2. Save or update an invoice
 app.post('/api/invoices', (req, res) => {
