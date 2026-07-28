@@ -1,0 +1,691 @@
+/* Reoti Handloom - Billing System Design Tokens & Layout stylesheet */
+
+:root {
+  /* Font Family definitions */
+  --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-brand: 'Playfair Display', Georgia, serif;
+
+  /* Theme color-scheme (Dark mode is default premium experience) */
+  --bg-app: #090d16;
+  --bg-card: rgba(22, 30, 49, 0.65);
+  --bg-sidebar: #0f172a;
+  --bg-input: rgba(15, 23, 42, 0.6);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(212, 175, 55, 0.4); /* Gold hover */
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Brand accents - Traditional Gold & Rich Emerald */
+  --accent-gold: #d4af37;
+  --accent-gold-hover: #f3cd5d;
+  --accent-gold-glow: rgba(212, 175, 55, 0.25);
+  
+  --accent-emerald: #10b981;
+  --accent-emerald-glow: rgba(16, 185, 129, 0.2);
+  
+  --accent-blue: #3b82f6;
+  --accent-rose: #ef4444;
+  --accent-rose-glow: rgba(239, 68, 68, 0.25);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 20px rgba(212, 175, 55, 0.15);
+  
+  --card-blur: blur(12px);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+/* Light Theme Variables */
+[data-theme='light'] {
+  --bg-app: #f4f6f9;
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-input: #ffffff;
+  --border-color: #e2e8f0;
+  --border-color-hover: #b45309; /* Deep Gold/Amber */
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --accent-gold: #b45309;
+  --accent-gold-hover: #b45309;
+  --accent-gold-glow: rgba(180, 83, 9, 0.15);
+  
+  --accent-emerald: #059669;
+  --accent-emerald-glow: rgba(5, 150, 105, 0.15);
+  
+  --accent-blue: #2563eb;
+  --accent-rose: #dc2626;
+  --accent-rose-glow: rgba(220, 38, 38, 0.15);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
+  --shadow-glow: 0 4px 20px rgba(180, 83, 9, 0.08);
+  
+  --card-blur: none;
+}
+
+/* Scrollbar customizations */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Global resets & styling */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+#root {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Typography styles */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.brand-heading {
+  font-family: var(--font-brand);
+  letter-spacing: 0.5px;
+}
+
+/* Form elements styling */
+input, select, textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--accent-gold-glow);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  display: inline-block;
+  letter-spacing: 0.2px;
+}
+
+/* Button & interactive components */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: var(--accent-gold);
+  color: #0d0f17; /* Dark text for high contrast on gold */
+  font-weight: 600;
+}
+.btn-primary:hover {
+  background-color: var(--accent-gold-hover);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--text-muted);
+}
+[data-theme='light'] .btn-secondary:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.btn-emerald {
+  background-color: var(--accent-emerald);
+  color: white;
+}
+.btn-emerald:hover {
+  background-color: #059669;
+  box-shadow: 0 4px 12px var(--accent-emerald-glow);
+  transform: translateY(-1px);
+}
+
+.btn-rose {
+  background-color: var(--accent-rose);
+  color: white;
+}
+.btn-rose:hover {
+  background-color: #dc2626;
+  box-shadow: 0 4px 12px var(--accent-rose-glow);
+  transform: translateY(-1px);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+.badge-gold {
+  background-color: var(--accent-gold-glow);
+  color: var(--accent-gold);
+}
+
+.badge-emerald {
+  background-color: var(--accent-emerald-glow);
+  color: var(--accent-emerald);
+}
+
+.badge-rose {
+  background-color: var(--accent-rose-glow);
+  color: var(--accent-rose);
+}
+
+/* Dashboard structures */
+.app-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 260px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 32px;
+  max-width: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Glass card layout */
+.glass-card {
+  background-color: var(--bg-card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.glass-card:hover {
+  border-color: var(--border-color-hover);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+}
+
+/* Tables styling */
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-table th {
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.custom-table td {
+  padding: 16px;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.custom-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+[data-theme='light'] .custom-table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+/* Custom modal layout */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(3, 7, 18, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Responsive grid layout utilities */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .app-container { flex-direction: column; }
+  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); padding: 16px; }
+  .main-content { padding: 16px; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+
+/* --- PIXEL-PERFECT INVOICE PRINT STYLE --- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0mm;
+  }
+
+  body, html {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 8.5pt !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Hide UI elements such as Sidebar, Header, Control buttons, forms outside receipt */
+  .sidebar,
+  .btn,
+  .no-print,
+  header,
+  .tabs-navigation,
+  .dashboard-stats,
+  .inventory-controls,
+  .search-area,
+  .modal-overlay:not(.print-modal-overlay),
+  .modal-header {
+    display: none !important;
+  }
+  
+  /* Reset app containers */
+  #root, .app-container {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .main-content, .modal-overlay, .modal-content, .modal-body {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    height: 100% !important;
+  }
+
+  /* Invoice Print Area Styles - 100% Full Printer Page Edge-To-Edge Coverage */
+  .print-invoice-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    border: 3px double #b45309 !important;
+    box-shadow: inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1 !important;
+    background-color: #fdfaf2 !important;
+    margin: 0 !important;
+    padding: 8mm 10mm !important;
+    box-sizing: border-box !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Force print text colors for invoice layout body */
+  .print-invoice-layout *:not(.print-invoice-header):not(.print-invoice-header *) {
+    color: #4a2c11 !important;
+  }
+
+  .print-invoice-header {
+    background-color: #fffef9 !important;
+    border: 1px solid #b45309 !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 6px !important;
+    display: grid !important;
+    grid-template-columns: 1.45fr 1fr !important;
+    gap: 12px !important;
+    align-items: center !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-invoice-header h1,
+  .print-invoice-header p,
+  .print-invoice-header span,
+  .print-invoice-header div {
+    color: #451a03 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-invoice-header .header-gold-text {
+    color: #78350f !important;
+  }
+
+  .print-invoice-header .gold-badge {
+    background-color: #fef3c7 !important;
+    color: #78350f !important;
+  }
+
+  .print-invoice-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 4px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .print-table th {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #94a3b8 !important;
+    padding: 3px 5px !important;
+    font-size: 8pt !important;
+    font-weight: bold !important;
+  }
+
+  .print-table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 3px 5px !important;
+    font-size: 8pt !important;
+  }
+
+  .print-totals-section {
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-top: 6px !important;
+  }
+
+  .print-totals-table {
+    width: 300px !important;
+    border-collapse: collapse !important;
+  }
+
+  .print-totals-table td {
+    padding: 3px 5px !important;
+    border: 1px solid #cbd5e1 !important;
+    font-size: 8pt !important;
+  }
+
+  .print-totals-table tr.grand-total td {
+    font-weight: bold !important;
+    background-color: #f1f5f9 !important;
+    border-top: 2px solid #000000 !important;
+  }
+
+  .print-footer-terms {
+    margin-top: 6px !important;
+    border-top: 1px solid #cbd5e1 !important;
+    padding-top: 4px !important;
+    font-size: 7.5pt !important;
+  }
+}
+
+/* --- FORCE LIGHT RECEIPT TEXT REGARDLESS OF THEME --- */
+#printable-invoice {
+  background-color: #fdfaf2 !important; /* Soft warm cream matching the logo */
+  color: #4a2c11 !important; /* Deep warm bronze-brown */
+  position: relative;
+}
+
+/* Centered background watermark logo */
+#printable-invoice::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 380px;
+  height: 380px;
+  background-image: url('/logo.jpg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.04; /* Light subtle watermark */
+  pointer-events: none;
+  z-index: 0;
+}
+
+#printable-invoice *:not(.print-invoice-header):not(.print-invoice-header *) {
+  color: #4a2c11;
+  z-index: 1;
+  position: relative;
+}
+
+#printable-invoice h1:not(.print-invoice-header *),
+#printable-invoice h2:not(.print-invoice-header *),
+#printable-invoice h3:not(.print-invoice-header *),
+#printable-invoice h4:not(.print-invoice-header *),
+#printable-invoice h5:not(.print-invoice-header *),
+#printable-invoice h6:not(.print-invoice-header *),
+#printable-invoice strong:not(.print-invoice-header *),
+#printable-invoice b:not(.print-invoice-header *) {
+  color: #381e05 !important;
+}
+
+#printable-invoice p:not(.print-invoice-header *),
+#printable-invoice span:not(.print-invoice-header *),
+#printable-invoice td:not(.print-invoice-header *) {
+  color: #4a2c11 !important;
+}
+
+/* --- HEADER BANNER HIGH-CONTRAST OVERRIDES --- */
+#printable-invoice .print-invoice-header {
+  background-color: #fefcf6 !important;
+  border: 1px solid #e6dcc5 !important;
+  border-bottom: 2px solid #b45309 !important;
+}
+
+#printable-invoice .print-invoice-header h1 {
+  color: #78350f !important;
+}
+
+#printable-invoice .print-invoice-header p,
+#printable-invoice .print-invoice-header span,
+#printable-invoice .print-invoice-header div {
+  color: #451a03 !important;
+}
+
+#printable-invoice .print-invoice-header .gold-badge {
+  background-color: #fef3c7 !important;
+  color: #78350f !important;
+  border: 1px solid #f59e0b !important;
+}
+
+#printable-invoice th {
+  background-color: #f7f1e1 !important;
+  color: #381e05 !important;
+  border: 1px solid #dcd1b6 !important;
+}
+
+#printable-invoice table,
+#printable-invoice td,
+#printable-invoice th {
+  border-color: #e6dcc5 !important;
+}
+
+#printable-invoice .badge {
+  background-color: #f7f1e1 !important;
+  color: #381e05 !important;
+  border: 1px solid #dcd1b6 !important;
+}
+
+/* Remove default spinner increment/decrement buttons from number inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
