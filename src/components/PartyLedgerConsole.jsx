@@ -5,16 +5,14 @@ import {
   Printer, 
   Download, 
   Trash2, 
-  Search, 
   Calendar, 
   User, 
   MapPin, 
-  ArrowUpRight, 
-  ArrowDownLeft,
-  FileText
+  Phone,
+  Mail,
+  Building
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
-import { formatCurrency } from '../utils';
 
 // Helper to format date strings to DD-MMM-YY format e.g., 8-Jul-24 or 08-Jul-2024
 const formatDateShort = (dateStr) => {
@@ -56,7 +54,7 @@ export default function PartyLedgerConsole({
   const [selectedParty, setSelectedParty] = useState(existingParties[0] || 'Samasta');
   const [partyAddress, setPartyAddress] = useState('No-29, C.P.Ramaswamy Road, Alwarpet, Chennai-18.');
   
-  // Date range filters (default to financial year 1-Apr-2024 to 31-Mar-2026 as in screenshot)
+  // Date range filters
   const [fromDate, setFromDate] = useState('2024-04-01');
   const [toDate, setToDate] = useState('2026-03-31');
 
@@ -72,7 +70,7 @@ export default function PartyLedgerConsole({
     drCr: 'Cr'
   });
 
-  // Calculate Party Address from existing invoices if available
+  // Auto-sync Party Address from existing invoices if available
   useMemo(() => {
     if (selectedParty) {
       const match = invoices.find(inv => inv.customerName && inv.customerName.trim().toLowerCase() === selectedParty.trim().toLowerCase() && inv.customerAddress);
@@ -110,8 +108,7 @@ export default function PartyLedgerConsole({
           drCr = 'Dr';
           debit = total;
         } else {
-          // Standard Sales Invoice
-          vchType = 'Purchase'; // From customer's dealer perspective or Sales
+          vchType = 'Purchase';
           drCr = 'Dr';
           credit = total;
         }
@@ -149,11 +146,10 @@ export default function PartyLedgerConsole({
       }
     });
 
-    // Sort chronologically by date
     return list.sort((a, b) => a.rawDate - b.rawDate);
   }, [selectedParty, invoices, ledgerEntries, systemMode]);
 
-  // Filter transactions within selected Date Range & group by financial periods if needed
+  // Filter transactions within selected Date Range
   const filteredTransactions = useMemo(() => {
     if (!fromDate && !toDate) return partyTransactions;
     const fromTime = fromDate ? new Date(fromDate).getTime() : 0;
@@ -244,7 +240,9 @@ export default function PartyLedgerConsole({
     html2pdf().set(opt).from(element).save();
   };
 
-  const activeShopName = settings.shopName || 'Reoti Handlooms';
+  const isAmbekar = systemMode === 'ambekar' || systemMode === 'ambekar_pn';
+  const activeShopName = settings.shopName || (isAmbekar ? 'Ambekar Handloom House' : 'Reoti Handloom');
+  const activeLogo = isAmbekar ? '/logo_ambekar.jpg' : '/logo.jpg';
 
   return (
     <div className="ledger-console-container" style={{ padding: '10px 0' }}>
@@ -257,7 +255,7 @@ export default function PartyLedgerConsole({
               <BookOpen size={24} /> Party Ledger Account (खाता विवरण)
             </h2>
             <p className="text-muted" style={{ fontSize: '0.85rem', margin: '2px 0 0 0' }}>
-              Select a customer or supplier to view, print, or download their complete Tally-style ledger statement.
+              Issued by <strong>{activeShopName}</strong> for customer & supplier statement tracking.
             </p>
           </div>
 
@@ -294,7 +292,7 @@ export default function PartyLedgerConsole({
           {/* Party Selector */}
           <div>
             <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-              <User size={14} style={{ display: 'inline', marginRight: '4px' }} /> Select Party / Customer Name
+              <User size={14} style={{ display: 'inline', marginRight: '4px' }} /> Party / Customer Name
             </label>
             <div style={{ position: 'relative' }}>
               <input 
@@ -317,7 +315,7 @@ export default function PartyLedgerConsole({
           {/* Party Address */}
           <div>
             <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-              <MapPin size={14} style={{ display: 'inline', marginRight: '4px' }} /> Party Address / City
+              <MapPin size={14} style={{ display: 'inline', marginRight: '4px' }} /> Party Address / Location
             </label>
             <input 
               type="text"
@@ -500,79 +498,165 @@ export default function PartyLedgerConsole({
         </div>
       )}
 
-      {/* Printable / Viewable Tally-style Statement Paper Document */}
+      {/* Royal Theme Matched Printable Statement Paper */}
       <div 
         id="printable-ledger-statement" 
         className="ledger-print-paper"
         style={{
-          background: '#ffffff',
-          color: '#000000',
-          padding: '40px 45px',
-          fontFamily: "'Courier New', Courier, monospace, Arial, sans-serif",
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          borderRadius: '4px',
+          background: '#fdfaf2',
+          color: '#4a2c11',
+          padding: '24px 30px',
+          fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+          boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+          borderRadius: '6px',
           margin: '0 auto',
-          maxWidth: '900px',
-          boxSizing: 'border-box'
+          maxWidth: '920px',
+          border: '3px double #b45309',
+          boxSizing: 'border-box',
+          position: 'relative'
         }}
       >
-        {/* Top Centered Header - Party Name, Address, Shop Name */}
-        <div style={{ textAlign: 'center', marginBottom: '22px', lineHeight: '1.3' }}>
-          <h1 style={{ margin: '0 0 2px 0', fontSize: '1.45rem', fontWeight: 'bold', letterSpacing: '0.3px' }}>
-            {selectedParty || 'Samasta'}
-          </h1>
-          {partyAddress && (
-            <div style={{ fontSize: '0.92rem', color: '#222222', whiteSpace: 'pre-line', margin: '0 0 8px 0' }}>
-              {partyAddress}
+        {/* 1. TOP HEADER: Reoti Handloom Official Business Branding */}
+        <div style={{
+          backgroundColor: '#fffef9',
+          borderRadius: '6px',
+          padding: '14px 18px',
+          marginBottom: '16px',
+          display: 'grid',
+          gridTemplateColumns: '1.4fr 1fr',
+          gap: '16px',
+          alignItems: 'center',
+          border: '1px solid #b45309',
+          boxShadow: 'inset 0 0 0 2px #fef3c7, 0 2px 6px rgba(180,83,9,0.08)'
+        }}>
+          {/* Shop Logo & Name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <img src={activeLogo} alt="Logo" style={{ height: '76px', width: '76px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #b45309', backgroundColor: '#ffffff', padding: '3px', flexShrink: 0 }} />
+            <div>
+              <h1 className="brand-heading" style={{ fontSize: '1.85rem', color: '#78350f', fontWeight: '800', margin: 0, lineHeight: '1.05' }}>
+                {activeShopName}
+              </h1>
+              <div className="gold-badge" style={{ backgroundColor: '#fef3c7', color: '#78350f', border: '1px solid #f59e0b', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '700', marginTop: '4px', display: 'inline-block' }}>
+                ✨ Something "MORE" In Maheshwari Handloom
+              </div>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', fontWeight: '600', color: '#451a03' }}>
+                Manufacturer of Maheshwari Handloom Sarees, Suits & Fabrics
+              </p>
             </div>
-          )}
-
-          <h2 style={{ margin: '6px 0 2px 0', fontSize: '1.25rem', fontWeight: 'bold' }}>
-            {activeShopName}
-          </h2>
-          <div style={{ fontSize: '1rem', fontStyle: 'italic', margin: '0 0 10px 0' }}>
-            Ledger Account
           </div>
 
-          <div style={{ fontSize: '0.88rem', marginTop: '6px' }}>
-            {fromDate ? formatDateShort(fromDate) : '1-Apr-24'} to {toDate ? formatDateShort(toDate) : '31-Mar-26'}
+          {/* Shop Address & GSTIN Box */}
+          <div style={{
+            backgroundColor: '#fef7e6',
+            border: '1px solid #f59e0b',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            fontSize: '0.78rem',
+            color: '#451a03',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '3px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+              <span>📍</span>
+              <span style={{ fontWeight: '600' }}>{settings.shopAddress || '73, LaxmiBai Marg, Maheshwar, MP'}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+              <span>📞</span>
+              <span style={{ fontWeight: '700' }}>+{settings.shopPhone || '91-9617444445'}</span>
+            </div>
+            {settings.shopGSTIN && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>🏛️</span>
+                <span style={{ fontWeight: '800', color: '#78350f' }}>GSTIN: {settings.shopGSTIN}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Page Number Right Align */}
-        <div style={{ textAlign: 'right', fontSize: '0.82rem', marginBottom: '4px', fontWeight: 'bold' }}>
-          Page 1
+        {/* 2. LEDGER TITLE BANNER */}
+        <div style={{
+          backgroundColor: '#fef3c7',
+          border: '1px solid #f59e0b',
+          borderRadius: '5px',
+          padding: '8px 14px',
+          marginBottom: '14px',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '800', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              📜 LEDGER ACCOUNT STATEMENT (खाता विवरण)
+            </h2>
+          </div>
+          <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#451a03' }}>
+            Period: <strong>{fromDate ? formatDateShort(fromDate) : '01-Apr-2024'}</strong> to <strong>{toDate ? formatDateShort(toDate) : '31-Mar-2026'}</strong>
+          </div>
         </div>
 
-        {/* Main Ledger Table */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+        {/* 3. CUSTOMER / PARTY ACCOUNT CARD */}
+        <div style={{
+          border: '1px solid #cbd5e1',
+          borderRadius: '6px',
+          padding: '10px 14px',
+          marginBottom: '16px',
+          backgroundColor: '#ffffff',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '10px'
+        }}>
+          <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: '#64748b' }}>
+              Account Statement For (Customer / Party):
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1e293b', marginTop: '2px' }}>
+              {selectedParty || 'Samasta'}
+            </div>
+            {partyAddress && (
+              <div style={{ fontSize: '0.84rem', color: '#475569', marginTop: '2px', fontWeight: '500' }}>
+                📍 {partyAddress}
+              </div>
+            )}
+          </div>
+
+          <div style={{ textAlign: 'right', borderLeft: '2px solid #f1f5f9', paddingLeft: '14px' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>Closing Balance</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '800', color: totals.balanceDrCr === 'Cr' ? '#059669' : '#dc2626' }}>
+              ₹{totals.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({totals.balanceDrCr})
+            </div>
+          </div>
+        </div>
+
+        {/* 4. MAIN TRANSACTIONS TABLE */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '0.82rem' }}>
           <thead>
-            <tr style={{ borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>
-              <th style={{ padding: '6px 4px', textAlign: 'right', width: '10%' }}>Date</th>
-              <th style={{ padding: '6px 4px', textAlign: 'left', width: '48%' }}>Particulars</th>
-              <th style={{ padding: '6px 4px', textAlign: 'left', width: '15%' }}>Vch Type</th>
-              <th style={{ padding: '6px 4px', textAlign: 'right', width: '9%' }}>Vch No.</th>
-              <th style={{ padding: '6px 4px', textAlign: 'right', width: '9%' }}>Debit</th>
-              <th style={{ padding: '6px 4px', textAlign: 'right', width: '9%' }}>Credit</th>
+            <tr style={{ backgroundColor: '#f8fafc', borderTop: '2px solid #94a3b8', borderBottom: '2px solid #94a3b8' }}>
+              <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '11%', fontWeight: '700' }}>Date</th>
+              <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', width: '45%', fontWeight: '700' }}>Particulars / Description</th>
+              <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '14%', fontWeight: '700' }}>Vch Type</th>
+              <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '10%', fontWeight: '700' }}>Vch No</th>
+              <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '10%', fontWeight: '700', color: '#059669' }}>Debit (₹)</th>
+              <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '10%', fontWeight: '700', color: '#dc2626' }}>Credit (₹)</th>
             </tr>
           </thead>
           <tbody>
             {filteredTransactions.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '30px 10px', color: '#666' }}>
-                  No transaction ledger records found for <strong>{selectedParty}</strong> in selected period.
+                <td colSpan={6} style={{ textAlign: 'center', padding: '30px 10px', color: '#64748b', backgroundColor: '#fff' }}>
+                  No transaction records found for <strong>{selectedParty}</strong> in selected period.
                 </td>
               </tr>
             ) : (
               filteredTransactions.map((tx, idx) => (
-                <tr key={idx} style={{ verticalAlign: 'top' }}>
-                  {/* Date with Dr/Cr indicator */}
-                  <td style={{ padding: '3px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    {formatDateShort(tx.date)} <span style={{ fontWeight: 'bold' }}>{tx.drCr || 'Dr'}</span>
+                <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfc', borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', whiteSpace: 'nowrap', fontWeight: '500' }}>
+                    {formatDateShort(tx.date)}
                   </td>
-
-                  {/* Particulars */}
-                  <td style={{ padding: '3px 4px', fontWeight: 'bold' }}>
+                  <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', fontWeight: '600', color: '#1e293b' }}>
                     {tx.particulars}
                     {!tx.isAutoBill && (
                       <button 
@@ -581,85 +665,102 @@ export default function PartyLedgerConsole({
                         title="Delete entry"
                         style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', marginLeft: '8px' }}
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={13} />
                       </button>
                     )}
                   </td>
-
-                  {/* Vch Type */}
-                  <td style={{ padding: '3px 4px', fontWeight: 'bold' }}>
-                    {tx.vchType}
+                  <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', fontWeight: '600' }}>
+                    <span style={{
+                      backgroundColor: tx.vchType === 'Purchase' || tx.vchType === 'Purchase Note' ? '#eff6ff' : (tx.vchType === 'Credit Note' ? '#fef2f2' : '#f0fdf4'),
+                      color: tx.vchType === 'Purchase' || tx.vchType === 'Purchase Note' ? '#1d4ed8' : (tx.vchType === 'Credit Note' ? '#dc2626' : '#15803d'),
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem'
+                    }}>
+                      {tx.vchType}
+                    </span>
                   </td>
-
-                  {/* Vch No */}
-                  <td style={{ padding: '3px 4px', textAlign: 'right' }}>
-                    {tx.vchNo}
+                  <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', fontWeight: '600', color: '#475569' }}>
+                    {tx.vchNo || '-'}
                   </td>
-
-                  {/* Debit */}
-                  <td style={{ padding: '3px 4px', textAlign: 'right' }}>
-                    {tx.debit > 0 ? tx.debit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                  <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: tx.debit > 0 ? '#059669' : '#94a3b8' }}>
+                    {tx.debit > 0 ? tx.debit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
                   </td>
-
-                  {/* Credit */}
-                  <td style={{ padding: '3px 4px', textAlign: 'right' }}>
-                    {tx.credit > 0 ? tx.credit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                  <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: tx.credit > 0 ? '#dc2626' : '#94a3b8' }}>
+                    {tx.credit > 0 ? tx.credit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
                   </td>
                 </tr>
               ))
             )}
           </tbody>
-
-          {/* Subtotals & Closing Balance Summary Section */}
           {filteredTransactions.length > 0 && (
             <tfoot>
-              {/* Row 1: Subtotal of Debit & Credit */}
-              <tr style={{ borderTop: '1px solid #000' }}>
-                <td colSpan={4}></td>
-                <td style={{ padding: '4px 4px', textAlign: 'right', fontWeight: 'bold' }}>
-                  {totals.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {/* Row 1: Subtotals */}
+              <tr style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold' }}>
+                <td colSpan={4} style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right' }}>Total Transactions Sum:</td>
+                <td style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', color: '#059669' }}>
+                  ₹{totals.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </td>
-                <td style={{ padding: '4px 4px', textAlign: 'right', fontWeight: 'bold' }}>
-                  {totals.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <td style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', color: '#dc2626' }}>
+                  ₹{totals.credit !== undefined ? totals.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : totals.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </td>
               </tr>
 
               {/* Row 2: Closing Balance */}
-              <tr>
-                <td style={{ padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>{totals.balanceDrCr}</td>
-                <td colSpan={3} style={{ padding: '2px 4px', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                  Closing Balance
+              <tr style={{ backgroundColor: '#fef3c7', fontWeight: 'bold' }}>
+                <td colSpan={4} style={{ border: '1px solid #f59e0b', padding: '7px 10px', textAlign: 'right', color: '#78350f' }}>
+                  Closing Account Balance ({totals.balanceDrCr}):
                 </td>
                 {totals.balanceDrCr === 'Cr' ? (
                   <>
-                    <td style={{ padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>
-                      {totals.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <td style={{ border: '1px solid #f59e0b', padding: '7px 10px', textAlign: 'right', color: '#059669' }}>
+                      ₹{totals.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </td>
-                    <td></td>
+                    <td style={{ border: '1px solid #f59e0b', padding: '7px 10px' }}></td>
                   </>
                 ) : (
                   <>
-                    <td></td>
-                    <td style={{ padding: '2px 4px', textAlign: 'right', fontWeight: 'bold' }}>
-                      {totals.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <td style={{ border: '1px solid #f59e0b', padding: '7px 10px' }}></td>
+                    <td style={{ border: '1px solid #f59e0b', padding: '7px 10px', textAlign: 'right', color: '#dc2626' }}>
+                      ₹{totals.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </td>
                   </>
                 )}
               </tr>
 
-              {/* Row 3: Double Line Total Balancing */}
-              <tr style={{ borderTop: '1px solid #000', borderBottom: '3px double #000', fontWeight: 'bold' }}>
-                <td colSpan={4}></td>
-                <td style={{ padding: '4px 4px', textAlign: 'right' }}>
-                  {Math.max(totals.totalDebit, totals.totalCredit).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {/* Row 3: Grand Net Total */}
+              <tr style={{ backgroundColor: '#e2e8f0', fontWeight: 'bold', fontSize: '0.88rem' }}>
+                <td colSpan={4} style={{ border: '2px solid #475569', padding: '8px 10px', textAlign: 'right' }}>Net Balanced Ledger Total:</td>
+                <td style={{ border: '2px solid #475569', padding: '8px 10px', textAlign: 'right' }}>
+                  ₹{Math.max(totals.totalDebit, totals.totalCredit).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </td>
-                <td style={{ padding: '4px 4px', textAlign: 'right' }}>
-                  {Math.max(totals.totalDebit, totals.totalCredit).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <td style={{ border: '2px solid #475569', padding: '8px 10px', textAlign: 'right' }}>
+                  ₹{Math.max(totals.totalDebit, totals.totalCredit).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             </tfoot>
           )}
         </table>
+
+        {/* 5. FOOTER SIGNATURE & TERMS */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', marginTop: '20px', fontSize: '0.78rem', color: '#475569' }}>
+          <div>
+            <div style={{ fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', color: '#1e293b' }}>Note & Verification:</div>
+            <div>
+              1. This is a computer-generated ledger statement issued by <strong>{activeShopName}</strong>.<br />
+              2. Please inform us within 7 days in case of any discrepancy in transaction balance.
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyBetween: 'space-between', alignItems: 'center' }}>
+            <div>For <strong>{activeShopName}</strong></div>
+            <div style={{ height: '35px' }}></div>
+            <div style={{ borderTop: '1px solid #94a3b8', width: '80%', paddingTop: '3px', fontWeight: '600' }}>
+              Authorized Signatory
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
