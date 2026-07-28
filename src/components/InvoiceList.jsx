@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Eye, Edit3, Trash2, Download, Table, Calendar, CreditCard } from 'lucide-react';
+import { Search, Eye, Edit3, Trash2, Download, Plus, FileText, Calendar, CreditCard, User, Phone, MapPin } from 'lucide-react';
 import { formatCurrency } from '../utils';
 
 export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvoice, onDeleteInvoice, onSaveInvoice }) {
@@ -8,6 +8,23 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
   const [modeFilter, setModeFilter] = useState('All');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // State for manual old bill creation modal
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [manualBill, setManualBill] = useState({
+    invoiceNo: '',
+    date: new Date().toISOString().split('T')[0],
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
+    customerGSTIN: '',
+    particulars: 'Interstate -Reg Dealer Purchase @5%',
+    grandTotal: '',
+    paymentMode: 'Cash',
+    paymentStatus: 'Paid',
+    paidAmount: '',
+    remarks: 'Manual Past Bill Entry'
+  });
 
   const handleSettleUdhar = (inv) => {
     const grandTotal = parseFloat(inv.grandTotal) || 0;
@@ -39,6 +56,70 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
     if (onSaveInvoice) {
       onSaveInvoice(updatedInvoice, false);
     }
+  };
+
+  // Submit manual past bill
+  const handleSaveManualBill = (e) => {
+    e.preventDefault();
+    if (!manualBill.invoiceNo || !manualBill.invoiceNo.trim()) {
+      alert("Please enter a Bill / Invoice Number (e.g. RH-2024-073).");
+      return;
+    }
+
+    const totalVal = parseFloat(manualBill.grandTotal) || 0;
+    const paidVal = manualBill.paymentStatus === 'Paid' ? totalVal : (manualBill.paymentStatus === 'Unpaid' ? 0 : (parseFloat(manualBill.paidAmount) || 0));
+    const dueVal = Math.max(0, totalVal - paidVal);
+
+    // Create complete invoice object
+    const newInvoiceObj = {
+      invoiceNo: manualBill.invoiceNo.trim(),
+      date: manualBill.date,
+      customerName: manualBill.customerName.trim() || 'Walk-in Customer',
+      customerPhone: manualBill.customerPhone.trim(),
+      customerAddress: manualBill.customerAddress.trim(),
+      customerGSTIN: manualBill.customerGSTIN.trim(),
+      items: [
+        {
+          id: `item_${Date.now()}`,
+          name: manualBill.particulars || 'Handloom Items Purchase',
+          hsn: '5208',
+          rate: totalVal,
+          qty: 1,
+          unit: 'Pcs',
+          taxable: totalVal,
+          total: totalVal
+        }
+      ],
+      courierCharges: 0,
+      invoiceGstRate: 5,
+      grandTotal: totalVal,
+      paidAmount: paidVal,
+      dueAmount: dueVal,
+      paymentMode: manualBill.paymentMode,
+      paymentStatus: manualBill.paymentStatus,
+      remarks: manualBill.remarks || 'Manual Past Bill Entry',
+      isManualEntry: true
+    };
+
+    if (onSaveInvoice) {
+      onSaveInvoice(newInvoiceObj, false);
+    }
+
+    setIsManualModalOpen(false);
+    setManualBill({
+      invoiceNo: '',
+      date: new Date().toISOString().split('T')[0],
+      customerName: '',
+      customerPhone: '',
+      customerAddress: '',
+      customerGSTIN: '',
+      particulars: 'Interstate -Reg Dealer Purchase @5%',
+      grandTotal: '',
+      paymentMode: 'Cash',
+      paymentStatus: 'Paid',
+      paidAmount: '',
+      remarks: 'Manual Past Bill Entry'
+    });
   };
 
   // 1. Process filtering operations
@@ -81,7 +162,7 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
     
     // Rows composition
     const csvRows = [
-      headers.join(','), // join headers
+      headers.join(','),
       ...filteredInvoices.map(inv => [
         `"${inv.invoiceNo}"`,
         `"${inv.date}"`,
@@ -113,18 +194,207 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
         <div>
           <h2 className="brand-heading text-gold">Transactional Bills Archive</h2>
           <p className="text-muted" style={{ fontSize: '0.85rem' }}>
-            Browse and query historical billing vouchers, print/reprint receipts, modify entries, or extract database logs.
+            Browse historical billing vouchers, add manual old bills, print receipts, or export database logs.
           </p>
         </div>
-        <button
-          className="btn btn-secondary"
-          onClick={exportToCSV}
-          disabled={filteredInvoices.length === 0}
-          title="Backup visible logs to CSV"
-        >
-          <Download size={18} /> Export List as CSV
-        </button>
+
+        <div className="d-flex gap-2 flex-wrap">
+          <button
+            className="btn btn-emerald"
+            onClick={() => setIsManualModalOpen(true)}
+            style={{ fontWeight: '600' }}
+          >
+            <Plus size={18} /> Add Manual / Old Past Bill (पुराना बिल जोड़ें)
+          </button>
+
+          <button
+            className="btn btn-secondary"
+            onClick={exportToCSV}
+            disabled={filteredInvoices.length === 0}
+            title="Backup visible logs to CSV"
+          >
+            <Download size={18} /> Export List as CSV
+          </button>
+        </div>
       </div>
+
+      {/* Modal for Manual Old Past Bill Entry */}
+      {isManualModalOpen && (
+        <div className="modal-overlay no-print">
+          <div className="modal-content" style={{ maxWidth: '620px', width: '92%' }}>
+            <div className="modal-header">
+              <h3 className="brand-heading d-flex align-center gap-2" style={{ color: 'var(--accent-gold)' }}>
+                <FileText size={20} /> Add Old / Past Bill Entry (पुराना बिल)
+              </h3>
+              <button className="btn btn-secondary btn-sm" onClick={() => setIsManualModalOpen(false)}>✕</button>
+            </div>
+
+            <form onSubmit={handleSaveManualBill} style={{ padding: '20px' }}>
+              <p className="text-muted mb-3" style={{ fontSize: '0.84rem' }}>
+                This bill will be permanently saved to your SQLite Database and automatically included in Party Ledger statements.
+              </p>
+
+              <div className="grid-responsive gap-3 mb-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                    Bill / Invoice No. *
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input-field w-full" 
+                    placeholder="e.g. RH-2024-073" 
+                    value={manualBill.invoiceNo} 
+                    onChange={(e) => setManualBill({...manualBill, invoiceNo: e.target.value})} 
+                    required 
+                    style={{ fontWeight: '700' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                    Bill Date *
+                  </label>
+                  <input 
+                    type="date" 
+                    className="input-field w-full" 
+                    value={manualBill.date} 
+                    onChange={(e) => setManualBill({...manualBill, date: e.target.value})} 
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div className="grid-responsive gap-3 mb-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                    Customer / Party Name *
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input-field w-full" 
+                    placeholder="e.g. Samasta" 
+                    value={manualBill.customerName} 
+                    onChange={(e) => setManualBill({...manualBill, customerName: e.target.value})} 
+                    required 
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                    Mobile Number
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input-field w-full" 
+                    placeholder="e.g. 9826012345" 
+                    value={manualBill.customerPhone} 
+                    onChange={(e) => setManualBill({...manualBill, customerPhone: e.target.value})} 
+                  />
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                  Customer Address / City
+                </label>
+                <input 
+                  type="text" 
+                  className="input-field w-full" 
+                  placeholder="e.g. No-29, C.P.Ramaswamy Road, Chennai" 
+                  value={manualBill.customerAddress} 
+                  onChange={(e) => setManualBill({...manualBill, customerAddress: e.target.value})} 
+                />
+              </div>
+
+              <div className="mb-3">
+                <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                  Item Description / Particulars
+                </label>
+                <input 
+                  type="text" 
+                  className="input-field w-full" 
+                  placeholder="e.g. Interstate -Reg Dealer Purchase @5%" 
+                  value={manualBill.particulars} 
+                  onChange={(e) => setManualBill({...manualBill, particulars: e.target.value})} 
+                />
+              </div>
+
+              <div className="grid-responsive gap-3 mb-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px', color: 'var(--accent-gold)' }}>
+                    Grand Total Amount (₹) *
+                  </label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    className="input-field w-full" 
+                    placeholder="0.00" 
+                    value={manualBill.grandTotal} 
+                    onChange={(e) => setManualBill({...manualBill, grandTotal: e.target.value})} 
+                    required 
+                    style={{ fontWeight: '700', fontSize: '1rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                    Payment Method
+                  </label>
+                  <select 
+                    className="input-field w-full" 
+                    value={manualBill.paymentMode} 
+                    onChange={(e) => setManualBill({...manualBill, paymentMode: e.target.value})}
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Net Banking">Net Banking</option>
+                    <option value="Credit">Credit / Udhar</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid-responsive gap-3 mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
+                    Payment Status
+                  </label>
+                  <select 
+                    className="input-field w-full" 
+                    value={manualBill.paymentStatus} 
+                    onChange={(e) => setManualBill({...manualBill, paymentStatus: e.target.value})}
+                  >
+                    <option value="Paid">Paid</option>
+                    <option value="Unpaid">Unpaid / Udhar</option>
+                    <option value="Partial">Partial Paid</option>
+                  </select>
+                </div>
+
+                {manualBill.paymentStatus === 'Partial' && (
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: '700', display: 'block', marginBottom: '4px', color: '#10b981' }}>
+                      Paid Amount (₹)
+                    </label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      className="input-field w-full" 
+                      placeholder="0.00" 
+                      value={manualBill.paidAmount} 
+                      onChange={(e) => setManualBill({...manualBill, paidAmount: e.target.value})} 
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="d-flex justify-end gap-2">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsManualModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-emerald" style={{ fontWeight: '600' }}>Save Old Bill to Database</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Advanced filters card */}
       <div className="glass-card d-flex flex-column gap-4 py-4">
@@ -230,6 +500,11 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
                           PURCHASE NOTE
                         </span>
                       )}
+                      {inv.isManualEntry && (
+                        <span className="badge" style={{ fontSize: '0.65rem', backgroundColor: 'rgba(16,185,129,0.15)', color: '#10b981', marginTop: '2px', padding: '1px 6px' }}>
+                          OLD PAST BILL
+                        </span>
+                      )}
                     </div>
                   </td>
 
@@ -254,7 +529,7 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
                     ) : isPN ? (
                       <span className="text-muted" style={{ fontSize: '0.8rem', color: '#a855f7' }}>Inward Purchase Note</span>
                     ) : (
-                      <span className="text-muted" style={{ fontSize: '0.8rem' }}>Tax / Retail Invoice</span>
+                      <span className="text-muted" style={{ fontSize: '0.8rem' }}>{inv.isManualEntry ? 'Manual Old Entry' : 'Tax / Retail Invoice'}</span>
                     )}
                   </td>
 
