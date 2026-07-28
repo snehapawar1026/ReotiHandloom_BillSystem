@@ -239,17 +239,40 @@ export default function PosConsole({
               </span>
               {isPurchaseNote ? 'Purchase Note & Supplier Details' : (isCreditNote ? 'Credit Note & Customer Details' : 'Invoice & Customer Info')}
             </h3>
-            {isCreditNote && (
-              <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', fontWeight: 'bold' }}>
-                GST CREDIT NOTE VOUCHER
-              </span>
-            )}
-            {isPurchaseNote && (
-              <span className="badge" style={{ backgroundColor: 'rgba(139, 92, 246, 0.2)', color: '#a855f7', fontWeight: 'bold' }}>
-                PURCHASE NOTE (INWARD STOCK)
-              </span>
-            )}
+            <div className="d-flex gap-2 align-center flex-wrap">
+              {isCreditNote && (
+                <span className="badge" style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', fontWeight: 'bold' }}>
+                  GST CREDIT NOTE VOUCHER
+                </span>
+              )}
+              {isPurchaseNote && (
+                <span className="badge" style={{ backgroundColor: 'rgba(139, 92, 246, 0.2)', color: '#a855f7', fontWeight: 'bold' }}>
+                  PURCHASE NOTE (INWARD STOCK)
+                </span>
+              )}
+
+              {/* Prominent Top Action Buttons */}
+              <button
+                type="submit"
+                className={`btn btn-sm ${isCreditNote ? 'btn-rose' : (isPurchaseNote ? 'btn-primary' : 'btn-emerald')}`}
+                style={{ fontWeight: '700', padding: '7px 14px', backgroundColor: isCreditNote ? '#dc2626' : (isPurchaseNote ? '#8b5cf6' : undefined), borderColor: isPurchaseNote ? '#8b5cf6' : undefined }}
+                title="Save Bill to Database"
+              >
+                <Save size={16} /> {isPurchaseNote ? 'Save Purchase Note' : (isCreditNote ? 'Save Credit Note' : '💾 Save Bill (बिल सेव करें)')}
+              </button>
+
+              <button
+                type="button"
+                className={`btn btn-sm ${isCreditNote ? 'btn-rose' : (isPurchaseNote ? 'btn-primary' : 'btn-primary')}`}
+                onClick={(e) => handleCommit(e, true)}
+                style={{ fontWeight: '700', padding: '7px 14px', backgroundColor: isCreditNote ? '#b91c1c' : (isPurchaseNote ? '#7c3aed' : undefined), borderColor: isCreditNote ? '#b91c1c' : (isPurchaseNote ? '#7c3aed' : undefined) }}
+                title="Save Bill & Print Receipt"
+              >
+                <Printer size={16} /> {isPurchaseNote ? 'Save & Print PN' : (isCreditNote ? 'Save & Print CN' : '🖨️ Save & Print')}
+              </button>
+            </div>
           </div>
+
 
           {/* Number & Dates Grid */}
           <div className={`grid-${isCreditNote ? '2' : '2'}`} style={{ gap: '15px' }}>

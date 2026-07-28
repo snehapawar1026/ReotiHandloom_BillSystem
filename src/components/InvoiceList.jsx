@@ -222,12 +222,23 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
       {isManualModalOpen && (
         <div className="modal-overlay no-print">
           <div className="modal-content" style={{ maxWidth: '620px', width: '92%' }}>
-            <div className="modal-header">
+            <div className="modal-header d-flex justify-between align-center">
               <h3 className="brand-heading d-flex align-center gap-2" style={{ color: 'var(--accent-gold)' }}>
                 <FileText size={20} /> Add Old / Past Bill Entry (पुराना बिल)
               </h3>
-              <button className="btn btn-secondary btn-sm" onClick={() => setIsManualModalOpen(false)}>✕</button>
+              <div className="d-flex gap-2 align-center">
+                <button
+                  type="button"
+                  className="btn btn-emerald btn-sm"
+                  onClick={handleSaveManualBill}
+                  style={{ fontWeight: '700' }}
+                >
+                  💾 Save Old Bill (सेव करें)
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={() => setIsManualModalOpen(false)}>✕</button>
+              </div>
             </div>
+
 
             <form onSubmit={handleSaveManualBill} style={{ padding: '20px' }}>
               <p className="text-muted mb-3" style={{ fontSize: '0.84rem' }}>

@@ -552,12 +552,23 @@ export default function PartyLedgerConsole({
       {isAddingVoucher && (
         <div className="modal-overlay no-print">
           <div className="modal-content" style={{ maxWidth: '550px', width: '90%' }}>
-            <div className="modal-header">
+            <div className="modal-header d-flex justify-between align-center">
               <h3 className="brand-heading d-flex align-center gap-2">
                 <Plus size={20} /> Add Ledger Voucher Entry
               </h3>
-              <button className="btn btn-secondary btn-sm" onClick={() => setIsAddingVoucher(false)}>✕</button>
+              <div className="d-flex gap-2 align-center">
+                <button 
+                  type="button" 
+                  className="btn btn-emerald btn-sm"
+                  onClick={handleCreateVoucherSubmit}
+                  style={{ fontWeight: '700' }}
+                >
+                  💾 Save (सेव करें)
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIsAddingVoucher(false)}>✕</button>
+              </div>
             </div>
+
             
             <form onSubmit={handleCreateVoucherSubmit} style={{ padding: '20px' }}>
               <div className="mb-3">
