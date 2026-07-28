@@ -53,6 +53,7 @@ export default function PartyLedgerConsole({
   // Selected party state
   const [selectedParty, setSelectedParty] = useState(existingParties[0] || 'Samasta');
   const [partyAddress, setPartyAddress] = useState('No-29, C.P.Ramaswamy Road, Alwarpet, Chennai-18.');
+  const [partyPhone, setPartyPhone] = useState('');
   
   // Date range filters
   const [fromDate, setFromDate] = useState('2024-04-01');
@@ -70,12 +71,13 @@ export default function PartyLedgerConsole({
     drCr: 'Cr'
   });
 
-  // Auto-sync Party Address from existing invoices if available
+  // Auto-sync Party Address and Mobile Number from existing invoices if available
   useMemo(() => {
     if (selectedParty) {
-      const match = invoices.find(inv => inv.customerName && inv.customerName.trim().toLowerCase() === selectedParty.trim().toLowerCase() && inv.customerAddress);
-      if (match && match.customerAddress) {
-        setPartyAddress(match.customerAddress);
+      const match = invoices.find(inv => inv.customerName && inv.customerName.trim().toLowerCase() === selectedParty.trim().toLowerCase());
+      if (match) {
+        if (match.customerAddress) setPartyAddress(match.customerAddress);
+        if (match.customerPhone) setPartyPhone(match.customerPhone);
       }
     }
   }, [selectedParty, invoices]);
@@ -286,8 +288,8 @@ export default function PartyLedgerConsole({
           </div>
         </div>
 
-        {/* Filter Controls Row */}
-        <div className="grid-responsive gap-3 mt-4" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1.6fr 1fr 1fr', alignItems: 'end' }}>
+        {/* Filter Controls Row with Mobile Number Column */}
+        <div className="grid-responsive gap-3 mt-4" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.3fr 0.9fr 0.9fr', alignItems: 'end' }}>
           
           {/* Party Selector */}
           <div>
@@ -302,7 +304,7 @@ export default function PartyLedgerConsole({
                 value={selectedParty}
                 onChange={(e) => setSelectedParty(e.target.value)}
                 placeholder="Type or select Party Name..."
-                style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: '0.95rem' }}
+                style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: '0.92rem' }}
               />
               <datalist id="party-options">
                 {existingParties.map((p, idx) => (
@@ -310,6 +312,21 @@ export default function PartyLedgerConsole({
                 ))}
               </datalist>
             </div>
+          </div>
+
+          {/* Mobile Number Column */}
+          <div>
+            <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+              <Phone size={14} style={{ display: 'inline', marginRight: '4px' }} /> Mobile Number
+            </label>
+            <input 
+              type="text"
+              className="input-field w-full"
+              value={partyPhone}
+              onChange={(e) => setPartyPhone(e.target.value)}
+              placeholder="e.g. 9826012345"
+              style={{ fontSize: '0.88rem' }}
+            />
           </div>
 
           {/* Party Address */}
@@ -322,7 +339,7 @@ export default function PartyLedgerConsole({
               className="input-field w-full"
               value={partyAddress}
               onChange={(e) => setPartyAddress(e.target.value)}
-              placeholder="e.g. No-29, C.P.Ramaswamy Road, Alwarpet, Chennai-18."
+              placeholder="e.g. No-29, C.P.Ramaswamy Road, Chennai"
               style={{ fontSize: '0.88rem' }}
             />
           </div>
@@ -337,7 +354,7 @@ export default function PartyLedgerConsole({
               className="input-field w-full"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              style={{ fontSize: '0.88rem' }}
+              style={{ fontSize: '0.85rem' }}
             />
           </div>
 
@@ -351,7 +368,7 @@ export default function PartyLedgerConsole({
               className="input-field w-full"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              style={{ fontSize: '0.88rem' }}
+              style={{ fontSize: '0.85rem' }}
             />
           </div>
         </div>
@@ -596,7 +613,7 @@ export default function PartyLedgerConsole({
           </div>
         </div>
 
-        {/* 3. CUSTOMER / PARTY ACCOUNT CARD */}
+        {/* 3. CUSTOMER / PARTY ACCOUNT CARD (WITH PHONE NUMBER) */}
         <div style={{
           border: '1px solid #cbd5e1',
           borderRadius: '6px',
@@ -616,9 +633,14 @@ export default function PartyLedgerConsole({
             <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1e293b', marginTop: '2px' }}>
               {selectedParty || 'Samasta'}
             </div>
+            {partyPhone && (
+              <div style={{ fontSize: '0.86rem', color: '#0369a1', marginTop: '2px', fontWeight: '700' }}>
+                📞 Phone / Mobile: <span>{partyPhone}</span>
+              </div>
+            )}
             {partyAddress && (
               <div style={{ fontSize: '0.84rem', color: '#475569', marginTop: '2px', fontWeight: '500' }}>
-                📍 {partyAddress}
+                📍 Address: {partyAddress}
               </div>
             )}
           </div>
@@ -702,7 +724,7 @@ export default function PartyLedgerConsole({
                   ₹{totals.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </td>
                 <td style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', color: '#dc2626' }}>
-                  ₹{totals.credit !== undefined ? totals.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : totals.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹{totals.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </td>
               </tr>
 
