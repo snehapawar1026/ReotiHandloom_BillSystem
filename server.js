@@ -193,6 +193,51 @@ function initTables() {
             } catch (e) {}
           }
         });
+    // Seed Jayshree ledger entries if not already present
+    db.get(`SELECT COUNT(*) as cnt FROM ledger WHERE party_name = 'Jayshree'`, (err, row) => {
+      if (!err && (!row || row.cnt === 0)) {
+        const jayshreeEntries = [
+          { id: 'ledg_jayshree_1', partyName: 'Jayshree', date: '2025-01-14', vchType: 'Payment', vchNo: '233', particulars: 'SBI - CC-42476655602', debit: 241427, credit: 0, drCr: 'Dr' },
+          { id: 'ledg_jayshree_2', partyName: 'Jayshree', date: '2025-02-03', vchType: 'Payment', vchNo: '234', particulars: 'SBI - CC-42476655602', debit: 290877, credit: 0, drCr: 'Dr' },
+          { id: 'ledg_jayshree_3', partyName: 'Jayshree', date: '2025-04-17', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_4', partyName: 'Jayshree', date: '2025-04-19', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 100000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_5', partyName: 'Jayshree', date: '2025-06-16', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_6', partyName: 'Jayshree', date: '2025-07-15', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 41427, drCr: 'Cr' },
+          { id: 'ledg_jayshree_7', partyName: 'Jayshree', date: '2025-08-26', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 90000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_8', partyName: 'Jayshree', date: '2025-10-14', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 100000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_9', partyName: 'Jayshree', date: '2025-10-22', vchType: 'Payment', vchNo: '258', particulars: 'SBI - CC-42476655602', debit: 137037, credit: 0, drCr: 'Dr' },
+          { id: 'ledg_jayshree_10', partyName: 'Jayshree', date: '2025-11-01', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_11', partyName: 'Jayshree', date: '2025-11-10', vchType: 'Payment', vchNo: '261', particulars: 'SBI - CC-42476655602', debit: 176077, credit: 0, drCr: 'Dr' },
+          { id: 'ledg_jayshree_12', partyName: 'Jayshree', date: '2025-11-22', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_13', partyName: 'Jayshree', date: '2025-12-30', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_14', partyName: 'Jayshree', date: '2026-02-10', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+          { id: 'ledg_jayshree_15', partyName: 'Jayshree', date: '2026-03-28', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 120000, drCr: 'Cr' }
+        ];
+
+        const stmt = db.prepare(`INSERT OR REPLACE INTO ledger (id, store_mode, party_name, date, vch_type, vch_no, debit, credit, data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        jayshreeEntries.forEach(ent => {
+          stmt.run([`reoti_${ent.id}`, 'reoti', ent.partyName, ent.date, ent.vchType, ent.vchNo, ent.debit, ent.credit, JSON.stringify(ent)]);
+        });
+        stmt.finalize();
+
+        // Also add Jayshree contact info invoice record
+        const jsInvoice = {
+          invoiceNo: 'RH-2025-JS01',
+          date: '2025-01-14',
+          customerName: 'Jayshree',
+          customerPhone: '9869050598',
+          customerAddress: 'Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)',
+          items: [{ name: 'SBI - CC-42476655602', rate: 241427, qty: 1, total: 241427 }],
+          grandTotal: 241427,
+          paidAmount: 241427,
+          dueAmount: 0,
+          paymentMode: 'Cash',
+          paymentStatus: 'Paid',
+          remarks: 'Opening Balance Record'
+        };
+        db.run(`INSERT OR IGNORE INTO invoices (invoice_no, store_mode, customer_name, customer_phone, date, grand_total, payment_mode, payment_status, data_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [jsInvoice.invoiceNo, 'reoti', jsInvoice.customerName, jsInvoice.customerPhone, jsInvoice.date, jsInvoice.grandTotal, jsInvoice.paymentMode, jsInvoice.paymentStatus, JSON.stringify(jsInvoice)]
+        );
       }
     });
 

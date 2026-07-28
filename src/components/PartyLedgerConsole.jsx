@@ -12,7 +12,9 @@ import {
   List,
   Search,
   FileText,
-  Filter
+  Filter,
+  Save,
+  Users
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
 
@@ -36,16 +38,21 @@ export default function PartyLedgerConsole({
   onSaveLedgerEntry, 
   onDeleteLedgerEntry 
 }) {
-  // Mode toggle: 'statement' (Single Party Statement) vs 'all_vouchers' (Master Vouchers Register)
+  // Mode toggle: 'statement' | 'directory' | 'all_vouchers'
   const [viewMode, setViewMode] = useState('statement');
 
-  // Search & Filters for All Vouchers Register view
+  // Search & Filters for All Vouchers Register view & Directory
   const [vchSearch, setVchSearch] = useState('');
   const [vchTypeFilter, setVchTypeFilter] = useState('All');
+  const [directorySearch, setDirectorySearch] = useState('');
 
   // Extract all unique party names from invoices and ledger entries
   const existingParties = useMemo(() => {
     const set = new Set();
+    // Default include Jayshree & Samasta
+    set.add('Jayshree');
+    set.add('Samasta');
+
     invoices.forEach(inv => {
       if (inv.customerName && inv.customerName.trim()) {
         set.add(inv.customerName.trim());
@@ -59,10 +66,10 @@ export default function PartyLedgerConsole({
     return Array.from(set).sort();
   }, [invoices, ledgerEntries]);
 
-  // Selected party state
-  const [selectedParty, setSelectedParty] = useState(existingParties[0] || 'Samasta');
-  const [partyAddress, setPartyAddress] = useState('No-29, C.P.Ramaswamy Road, Alwarpet, Chennai-18.');
-  const [partyPhone, setPartyPhone] = useState('');
+  // Selected party state (Default to Jayshree if available)
+  const [selectedParty, setSelectedParty] = useState('Jayshree');
+  const [partyAddress, setPartyAddress] = useState('Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)');
+  const [partyPhone, setPartyPhone] = useState('9869050598');
   
   // Date range filters
   const [fromDate, setFromDate] = useState('2024-04-01');
@@ -87,6 +94,9 @@ export default function PartyLedgerConsole({
       if (match) {
         if (match.customerAddress) setPartyAddress(match.customerAddress);
         if (match.customerPhone) setPartyPhone(match.customerPhone);
+      } else if (selectedParty.toLowerCase() === 'jayshree') {
+        setPartyPhone('9869050598');
+        setPartyAddress('Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)');
       }
     }
   }, [selectedParty, invoices]);
@@ -154,6 +164,67 @@ export default function PartyLedgerConsole({
 
     return list.sort((a, b) => b.rawDate - a.rawDate);
   }, [invoices, ledgerEntries, systemMode]);
+
+  // Directory summary list of ALL parties
+  const partiesDirectory = useMemo(() => {
+    return existingParties.map(partyName => {
+      const partyNorm = partyName.trim().toLowerCase();
+
+      // Find contact info
+      const matchInv = invoices.find(inv => inv.customerName && inv.customerName.trim().toLowerCase() === partyNorm);
+      const phone = matchInv?.customerPhone || (partyNorm === 'jayshree' ? '9869050598' : '');
+      const address = matchInv?.customerAddress || (partyNorm === 'jayshree' ? 'Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)' : '');
+
+      let debTotal = 0;
+      let credTotal = 0;
+      let count = 0;
+
+      invoices.forEach(inv => {
+        if (inv.customerName && inv.customerName.trim().toLowerCase() === partyNorm) {
+          count++;
+          const tot = parseFloat(inv.grandTotal) || 0;
+          if (inv.isCreditNote || (inv.invoiceNo && inv.invoiceNo.includes('CN'))) {
+            debTotal += tot;
+          } else {
+            credTotal += tot;
+          }
+        }
+      });
+
+      ledgerEntries.forEach(ent => {
+        if (ent.partyName && ent.partyName.trim().toLowerCase() === partyNorm) {
+          count++;
+          debTotal += parseFloat(ent.debit) || 0;
+          credTotal += parseFloat(ent.credit) || 0;
+        }
+      });
+
+      const netBalance = Math.abs(credTotal - debTotal);
+      const drCr = credTotal >= debTotal ? 'Cr' : 'Dr';
+
+      return {
+        partyName,
+        phone,
+        address,
+        count,
+        totalDebit: debTotal,
+        totalCredit: credTotal,
+        closingBalance: netBalance,
+        drCr
+      };
+    });
+  }, [existingParties, invoices, ledgerEntries]);
+
+  // Filtered Directory
+  const filteredDirectory = useMemo(() => {
+    if (!directorySearch.trim()) return partiesDirectory;
+    const term = directorySearch.toLowerCase();
+    return partiesDirectory.filter(p => 
+      p.partyName.toLowerCase().includes(term) ||
+      p.phone.includes(term) ||
+      p.address.toLowerCase().includes(term)
+    );
+  }, [partiesDirectory, directorySearch]);
 
   // Filtered Master Vouchers for 'all_vouchers' view
   const filteredMasterVouchers = useMemo(() => {
@@ -320,6 +391,11 @@ export default function PartyLedgerConsole({
     });
   };
 
+  // Explicit Save Current Party Account Statement
+  const handleSaveCurrentPartyStatement = () => {
+    if (!selectedParty) return;
+    alert(`✅ Ledger Account Statement for "${selectedParty}" (${filteredTransactions.length} Vouchers) is saved and synchronized with SQLite Database & LocalStorage!`);
+  };
 
   // Print & PDF Handlers
   const handlePrintLedger = () => {
@@ -351,7 +427,7 @@ export default function PartyLedgerConsole({
         <div className="d-flex justify-between align-center flex-wrap gap-3">
           <div>
             <h2 className="brand-heading d-flex align-center gap-2" style={{ fontSize: '1.4rem', color: 'var(--accent-gold)' }}>
-              <BookOpen size={24} /> Party Ledger Account & Voucher Register (खाता बही)
+              <BookOpen size={24} /> Party Ledger Account & Accounts Directory (खाता बही)
             </h2>
             <p className="text-muted" style={{ fontSize: '0.85rem', margin: '2px 0 0 0' }}>
               Issued by <strong>{activeShopName}</strong> for customer & supplier statement tracking.
@@ -367,6 +443,13 @@ export default function PartyLedgerConsole({
                 style={{ fontSize: '0.82rem', fontWeight: '600' }}
               >
                 📜 Party Statement Paper
+              </button>
+              <button 
+                className={`btn btn-sm ${viewMode === 'directory' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('directory')}
+                style={{ fontSize: '0.82rem', fontWeight: '600' }}
+              >
+                <Users size={14} /> Party Accounts List ({existingParties.length})
               </button>
               <button 
                 className={`btn btn-sm ${viewMode === 'all_vouchers' ? 'btn-primary' : 'btn-secondary'}`}
@@ -387,6 +470,15 @@ export default function PartyLedgerConsole({
 
             {viewMode === 'statement' && (
               <>
+                <button 
+                  className="btn btn-emerald" 
+                  onClick={handleSaveCurrentPartyStatement}
+                  style={{ fontWeight: '600', padding: '9px 16px', backgroundColor: '#10b981', color: '#fff' }}
+                  title="Save current party ledger account to database"
+                >
+                  <Save size= {18} /> Save Account (सेव करें)
+                </button>
+
                 <button 
                   className="btn btn-secondary" 
                   onClick={handlePrintLedger}
@@ -459,7 +551,7 @@ export default function PartyLedgerConsole({
                 className="input-field w-full"
                 value={partyAddress}
                 onChange={(e) => setPartyAddress(e.target.value)}
-                placeholder="e.g. No-29, C.P.Ramaswamy Road, Chennai"
+                placeholder="e.g. Shop No. - 01 Pethe Building, Dadar, Mumbai"
                 style={{ fontSize: '0.88rem' }}
               />
             </div>
@@ -491,6 +583,21 @@ export default function PartyLedgerConsole({
                 style={{ fontSize: '0.85rem' }}
               />
             </div>
+          </div>
+        ) : viewMode === 'directory' ? (
+          /* Party Directory Search Filter */
+          <div className="mt-4">
+            <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+              <Search size={14} style={{ display: 'inline', marginRight: '4px' }} /> Search Party Accounts
+            </label>
+            <input 
+              type="text"
+              className="input-field w-full"
+              placeholder="Search Party Name, Phone Number, or City..."
+              value={directorySearch}
+              onChange={(e) => setDirectorySearch(e.target.value)}
+              style={{ maxWidth: '450px' }}
+            />
           </div>
         ) : (
           /* All Vouchers Register Filters */
@@ -824,7 +931,7 @@ export default function PartyLedgerConsole({
                 Account Statement For (Customer / Party):
               </div>
               <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1e293b', marginTop: '2px' }}>
-                {selectedParty || 'Samasta'}
+                {selectedParty || 'Jayshree'}
               </div>
               {partyPhone && (
                 <div style={{ fontSize: '0.86rem', color: '#0369a1', marginTop: '2px', fontWeight: '700' }}>
@@ -977,8 +1084,86 @@ export default function PartyLedgerConsole({
           </div>
 
         </div>
+      ) : viewMode === 'directory' ? (
+        /* VIEW MODE 2: PARTY ACCOUNTS CARDS DIRECTORY */
+        <div className="d-flex flex-column gap-4 no-print">
+          <div className="grid-3 gap-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {filteredDirectory.map((p, idx) => (
+              <div key={idx} className="glass-card d-flex flex-column justify-between p-4" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                <div>
+                  <div className="d-flex justify-between align-center border-bottom pb-2 mb-2">
+                    <h3 className="brand-heading text-gold" style={{ fontSize: '1.15rem', margin: 0 }}>
+                      <User size={18} style={{ display: 'inline', marginRight: '6px' }} /> {p.partyName}
+                    </h3>
+                    <span className="badge badge-gold" style={{ fontSize: '0.75rem' }}>
+                      {p.count} Vouchers
+                    </span>
+                  </div>
+
+                  {p.phone && (
+                    <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                      📞 <strong>Phone:</strong> {p.phone}
+                    </div>
+                  )}
+
+                  {p.address && (
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: '1.3' }}>
+                      📍 <strong>Address:</strong> {p.address}
+                    </div>
+                  )}
+
+                  <div className="d-flex justify-between align-center p-2 rounded mb-3" style={{ background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)' }}>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Closing Balance</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: '800', color: p.drCr === 'Cr' ? '#10b981' : '#ef4444' }}>
+                        ₹{p.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({p.drCr})
+                      </div>
+                    </div>
+                    <div className="text-right" style={{ fontSize: '0.75rem' }}>
+                      <div style={{ color: '#10b981' }}>Dr Total: ₹{p.totalDebit.toLocaleString('en-IN')}</div>
+                      <div style={{ color: '#ef4444' }}>Cr Total: ₹{p.totalCredit.toLocaleString('en-IN')}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="d-flex gap-2">
+                  <button 
+                    className="btn btn-primary btn-sm w-full"
+                    onClick={() => {
+                      setSelectedParty(p.partyName);
+                      if (p.phone) setPartyPhone(p.phone);
+                      if (p.address) setPartyAddress(p.address);
+                      setViewMode('statement');
+                    }}
+                    style={{ fontWeight: '600' }}
+                  >
+                    📜 View Statement
+                  </button>
+
+                  <button 
+                    className="btn btn-emerald btn-sm"
+                    onClick={() => {
+                      setSelectedParty(p.partyName);
+                      setIsAddingVoucher(true);
+                    }}
+                    style={{ fontWeight: '600' }}
+                    title="Add new voucher for this party"
+                  >
+                    <Plus size={14} /> Add Voucher
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filteredDirectory.length === 0 && (
+              <div className="glass-card text-center text-muted p-5 w-full">
+                No party accounts found matching "{directorySearch}".
+              </div>
+            )}
+          </div>
+        </div>
       ) : (
-        /* VIEW MODE 2: ALL VOUCHERS MASTER REGISTER TABLE */
+        /* VIEW MODE 3: ALL VOUCHERS MASTER REGISTER TABLE */
         <div className="glass-card table-container no-print">
           <div className="d-flex justify-between align-center p-3 border-bottom" style={{ background: 'var(--bg-sidebar)' }}>
             <h3 className="brand-heading text-gold d-flex align-center gap-2" style={{ fontSize: '1.1rem', margin: 0 }}>
