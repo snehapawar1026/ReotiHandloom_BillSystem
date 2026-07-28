@@ -105,37 +105,30 @@ export default function PartyLedgerConsole({
   const allMasterVouchers = useMemo(() => {
     const list = [];
 
-    // 1. Invoices
+    // 1. Invoices from Bill Ledger Archive
     invoices.forEach(inv => {
       const isCN = inv.isCreditNote || (inv.invoiceNo && inv.invoiceNo.includes('CN')) || systemMode === 'reoti_cn';
       const isPN = inv.isPurchaseNote || (inv.invoiceNo && inv.invoiceNo.includes('PN')) || systemMode === 'ambekar_pn';
       
-      let vchType = 'Purchase';
-      let drCr = 'Dr';
-      let debit = 0;
-      let credit = 0;
+      let vchType = isCN ? 'Credit Note' : (isPN ? 'Purchase Note' : (inv.isManualEntry ? 'Sales Bill' : 'Sales Invoice'));
+      let drCr = isCN ? 'Cr' : 'Dr';
+      let debit = isCN ? 0 : (parseFloat(inv.grandTotal) || 0);
+      let credit = isCN ? (parseFloat(inv.grandTotal) || 0) : 0;
       const total = parseFloat(inv.grandTotal) || 0;
 
-      if (isCN) {
-        vchType = 'Credit Note';
-        drCr = 'Cr';
-        debit = total;
-      } else if (isPN) {
-        vchType = 'Purchase Note';
-        drCr = 'Dr';
-        debit = total;
-      } else {
-        vchType = 'Purchase';
-        drCr = 'Dr';
-        credit = total;
+      let itemDesc = '';
+      if (inv.items && inv.items.length > 0) {
+        itemDesc = inv.items.map(it => `${it.name || 'Fabric Item'} (${it.qty || 1} ${it.unit || 'Pcs'})`).join(', ');
       }
+      if (!itemDesc && inv.remarks) itemDesc = inv.remarks;
+      if (!itemDesc) itemDesc = 'Handloom Goods Purchase';
 
       list.push({
         id: `inv_${inv.invoiceNo}`,
         partyName: inv.customerName || 'Walk-in Customer',
         date: inv.date || '',
         drCr,
-        particulars: inv.remarks || `Interstate -Reg Dealer Purchase @5%`,
+        particulars: `[Bill #${inv.invoiceNo}] ${itemDesc}`,
         vchType,
         vchNo: inv.invoiceNo || '',
         debit,
@@ -143,6 +136,24 @@ export default function PartyLedgerConsole({
         isAutoBill: true,
         rawDate: new Date(inv.date || '2000-01-01').getTime()
       });
+
+      // Auto Receipt entry if paid
+      const paidVal = inv.paidAmount !== undefined && inv.paidAmount !== null ? parseFloat(inv.paidAmount) : (inv.paymentStatus === 'Unpaid' ? 0 : total);
+      if (paidVal > 0 && !isCN && !isPN) {
+        list.push({
+          id: `inv_pay_${inv.invoiceNo}`,
+          partyName: inv.customerName || 'Walk-in Customer',
+          date: inv.date || '',
+          drCr: 'Cr',
+          particulars: `Payment Recd against Bill #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})`,
+          vchType: 'Receipt',
+          vchNo: inv.invoiceNo || '',
+          debit: 0,
+          credit: paidVal,
+          isAutoBill: true,
+          rawDate: new Date(inv.date || '2000-01-01').getTime() + 1000
+        });
+      }
     });
 
     // 2. Manual Ledger entries
@@ -164,6 +175,7 @@ export default function PartyLedgerConsole({
 
     return list.sort((a, b) => b.rawDate - a.rawDate);
   }, [invoices, ledgerEntries, systemMode]);
+
 
   // Directory summary list of ALL parties
   const partiesDirectory = useMemo(() => {
@@ -256,40 +268,51 @@ export default function PartyLedgerConsole({
         const isCN = inv.isCreditNote || (inv.invoiceNo && inv.invoiceNo.includes('CN')) || systemMode === 'reoti_cn';
         const isPN = inv.isPurchaseNote || (inv.invoiceNo && inv.invoiceNo.includes('PN')) || systemMode === 'ambekar_pn';
         
-        let vchType = 'Purchase';
-        let drCr = 'Dr';
-        let debit = 0;
-        let credit = 0;
+        let vchType = isCN ? 'Credit Note' : (isPN ? 'Purchase Note' : (inv.isManualEntry ? 'Sales Bill' : 'Sales Invoice'));
+        let drCr = isCN ? 'Cr' : 'Dr';
+        let debit = isCN ? 0 : (parseFloat(inv.grandTotal) || 0);
+        let credit = isCN ? (parseFloat(inv.grandTotal) || 0) : 0;
         const total = parseFloat(inv.grandTotal) || 0;
 
-        if (isCN) {
-          vchType = 'Credit Note';
-          drCr = 'Cr';
-          debit = total;
-        } else if (isPN) {
-          vchType = 'Purchase Note';
-          drCr = 'Dr';
-          debit = total;
-        } else {
-          vchType = 'Purchase';
-          drCr = 'Dr';
-          credit = total;
+        let itemDesc = '';
+        if (inv.items && inv.items.length > 0) {
+          itemDesc = inv.items.map(it => `${it.name || 'Fabric Item'} (${it.qty || 1} ${it.unit || 'Pcs'})`).join(', ');
         }
+        if (!itemDesc && inv.remarks) itemDesc = inv.remarks;
+        if (!itemDesc) itemDesc = 'Handloom Goods Purchase';
 
         list.push({
           id: `inv_${inv.invoiceNo}`,
           isAutoBill: true,
           date: inv.date || '',
           drCr,
-          particulars: `Interstate -Reg Dealer Purchase @5%`,
+          particulars: `[Bill #${inv.invoiceNo}] ${itemDesc}`,
           vchType,
           vchNo: inv.invoiceNo ? inv.invoiceNo.replace(/[^0-9]/g, '') || inv.invoiceNo : '',
           debit,
           credit,
           rawDate: new Date(inv.date || '2000-01-01').getTime()
         });
+
+        // Auto Receipt entry if paid
+        const paidVal = inv.paidAmount !== undefined && inv.paidAmount !== null ? parseFloat(inv.paidAmount) : (inv.paymentStatus === 'Unpaid' ? 0 : total);
+        if (paidVal > 0 && !isCN && !isPN) {
+          list.push({
+            id: `inv_pay_${inv.invoiceNo}`,
+            isAutoBill: true,
+            date: inv.date || '',
+            drCr: 'Cr',
+            particulars: `Payment Recd against Bill #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})`,
+            vchType: 'Receipt',
+            vchNo: inv.invoiceNo ? inv.invoiceNo.replace(/[^0-9]/g, '') || inv.invoiceNo : '',
+            debit: 0,
+            credit: paidVal,
+            rawDate: new Date(inv.date || '2000-01-01').getTime() + 1000
+          });
+        }
       }
     });
+
 
     // 2. Add manual ledger vouchers
     ledgerEntries.forEach(ent => {

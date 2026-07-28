@@ -898,8 +898,12 @@ export default function App() {
               onEditInvoice={handleEditInvoice}
               onDeleteInvoice={handleDeleteInvoice}
               onSaveInvoice={handleSaveInvoice}
+              onViewInLedger={() => {
+                setActiveTab('ledger');
+              }}
             />
           )}
+
 
           {activeTab === 'ledger' && (
             <PartyLedgerConsole 

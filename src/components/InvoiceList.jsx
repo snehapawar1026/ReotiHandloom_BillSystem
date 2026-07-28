@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Search, Eye, Edit3, Trash2, Download, Plus, FileText, Calendar, CreditCard, User, Phone, MapPin } from 'lucide-react';
 import { formatCurrency } from '../utils';
 
-export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvoice, onDeleteInvoice, onSaveInvoice }) {
+export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvoice, onDeleteInvoice, onSaveInvoice, onViewInLedger }) {
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [modeFilter, setModeFilter] = useState('All');
@@ -582,6 +583,16 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
                         ₹ Settle Balance
                       </button>
                     )}
+                    {onViewInLedger && (
+                      <button
+                        className="btn btn-emerald btn-sm"
+                        onClick={() => onViewInLedger(inv)}
+                        title="View customer account statement in Party Ledger"
+                        style={{ fontWeight: '600' }}
+                      >
+                        📖 Party Ledger
+                      </button>
+                    )}
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => onSelectInvoice(inv)}
@@ -589,6 +600,7 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
                     >
                       <Eye size={14} /> View / Print
                     </button>
+
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => onEditInvoice(inv)}
