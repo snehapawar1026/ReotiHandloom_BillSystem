@@ -156,9 +156,14 @@ export default function App() {
     let loadedInvoices = savedInvoicesStr ? JSON.parse(savedInvoicesStr) : [];
     loadedInvoices = loadedInvoices.filter(inv => !['RH-2026-0001', 'RH-2026-0002', 'RH-2026-0003'].includes(inv.invoiceNo));
 
+    const getLedgerKey = (mode) => `rh_ledger_${mode}`;
+    const savedLedgerStr = localStorage.getItem(getLedgerKey(systemMode));
+    let loadedLedger = savedLedgerStr ? JSON.parse(savedLedgerStr) : [];
+
     setSettings(loadedSettings);
     setInventory(loadedProducts);
     setInvoices(loadedInvoices);
+    setLedgerEntries(loadedLedger);
 
     // Fetch live data from backend database API
     setDbStatus('Syncing with DB...');
@@ -173,11 +178,14 @@ export default function App() {
           dbSettings = { ...dbSettings, shopName: 'Ambekar Handloom House' };
         }
 
+        const dbLedger = data.ledgerEntries && data.ledgerEntries.length > 0 ? data.ledgerEntries : loadedLedger;
+
         setInvoices(dbInvoices);
         setInventory(dbInventory);
         setSettings(dbSettings);
-        setLedgerEntries(data.ledgerEntries || []);
+        setLedgerEntries(dbLedger);
         setDbStatus('🟢 MySQL/SQLite Database Synced');
+
 
 
         // Seed backend DB if backend DB has 0 invoices
@@ -217,9 +225,16 @@ export default function App() {
   }, [settings, systemMode]);
 
   useEffect(() => {
+    if (!systemMode) return;
+    const ledgerKey = `rh_ledger_${systemMode}`;
+    localStorage.setItem(ledgerKey, JSON.stringify(ledgerEntries));
+  }, [ledgerEntries, systemMode]);
+
+  useEffect(() => {
     localStorage.setItem('rh_theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
 
   // 4. Initialize and Auto-Increment current invoice details
   const handleCreateNewBlankInvoice = (customInvoices = null, customSettings = null, preserveFormDetails = false) => {
@@ -417,24 +432,43 @@ export default function App() {
 
   // Ledger Voucher handlers
   const handleSaveLedgerEntry = (newEntry) => {
-    setLedgerEntries(prev => [newEntry, ...prev]);
+    setLedgerEntries(prev => {
+      const updated = [newEntry, ...prev.filter(e => e.id !== newEntry.id)];
+      const ledgerKey = `rh_ledger_${systemMode}`;
+      localStorage.setItem(ledgerKey, JSON.stringify(updated));
+      return updated;
+    });
 
     fetch('/api/ledger', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: systemMode, entry: newEntry })
-    }).catch(console.error);
+    }).then(() => {
+      setDbStatus('🟢 MySQL/SQLite Database Synced');
+      alert(`✅ Ledger Voucher for "${newEntry.partyName}" saved permanently to Database & Ledger!`);
+    }).catch(err => {
+      console.error('Ledger sync error:', err);
+    });
   };
 
   const handleDeleteLedgerEntry = (id) => {
-    setLedgerEntries(prev => prev.filter(e => e.id !== id));
+    setLedgerEntries(prev => {
+      const updated = prev.filter(e => e.id !== id);
+      const ledgerKey = `rh_ledger_${systemMode}`;
+      localStorage.setItem(ledgerKey, JSON.stringify(updated));
+      return updated;
+    });
 
     fetch('/api/ledger', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: systemMode, id })
+    }).then(() => {
+      setDbStatus('🟢 MySQL/SQLite Database Synced');
+      alert("✅ Voucher deleted from Database.");
     }).catch(console.error);
   };
+
 
   if (!systemMode) {
 

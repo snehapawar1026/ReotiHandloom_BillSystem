@@ -277,22 +277,28 @@ export default function PartyLedgerConsole({
 
   // Handle Save New Manual Voucher
   const handleCreateVoucherSubmit = (e) => {
-    e.preventDefault();
-    if (!selectedParty) {
-      alert("Please select or enter a party name first.");
+    if (e && e.preventDefault) e.preventDefault();
+    const partyTrimmed = selectedParty ? selectedParty.trim() : '';
+    if (!partyTrimmed) {
+      alert("Please enter a Party / Customer Name.");
       return;
     }
 
     const deb = parseFloat(newVoucher.debit) || 0;
     const cred = parseFloat(newVoucher.credit) || 0;
 
+    if (deb === 0 && cred === 0) {
+      alert("Please enter a Debit Amount or Credit Amount.");
+      return;
+    }
+
     const entryToSave = {
       id: `ledg_${Date.now()}`,
-      partyName: selectedParty,
+      partyName: partyTrimmed,
       date: newVoucher.date,
       vchType: newVoucher.vchType,
       vchNo: newVoucher.vchNo,
-      particulars: newVoucher.particulars,
+      particulars: newVoucher.particulars || 'Manual Entry',
       drCr: newVoucher.drCr,
       debit: deb,
       credit: cred
@@ -313,6 +319,7 @@ export default function PartyLedgerConsole({
       drCr: 'Cr'
     });
   };
+
 
   // Print & PDF Handlers
   const handlePrintLedger = () => {
