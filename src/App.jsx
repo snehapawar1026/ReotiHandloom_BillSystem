@@ -160,10 +160,39 @@ export default function App() {
     const savedLedgerStr = localStorage.getItem(getLedgerKey(systemMode));
     let loadedLedger = savedLedgerStr ? JSON.parse(savedLedgerStr) : [];
 
+    const jayshreeDefaults = [
+      { id: 'ledg_jayshree_1', partyName: 'Jayshree', date: '2025-01-14', vchType: 'Payment', vchNo: '233', particulars: 'SBI - CC-42476655602', debit: 241427, credit: 0, drCr: 'Dr' },
+      { id: 'ledg_jayshree_2', partyName: 'Jayshree', date: '2025-02-03', vchType: 'Payment', vchNo: '234', particulars: 'SBI - CC-42476655602', debit: 290877, credit: 0, drCr: 'Dr' },
+      { id: 'ledg_jayshree_3', partyName: 'Jayshree', date: '2025-04-17', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_4', partyName: 'Jayshree', date: '2025-04-19', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 100000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_5', partyName: 'Jayshree', date: '2025-06-16', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_6', partyName: 'Jayshree', date: '2025-07-15', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 41427, drCr: 'Cr' },
+      { id: 'ledg_jayshree_7', partyName: 'Jayshree', date: '2025-08-26', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 90000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_8', partyName: 'Jayshree', date: '2025-10-14', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 100000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_9', partyName: 'Jayshree', date: '2025-10-22', vchType: 'Payment', vchNo: '258', particulars: 'SBI - CC-42476655602', debit: 137037, credit: 0, drCr: 'Dr' },
+      { id: 'ledg_jayshree_10', partyName: 'Jayshree', date: '2025-11-01', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_11', partyName: 'Jayshree', date: '2025-11-10', vchType: 'Payment', vchNo: '261', particulars: 'SBI - CC-42476655602', debit: 176077, credit: 0, drCr: 'Dr' },
+      { id: 'ledg_jayshree_12', partyName: 'Jayshree', date: '2025-11-22', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_13', partyName: 'Jayshree', date: '2025-12-30', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_14', partyName: 'Jayshree', date: '2026-02-10', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 50000, drCr: 'Cr' },
+      { id: 'ledg_jayshree_15', partyName: 'Jayshree', date: '2026-03-28', vchType: 'Payment', vchNo: '', particulars: 'SBI - CC-42476655602', debit: 0, credit: 120000, drCr: 'Cr' }
+    ];
+
+    const mergeJayshree = (list) => {
+      const map = new Map();
+      if (systemMode === 'reoti') {
+        jayshreeDefaults.forEach(item => map.set(item.id, item));
+      }
+      (list || []).forEach(item => map.set(item.id, item));
+      return Array.from(map.values());
+    };
+
+    const finalLoadedLedger = mergeJayshree(loadedLedger);
+
     setSettings(loadedSettings);
     setInventory(loadedProducts);
     setInvoices(loadedInvoices);
-    setLedgerEntries(loadedLedger);
+    setLedgerEntries(finalLoadedLedger);
 
     // Fetch live data from backend database API
     setDbStatus('Syncing with DB...');
@@ -178,13 +207,15 @@ export default function App() {
           dbSettings = { ...dbSettings, shopName: 'Ambekar Handloom House' };
         }
 
-        const dbLedger = data.ledgerEntries && data.ledgerEntries.length > 0 ? data.ledgerEntries : loadedLedger;
+        const rawDbLedger = data.ledgerEntries && data.ledgerEntries.length > 0 ? data.ledgerEntries : finalLoadedLedger;
+        const finalDbLedger = mergeJayshree(rawDbLedger);
 
         setInvoices(dbInvoices);
         setInventory(dbInventory);
         setSettings(dbSettings);
-        setLedgerEntries(dbLedger);
+        setLedgerEntries(finalDbLedger);
         setDbStatus('🟢 MySQL/SQLite Database Synced');
+
 
 
 
