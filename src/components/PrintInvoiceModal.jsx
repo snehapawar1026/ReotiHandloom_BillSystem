@@ -364,7 +364,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
 
             {/* Customer & Billing Details */}
             <div className="print-invoice-grid" style={{ fontSize: cellFontSize }}>
-              <div style={{ padding: customerPadding, border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#fff' }}>
+              <div style={{ padding: customerPadding, border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#fffef9' }}>
                 <h4 style={{ margin: '0 0 3px 0', borderBottom: '1px solid #cbd5e1', paddingBottom: '2px', textTransform: 'uppercase', color: '#475569', fontSize: isFewItems ? '0.8rem' : '0.74rem' }}>
                   {isPurchaseNote ? 'Purchased From (Supplier / Weaver):' : (isCreditNote ? 'Credited To (Customer):' : 'Billed To (Customer):')}
                 </h4>
@@ -473,7 +473,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                       <p style={{ margin: '2px 0', lineHeight: '1.25' }}>IFSC Code: <strong>{settings.bankIFSC || (isAmbekarInvoice ? 'HDFC0002116' : 'HDFC0002089')}</strong></p>
                       <p style={{ margin: '2px 0', lineHeight: '1.25' }}>Branch: <strong>{settings.bankBranch || (isAmbekarInvoice ? 'Maheshwar' : 'Maheshwar Branch')}</strong></p>
                     </div>
-                    <div style={{ textAlign: 'center', flexShrink: 0, border: '1px solid #cbd5e1', borderRadius: '6px', padding: isFewItems ? '5px 8px' : '3px 4px', backgroundColor: '#fff' }}>
+                    <div style={{ textAlign: 'center', flexShrink: 0, border: '1px solid #cbd5e1', borderRadius: '6px', padding: isFewItems ? '5px 8px' : '3px 4px', backgroundColor: '#fffef9' }}>
                       <p style={{ margin: '0 0 2px 0', fontSize: isFewItems ? '0.72rem' : '0.64rem', fontWeight: '700', color: '#5b21b6' }}>UPI / PhonePe Scan</p>
                       <img src={isAmbekarInvoice ? "/qr_ambekar.jpg" : "/qr_reoti.jpg"} alt="PhonePe QR Code" style={{ width: qrSize, height: qrSize, objectFit: 'contain' }} />
                     </div>
@@ -549,7 +549,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             </div>
 
             {/* Amount In Words */}
-            <div style={{ border: '1px solid #cbd5e1', padding: isFewItems ? '6px 12px' : '4px 8px', borderRadius: '4px', fontSize: isFewItems ? '0.84rem' : '0.78rem', backgroundColor: '#fff' }}>
+            <div style={{ border: '1px solid #cbd5e1', padding: isFewItems ? '6px 12px' : '4px 8px', borderRadius: '4px', fontSize: isFewItems ? '0.84rem' : '0.78rem', backgroundColor: '#fffef9' }}>
               <span>Amount Chargeable in Words: </span>
               <strong style={{ textTransform: 'capitalize' }}>{priceToWords(finalTotal)}</strong>
             </div>
