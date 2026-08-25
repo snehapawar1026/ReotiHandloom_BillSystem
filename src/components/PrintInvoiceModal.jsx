@@ -223,7 +223,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           </div>
         </div>
 
-        <div className="modal-body print-invoice-layout" id="printable-invoice" style={{ fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif", padding: containerPadding, background: '#fdfaf2', color: '#4a2c11', position: 'relative', border: '3px double #b45309', boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1', borderRadius: '4px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+        <div className="modal-body print-invoice-layout" id="printable-invoice" style={{ fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif", padding: containerPadding, background: '#fdfaf2', color: '#4a2c11', position: 'relative', border: '3px double #b45309', boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1', borderRadius: '4px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
           {/* Centered background watermark logo */}
           <div style={{
             position: 'absolute',
