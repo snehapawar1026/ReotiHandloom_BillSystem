@@ -493,14 +493,14 @@ label {
     print-color-adjust: exact !important;
   }
 
-  /* Force print text colors for invoice layout body */
+  /* Force solid pitch black print text colors for invoice layout body */
   .print-invoice-layout *:not(.print-invoice-header):not(.print-invoice-header *) {
-    color: #4a2c11 !important;
+    color: #000000 !important;
   }
 
   .print-invoice-header {
-    background-color: #fffef9 !important;
-    border: 1px solid #b45309 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #000000 !important;
     border-radius: 6px !important;
     padding: 8px 12px !important;
     margin-bottom: 6px !important;
@@ -516,7 +516,7 @@ label {
   .print-invoice-header p,
   .print-invoice-header span,
   .print-invoice-header div {
-    color: #451a03 !important;
+    color: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -589,7 +589,7 @@ label {
   }
 }
 
-/* --- SMOOTH & CRISP PRINT TYPOGRAPHY OVERRIDES --- */
+/* --- HIGH CONTRAST DARK & BOLD PRINT TYPOGRAPHY --- */
 #printable-invoice,
 #printable-invoice *,
 .print-invoice-layout,
@@ -597,9 +597,19 @@ label {
 .ledger-print-paper,
 .ledger-print-paper * {
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif !important;
+  color: #000000 !important;
   -webkit-font-smoothing: subpixel-antialiased !important;
   -moz-osx-font-smoothing: auto !important;
   text-rendering: geometricPrecision !important;
+}
+
+#printable-invoice p,
+#printable-invoice span,
+#printable-invoice td,
+#printable-invoice div,
+.print-table td {
+  color: #000000 !important;
+  font-weight: 600 !important;
 }
 
 #printable-invoice th,
@@ -612,7 +622,8 @@ label {
 #printable-invoice b,
 .print-table th,
 .print-invoice-layout th {
-  font-weight: 700 !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
 }
 
 #printable-invoice .brand-heading,
@@ -620,13 +631,21 @@ label {
 .ledger-print-paper .brand-heading {
   font-family: 'Inter', Georgia, 'Segoe UI', Arial, serif !important;
   font-weight: 800 !important;
+  color: #000000 !important;
   letter-spacing: -0.2px !important;
+}
+
+.print-table th,
+.print-table td,
+#printable-invoice td,
+#printable-invoice th {
+  border-color: #334155 !important;
 }
 
 /* --- FORCE LIGHT RECEIPT TEXT REGARDLESS OF THEME --- */
 #printable-invoice {
-  background-color: #fdfaf2 !important; /* Soft warm cream matching the logo */
-  color: #4a2c11 !important; /* Deep warm bronze-brown */
+  background-color: #ffffff !important;
+  color: #000000 !important;
   position: relative;
 }
 
@@ -643,13 +662,13 @@ label {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.04; /* Light subtle watermark */
+  opacity: 0.03; /* Light subtle watermark */
   pointer-events: none;
   z-index: 0;
 }
 
 #printable-invoice *:not(.print-invoice-header):not(.print-invoice-header *) {
-  color: #4a2c11;
+  color: #000000 !important;
   z-index: 1;
   position: relative;
 }
@@ -662,13 +681,13 @@ label {
 #printable-invoice h6:not(.print-invoice-header *),
 #printable-invoice strong:not(.print-invoice-header *),
 #printable-invoice b:not(.print-invoice-header *) {
-  color: #381e05 !important;
+  color: #000000 !important;
 }
 
 #printable-invoice p:not(.print-invoice-header *),
 #printable-invoice span:not(.print-invoice-header *),
 #printable-invoice td:not(.print-invoice-header *) {
-  color: #4a2c11 !important;
+  color: #000000 !important;
 }
 
 /* --- HEADER BANNER HIGH-CONTRAST OVERRIDES --- */
