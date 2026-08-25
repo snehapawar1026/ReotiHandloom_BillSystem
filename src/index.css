@@ -474,7 +474,7 @@ label {
   .print-invoice-layout {
     display: flex !important;
     flex-direction: column !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important;
     width: 210mm !important;
     min-height: 297mm !important;
     height: 297mm !important;
@@ -688,4 +688,36 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+/* --- EXACT A4 PDF & IMAGE EXPORT STYLING OVERRIDES --- */
+.a4-pdf-export {
+  width: 764px !important; /* Printable A4 width inside 4mm page margins */
+  min-width: 764px !important;
+  max-width: 764px !important;
+  height: 1093px !important; /* Printable A4 height inside 4mm page margins */
+  min-height: 1093px !important;
+  max-height: 1093px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  padding: 10px 14px !important;
+  margin: 0 !important;
+  border-radius: 4px !important;
+  border: 3px double #b45309 !important;
+  box-shadow: inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2 !important;
+  background-color: #fdfaf2 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.a4-pdf-export-ledger {
+  width: 794px !important;
+  min-height: 1123px !important;
+  box-sizing: border-box !important;
+  padding: 8mm 10mm !important;
+  margin: 0 auto !important;
+  background-color: #fdfaf2 !important;
+}
+
 

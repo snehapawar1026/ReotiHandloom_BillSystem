@@ -47,33 +47,48 @@ export default function PartyLedgerConsole({
   const [directorySearch, setDirectorySearch] = useState('');
 
   // Extract all unique party names from invoices and ledger entries
+  // Extract all unique party names from invoices and ledger entries for current mode
   const existingParties = useMemo(() => {
     const set = new Set();
-    // Default include Jayshree & Samasta
-    set.add('Jayshree');
-    set.add('Samasta');
+    const isReoti = systemMode === 'reoti' || systemMode === 'reoti_cn';
+    if (isReoti) {
+      set.add('Jayshree');
+      set.add('Samasta');
+    }
 
-    invoices.forEach(inv => {
+    (invoices || []).forEach(inv => {
       if (inv.customerName && inv.customerName.trim()) {
         set.add(inv.customerName.trim());
       }
     });
-    ledgerEntries.forEach(ent => {
+    (ledgerEntries || []).forEach(ent => {
       if (ent.partyName && ent.partyName.trim()) {
         set.add(ent.partyName.trim());
       }
     });
     return Array.from(set).sort();
-  }, [invoices, ledgerEntries]);
+  }, [invoices, ledgerEntries, systemMode]);
 
-  // Selected party state (Default to Jayshree if available)
-  const [selectedParty, setSelectedParty] = useState('Jayshree');
-  const [partyAddress, setPartyAddress] = useState('Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)');
-  const [partyPhone, setPartyPhone] = useState('9869050598');
+  // Selected party state
+  const [selectedParty, setSelectedParty] = useState('');
+  const [partyAddress, setPartyAddress] = useState('');
+  const [partyPhone, setPartyPhone] = useState('');
+
+  // Auto select first party when store mode or existingParties changes
+  React.useEffect(() => {
+    if (existingParties.length > 0) {
+      if (!selectedParty || !existingParties.includes(selectedParty)) {
+        setSelectedParty(existingParties[0]);
+      }
+    } else {
+      setSelectedParty('');
+    }
+  }, [systemMode, existingParties]);
   
-  // Date range filters
-  const [fromDate, setFromDate] = useState('2024-04-01');
-  const [toDate, setToDate] = useState('2026-03-31');
+  // Date range filters (Default empty to show ALL entries)
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
 
   // New Voucher entry modal/form state
   const [isAddingVoucher, setIsAddingVoucher] = useState(false);
@@ -87,19 +102,26 @@ export default function PartyLedgerConsole({
     drCr: 'Cr'
   });
 
-  // Auto-sync Party Address and Mobile Number from existing invoices if available
-  useMemo(() => {
+  // Auto-sync Party Address and Mobile Number from existing invoices or ledger if available
+  React.useEffect(() => {
     if (selectedParty) {
-      const match = invoices.find(inv => inv.customerName && inv.customerName.trim().toLowerCase() === selectedParty.trim().toLowerCase());
-      if (match) {
-        if (match.customerAddress) setPartyAddress(match.customerAddress);
-        if (match.customerPhone) setPartyPhone(match.customerPhone);
-      } else if (selectedParty.toLowerCase() === 'jayshree') {
+      const match = (invoices || []).find(inv => inv.customerName && inv.customerName.trim().toLowerCase() === selectedParty.trim().toLowerCase());
+      if (match && (match.customerAddress || match.customerPhone)) {
+        setPartyAddress(match.customerAddress || '');
+        setPartyPhone(match.customerPhone || '');
+      } else if (selectedParty.toLowerCase() === 'jayshree' && (systemMode === 'reoti' || systemMode === 'reoti_cn')) {
         setPartyPhone('9869050598');
         setPartyAddress('Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)');
+      } else {
+        const matchLedger = (ledgerEntries || []).find(ent => ent.partyName && ent.partyName.trim().toLowerCase() === selectedParty.trim().toLowerCase());
+        setPartyPhone(matchLedger?.phone || matchLedger?.customerPhone || '');
+        setPartyAddress(matchLedger?.address || matchLedger?.customerAddress || '');
       }
+    } else {
+      setPartyAddress('');
+      setPartyPhone('');
     }
-  }, [selectedParty, invoices]);
+  }, [selectedParty, invoices, ledgerEntries, systemMode]);
 
   // Master combined list of ALL vouchers across all parties for 'all_vouchers' mode
   const allMasterVouchers = useMemo(() => {
@@ -137,19 +159,19 @@ export default function PartyLedgerConsole({
         rawDate: new Date(inv.date || '2000-01-01').getTime()
       });
 
-      // Auto Receipt entry if paid
+      // Auto Receipt / Payment entry if paid
       const paidVal = inv.paidAmount !== undefined && inv.paidAmount !== null ? parseFloat(inv.paidAmount) : (inv.paymentStatus === 'Unpaid' ? 0 : total);
-      if (paidVal > 0 && !isCN && !isPN) {
+      if (paidVal > 0 && !isCN) {
         list.push({
           id: `inv_pay_${inv.invoiceNo}`,
           partyName: inv.customerName || 'Walk-in Customer',
           date: inv.date || '',
-          drCr: 'Cr',
-          particulars: `Payment Recd against Bill #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})`,
-          vchType: 'Receipt',
+          drCr: isPN ? 'Dr' : 'Cr',
+          particulars: isPN ? `Payment Paid against PN #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})` : `Payment Recd against Bill #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})`,
+          vchType: isPN ? 'Payment' : 'Receipt',
           vchNo: inv.invoiceNo || '',
-          debit: 0,
-          credit: paidVal,
+          debit: isPN ? paidVal : 0,
+          credit: isPN ? 0 : paidVal,
           isAutoBill: true,
           rawDate: new Date(inv.date || '2000-01-01').getTime() + 1000
         });
@@ -177,15 +199,16 @@ export default function PartyLedgerConsole({
   }, [invoices, ledgerEntries, systemMode]);
 
 
-  // Directory summary list of ALL parties
+  // Directory summary list of parties WITH ACTIVE VOUCHERS (> 0 vouchers)
   const partiesDirectory = useMemo(() => {
-    return existingParties.map(partyName => {
+    const list = existingParties.map(partyName => {
       const partyNorm = partyName.trim().toLowerCase();
 
       // Find contact info
       const matchInv = invoices.find(inv => inv.customerName && inv.customerName.trim().toLowerCase() === partyNorm);
-      const phone = matchInv?.customerPhone || (partyNorm === 'jayshree' ? '9869050598' : '');
-      const address = matchInv?.customerAddress || (partyNorm === 'jayshree' ? 'Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)' : '');
+      const isReotiParty = partyNorm === 'jayshree' && (systemMode === 'reoti' || systemMode === 'reoti_cn');
+      const phone = matchInv?.customerPhone || (isReotiParty ? '9869050598' : '');
+      const address = matchInv?.customerAddress || (isReotiParty ? 'Shop No. - 01 Pethe Building Ranade Road, Dadar (west), Mumbai - 400028, (M.H.)' : '');
 
       let debTotal = 0;
       let credTotal = 0;
@@ -225,7 +248,10 @@ export default function PartyLedgerConsole({
         drCr
       };
     });
-  }, [existingParties, invoices, ledgerEntries]);
+
+    // Remove parties with 0 vouchers - only show parties that have vouchers
+    return list.filter(p => p.count > 0);
+  }, [existingParties, invoices, ledgerEntries, systemMode]);
 
   // Filtered Directory
   const filteredDirectory = useMemo(() => {
@@ -294,19 +320,19 @@ export default function PartyLedgerConsole({
           rawDate: new Date(inv.date || '2000-01-01').getTime()
         });
 
-        // Auto Receipt entry if paid
+        // Auto Receipt / Payment entry if paid
         const paidVal = inv.paidAmount !== undefined && inv.paidAmount !== null ? parseFloat(inv.paidAmount) : (inv.paymentStatus === 'Unpaid' ? 0 : total);
-        if (paidVal > 0 && !isCN && !isPN) {
+        if (paidVal > 0 && !isCN) {
           list.push({
             id: `inv_pay_${inv.invoiceNo}`,
             isAutoBill: true,
             date: inv.date || '',
-            drCr: 'Cr',
-            particulars: `Payment Recd against Bill #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})`,
-            vchType: 'Receipt',
+            drCr: isPN ? 'Dr' : 'Cr',
+            particulars: isPN ? `Payment Paid against PN #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})` : `Payment Recd against Bill #${inv.invoiceNo} (${inv.paymentMode || 'Cash'})`,
+            vchType: isPN ? 'Payment' : 'Receipt',
             vchNo: inv.invoiceNo ? inv.invoiceNo.replace(/[^0-9]/g, '') || inv.invoiceNo : '',
-            debit: 0,
-            credit: paidVal,
+            debit: isPN ? paidVal : 0,
+            credit: isPN ? 0 : paidVal,
             rawDate: new Date(inv.date || '2000-01-01').getTime() + 1000
           });
         }
@@ -425,21 +451,76 @@ export default function PartyLedgerConsole({
     window.print();
   };
 
-  const handleDownloadLedgerPDF = () => {
+  const handleDownloadLedgerPDF = async () => {
     const element = document.getElementById('printable-ledger-statement');
-    const filename = `Ledger_${selectedParty.replace(/\s+/g, '_')}.pdf`;
+    if (!element) return;
+    element.classList.add('a4-pdf-export-ledger');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const filename = `Ledger_${selectedParty ? selectedParty.replace(/\s+/g, '_') : 'Statement'}.pdf`;
     const opt = {
       margin:       [5, 5, 5, 5],
       filename:     filename,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2.5, useCORS: true },
+      html2canvas:  { scale: 2.5, useCORS: true, windowWidth: 794 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    html2pdf().set(opt).from(element).save();
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('Ledger PDF export failed:', err);
+    } finally {
+      element.classList.remove('a4-pdf-export-ledger');
+    }
+  };
+
+  const handleDownloadDirectoryPDF = async () => {
+    const element = document.getElementById('printable-accounts-directory');
+    if (!element) return;
+    element.classList.add('a4-pdf-export-ledger');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const filename = `Accounts_Directory_${activeShopName.replace(/\s+/g, '_')}.pdf`;
+    const opt = {
+      margin:       [5, 5, 5, 5],
+      filename:     filename,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2.5, useCORS: true, windowWidth: 794 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('Directory PDF export failed:', err);
+    } finally {
+      element.classList.remove('a4-pdf-export-ledger');
+    }
+  };
+
+  const handleDownloadAllVouchersPDF = async () => {
+    const element = document.getElementById('printable-all-vouchers');
+    if (!element) return;
+    element.classList.add('a4-pdf-export-ledger');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const filename = `Master_Vouchers_${activeShopName.replace(/\s+/g, '_')}.pdf`;
+    const opt = {
+      margin:       [5, 5, 5, 5],
+      filename:     filename,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2.5, useCORS: true, windowWidth: 794 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('Master Vouchers PDF export failed:', err);
+    } finally {
+      element.classList.remove('a4-pdf-export-ledger');
+    }
   };
 
   const isAmbekar = systemMode === 'ambekar' || systemMode === 'ambekar_pn';
-  const activeShopName = settings.shopName || (isAmbekar ? 'Ambekar Handloom House' : 'Reoti Handloom');
+  const activeShopName = isAmbekar 
+    ? (settings.shopName && settings.shopName.includes('Ambekar') ? settings.shopName : 'Ambekar Handloom House')
+    : (settings.shopName || 'Reoti Handloom');
   const activeLogo = isAmbekar ? '/logo_ambekar.jpg' : '/logo.jpg';
 
   return (
@@ -453,7 +534,7 @@ export default function PartyLedgerConsole({
               <BookOpen size={24} /> Party Ledger Account & Accounts Directory (खाता बही)
             </h2>
             <p className="text-muted" style={{ fontSize: '0.85rem', margin: '2px 0 0 0' }}>
-              Issued by <strong>{activeShopName}</strong> for customer & supplier statement tracking.
+              Issued by <strong>{activeShopName}</strong> for customer & supplier statement tracking with Authorized Signature.
             </p>
           </div>
 
@@ -472,7 +553,7 @@ export default function PartyLedgerConsole({
                 onClick={() => setViewMode('directory')}
                 style={{ fontSize: '0.82rem', fontWeight: '600' }}
               >
-                <Users size={14} /> Party Accounts List ({existingParties.length})
+                <Users size={14} /> Party Accounts List ({partiesDirectory.length})
               </button>
               <button 
                 className={`btn btn-sm ${viewMode === 'all_vouchers' ? 'btn-primary' : 'btn-secondary'}`}
@@ -499,7 +580,7 @@ export default function PartyLedgerConsole({
                   style={{ fontWeight: '600', padding: '9px 16px', backgroundColor: '#10b981', color: '#fff' }}
                   title="Save current party ledger account to database"
                 >
-                  <Save size= {18} /> Save Account (सेव करें)
+                  <Save size={18} /> Save Account (सेव करें)
                 </button>
 
                 <button 
@@ -513,6 +594,46 @@ export default function PartyLedgerConsole({
                 <button 
                   className="btn btn-primary" 
                   onClick={handleDownloadLedgerPDF}
+                  style={{ fontWeight: '600', padding: '9px 16px' }}
+                >
+                  <Download size={18} /> Export PDF
+                </button>
+              </>
+            )}
+
+            {viewMode === 'directory' && (
+              <>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={handlePrintLedger}
+                  style={{ fontWeight: '600', padding: '9px 16px' }}
+                >
+                  <Printer size={18} /> Print Directory
+                </button>
+
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleDownloadDirectoryPDF}
+                  style={{ fontWeight: '600', padding: '9px 16px' }}
+                >
+                  <Download size={18} /> Export Directory PDF
+                </button>
+              </>
+            )}
+
+            {viewMode === 'all_vouchers' && (
+              <>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={handlePrintLedger}
+                  style={{ fontWeight: '600', padding: '9px 16px' }}
+                >
+                  <Printer size={18} /> Print Register
+                </button>
+
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleDownloadAllVouchersPDF}
                   style={{ fontWeight: '600', padding: '9px 16px' }}
                 >
                   <Download size={18} /> Export PDF
@@ -903,7 +1024,9 @@ export default function PartyLedgerConsole({
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
                 <span>📞</span>
-                <span style={{ fontWeight: '700' }}>+{settings.shopPhone || '91-9617444445'}</span>
+                <span style={{ fontWeight: '700' }}>
+                  {settings.shopPhone ? (settings.shopPhone.startsWith('+') ? settings.shopPhone : `+91 ${settings.shopPhone}`) : '+91 9617444445'}
+                </span>
               </div>
               {settings.shopGSTIN && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -932,8 +1055,9 @@ export default function PartyLedgerConsole({
               </h2>
             </div>
             <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#451a03' }}>
-              Period: <strong>{fromDate ? formatDateShort(fromDate) : '01-Apr-2024'}</strong> to <strong>{toDate ? formatDateShort(toDate) : '31-Mar-2026'}</strong>
+              Period: <strong>{fromDate ? formatDateShort(fromDate) : '01-Apr-2024'}</strong> to <strong>{toDate ? formatDateShort(toDate) : 'Present'}</strong>
             </div>
+
           </div>
 
           {/* 3. CUSTOMER / PARTY ACCOUNT CARD */}
@@ -1097,10 +1221,12 @@ export default function PartyLedgerConsole({
               </div>
             </div>
 
-            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyBetween: 'space-between', alignItems: 'center' }}>
-              <div>For <strong>{activeShopName}</strong></div>
-              <div style={{ height: '35px' }}></div>
-              <div style={{ borderTop: '1px solid #94a3b8', width: '80%', paddingTop: '3px', fontWeight: '600' }}>
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: '600', color: '#1e293b' }}>For <strong>{activeShopName}</strong></div>
+              <div style={{ minHeight: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 0' }}>
+                <img src="/signature.png" alt="Authorized Signature" style={{ height: '52px', width: 'auto', objectFit: 'contain' }} />
+              </div>
+              <div style={{ borderTop: '1px solid #94a3b8', width: '80%', paddingTop: '3px', fontWeight: '600', color: '#1e293b' }}>
                 Authorized Signatory
               </div>
             </div>
@@ -1109,172 +1235,487 @@ export default function PartyLedgerConsole({
         </div>
       ) : viewMode === 'directory' ? (
         /* VIEW MODE 2: PARTY ACCOUNTS CARDS DIRECTORY */
-        <div className="d-flex flex-column gap-4 no-print">
-          <div className="grid-3 gap-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-            {filteredDirectory.map((p, idx) => (
-              <div key={idx} className="glass-card d-flex flex-column justify-between p-4" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
-                <div>
-                  <div className="d-flex justify-between align-center border-bottom pb-2 mb-2">
-                    <h3 className="brand-heading text-gold" style={{ fontSize: '1.15rem', margin: 0 }}>
-                      <User size={18} style={{ display: 'inline', marginRight: '6px' }} /> {p.partyName}
-                    </h3>
-                    <span className="badge badge-gold" style={{ fontSize: '0.75rem' }}>
-                      {p.count} Vouchers
-                    </span>
-                  </div>
-
-                  {p.phone && (
-                    <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                      📞 <strong>Phone:</strong> {p.phone}
+        <div>
+          {/* SCREEN VIEW CARDS */}
+          <div className="d-flex flex-column gap-4 no-print">
+            <div className="grid-3 gap-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+              {filteredDirectory.map((p, idx) => (
+                <div key={idx} className="glass-card d-flex flex-column justify-between p-4" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                  <div>
+                    <div className="d-flex justify-between align-center border-bottom pb-2 mb-2">
+                      <h3 className="brand-heading text-gold" style={{ fontSize: '1.15rem', margin: 0 }}>
+                        <User size={18} style={{ display: 'inline', marginRight: '6px' }} /> {p.partyName}
+                      </h3>
+                      <span className="badge badge-gold" style={{ fontSize: '0.75rem' }}>
+                        {p.count} Vouchers
+                      </span>
                     </div>
-                  )}
 
-                  {p.address && (
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: '1.3' }}>
-                      📍 <strong>Address:</strong> {p.address}
-                    </div>
-                  )}
+                    {p.phone && (
+                      <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                        📞 <strong>Phone:</strong> {p.phone}
+                      </div>
+                    )}
 
-                  <div className="d-flex justify-between align-center p-2 rounded mb-3" style={{ background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)' }}>
-                    <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Closing Balance</div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: '800', color: p.drCr === 'Cr' ? '#10b981' : '#ef4444' }}>
-                        ₹{p.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({p.drCr})
+                    {p.address && (
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: '1.3' }}>
+                        📍 <strong>Address:</strong> {p.address}
+                      </div>
+                    )}
+
+                    <div className="d-flex justify-between align-center p-2 rounded mb-3" style={{ background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)' }}>
+                      <div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Closing Balance</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: '800', color: p.drCr === 'Cr' ? '#10b981' : '#ef4444' }}>
+                          ₹{p.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({p.drCr})
+                        </div>
+                      </div>
+                      <div className="text-right" style={{ fontSize: '0.75rem' }}>
+                        <div style={{ color: '#10b981' }}>Dr Total: ₹{p.totalDebit.toLocaleString('en-IN')}</div>
+                        <div style={{ color: '#ef4444' }}>Cr Total: ₹{p.totalCredit.toLocaleString('en-IN')}</div>
                       </div>
                     </div>
-                    <div className="text-right" style={{ fontSize: '0.75rem' }}>
-                      <div style={{ color: '#10b981' }}>Dr Total: ₹{p.totalDebit.toLocaleString('en-IN')}</div>
-                      <div style={{ color: '#ef4444' }}>Cr Total: ₹{p.totalCredit.toLocaleString('en-IN')}</div>
+
+                    <div className="d-flex align-center justify-between pt-2 border-top" style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: '600' }}>
+                      <span>✍️ Authorized Sign: Applied</span>
+                      <img src="/signature.png" alt="Signature" style={{ height: '22px', width: 'auto', opacity: 0.9, objectFit: 'contain' }} />
                     </div>
                   </div>
+
+                  <div className="d-flex gap-2 mt-3">
+                    <button 
+                      className="btn btn-primary btn-sm w-full"
+                      onClick={() => {
+                        setSelectedParty(p.partyName);
+                        if (p.phone) setPartyPhone(p.phone);
+                        if (p.address) setPartyAddress(p.address);
+                        setViewMode('statement');
+                      }}
+                      style={{ fontWeight: '600' }}
+                    >
+                      📜 View Statement
+                    </button>
+
+                    <button 
+                      className="btn btn-emerald btn-sm"
+                      onClick={() => {
+                        setSelectedParty(p.partyName);
+                        setIsAddingVoucher(true);
+                      }}
+                      style={{ fontWeight: '600' }}
+                      title="Add new voucher for this party"
+                    >
+                      <Plus size={14} /> Add Voucher
+                    </button>
+                  </div>
                 </div>
+              ))}
 
-                <div className="d-flex gap-2">
-                  <button 
-                    className="btn btn-primary btn-sm w-full"
-                    onClick={() => {
-                      setSelectedParty(p.partyName);
-                      if (p.phone) setPartyPhone(p.phone);
-                      if (p.address) setPartyAddress(p.address);
-                      setViewMode('statement');
-                    }}
-                    style={{ fontWeight: '600' }}
-                  >
-                    📜 View Statement
-                  </button>
+              {filteredDirectory.length === 0 && (
+                <div className="glass-card text-center text-muted p-5 w-full">
+                  No party accounts found matching "{directorySearch}".
+                </div>
+              )}
+            </div>
+          </div>
 
-                  <button 
-                    className="btn btn-emerald btn-sm"
-                    onClick={() => {
-                      setSelectedParty(p.partyName);
-                      setIsAddingVoucher(true);
-                    }}
-                    style={{ fontWeight: '600' }}
-                    title="Add new voucher for this party"
-                  >
-                    <Plus size={14} /> Add Voucher
-                  </button>
+          {/* PRINTABLE ACCOUNTS DIRECTORY PAPER SHEET */}
+          <div 
+            id="printable-accounts-directory" 
+            className="ledger-print-paper"
+            style={{
+              background: '#fdfaf2',
+              color: '#4a2c11',
+              padding: '24px 30px',
+              fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+              boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+              borderRadius: '6px',
+              margin: '0 auto',
+              maxWidth: '920px',
+              border: '3px double #b45309',
+              boxSizing: 'border-box',
+              position: 'relative'
+            }}
+          >
+            {/* 1. TOP HEADER */}
+            <div style={{
+              backgroundColor: '#fffef9',
+              borderRadius: '6px',
+              padding: '14px 18px',
+              marginBottom: '16px',
+              display: 'grid',
+              gridTemplateColumns: '1.4fr 1fr',
+              gap: '16px',
+              alignItems: 'center',
+              border: '1px solid #b45309',
+              boxShadow: 'inset 0 0 0 2px #fef3c7, 0 2px 6px rgba(180,83,9,0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <img src={activeLogo} alt="Logo" style={{ height: '76px', width: '76px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #b45309', backgroundColor: '#ffffff', padding: '3px', flexShrink: 0 }} />
+                <div>
+                  <h1 className="brand-heading" style={{ fontSize: '1.85rem', color: '#78350f', fontWeight: '800', margin: 0, lineHeight: '1.05' }}>
+                    {activeShopName}
+                  </h1>
+                  <div className="gold-badge" style={{ backgroundColor: '#fef3c7', color: '#78350f', border: '1px solid #f59e0b', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '700', marginTop: '4px', display: 'inline-block' }}>
+                    ✨ Official Accounts Directory & Party Master Ledger List
+                  </div>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', fontWeight: '600', color: '#451a03' }}>
+                    Manufacturer of Maheshwari Handloom Sarees, Suits & Fabrics
+                  </p>
                 </div>
               </div>
-            ))}
 
-            {filteredDirectory.length === 0 && (
-              <div className="glass-card text-center text-muted p-5 w-full">
-                No party accounts found matching "{directorySearch}".
+              <div style={{
+                backgroundColor: '#fef7e6',
+                border: '1px solid #f59e0b',
+                borderRadius: '6px',
+                padding: '8px 12px',
+                fontSize: '0.78rem',
+                color: '#451a03',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+                  <span>📍</span>
+                  <span style={{ fontWeight: '600' }}>{settings.shopAddress || '73, LaxmiBai Marg, Maheshwar, MP'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+                  <span>📞</span>
+                  <span style={{ fontWeight: '700' }}>
+                    {settings.shopPhone ? (settings.shopPhone.startsWith('+') ? settings.shopPhone : `+91 ${settings.shopPhone}`) : '+91 9617444445'}
+                  </span>
+                </div>
+                {settings.shopGSTIN && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🏛️</span>
+                    <span style={{ fontWeight: '800', color: '#78350f' }}>GSTIN: {settings.shopGSTIN}</span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* 2. DIRECTORY BANNER */}
+            <div style={{
+              backgroundColor: '#fef3c7',
+              border: '1px solid #f59e0b',
+              borderRadius: '5px',
+              padding: '8px 14px',
+              marginBottom: '14px',
+              display: 'flex',
+              justify: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                📖 PARTY ACCOUNTS DIRECTORY REPORT (खाता सूची)
+              </h2>
+              <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#451a03' }}>
+                Active Party Accounts: <strong>{filteredDirectory.length} Accounts</strong>
+              </div>
+            </div>
+
+            {/* 3. ACCOUNTS DIRECTORY TABLE */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '0.82rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc', borderTop: '2px solid #94a3b8', borderBottom: '2px solid #94a3b8' }}>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '5%', fontWeight: '700' }}>#</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', width: '25%', fontWeight: '700' }}>Party / Account Name</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', width: '25%', fontWeight: '700' }}>Phone & Address</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '10%', fontWeight: '700' }}>Vouchers</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '15%', fontWeight: '700', color: '#059669' }}>Debit Total (₹)</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '15%', fontWeight: '700', color: '#dc2626' }}>Credit Total (₹)</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '15%', fontWeight: '700' }}>Closing Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDirectory.map((p, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfc', borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', fontWeight: '500' }}>{idx + 1}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', fontWeight: '700', color: '#1e293b' }}>{p.partyName}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', fontSize: '0.78rem', color: '#475569' }}>
+                      {p.phone && <div>📞 {p.phone}</div>}
+                      {p.address && <div style={{ fontSize: '0.75rem' }}>📍 {p.address}</div>}
+                    </td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', fontWeight: '600' }}>{p.count}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#059669' }}>
+                      ₹{p.totalDebit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#dc2626' }}>
+                      ₹{p.totalCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', textAlign: 'right', fontWeight: '800', color: p.drCr === 'Cr' ? '#059669' : '#dc2626' }}>
+                      ₹{p.closingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({p.drCr})
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* 4. FOOTER WITH AUTHORIZED SIGNATURE */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', marginTop: '20px', fontSize: '0.78rem', color: '#475569' }}>
+              <div>
+                <div style={{ fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', color: '#1e293b' }}>Directory Verification & Stamp:</div>
+                <div>
+                  1. Official Accounts Directory record generated for <strong>{activeShopName}</strong>.<br />
+                  2. Signed and verified for official business ledger audits.
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontWeight: '600', color: '#1e293b' }}>For <strong>{activeShopName}</strong></div>
+                <div style={{ minHeight: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 0' }}>
+                  <img src="/signature.png" alt="Authorized Signature" style={{ height: '52px', width: 'auto', objectFit: 'contain' }} />
+                </div>
+                <div style={{ borderTop: '1px solid #94a3b8', width: '80%', paddingTop: '3px', fontWeight: '600', color: '#1e293b' }}>
+                  Authorized Signatory
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
         /* VIEW MODE 3: ALL VOUCHERS MASTER REGISTER TABLE */
-        <div className="glass-card table-container no-print">
-          <div className="d-flex justify-between align-center p-3 border-bottom" style={{ background: 'var(--bg-sidebar)' }}>
-            <h3 className="brand-heading text-gold d-flex align-center gap-2" style={{ fontSize: '1.1rem', margin: 0 }}>
-              <List size={18} /> Master Vouchers Register (सब वाउचर देखने की लिस्ट)
-            </h3>
-            <span className="badge badge-gold" style={{ fontSize: '0.8rem' }}>
-              Total Entries: {filteredMasterVouchers.length}
-            </span>
-          </div>
+        <div>
+          <div className="glass-card table-container no-print">
+            <div className="d-flex justify-between align-center p-3 border-bottom" style={{ background: 'var(--bg-sidebar)' }}>
+              <h3 className="brand-heading text-gold d-flex align-center gap-2" style={{ fontSize: '1.1rem', margin: 0 }}>
+                <List size={18} /> Master Vouchers Register (सब वाउचर देखने की लिस्ट)
+              </h3>
+              <span className="badge badge-gold" style={{ fontSize: '0.8rem' }}>
+                Total Entries: {filteredMasterVouchers.length}
+              </span>
+            </div>
 
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Date</th>
-                <th>Party / Customer Name</th>
-                <th>Vch Type</th>
-                <th>Vch No</th>
-                <th>Particulars / Description</th>
-                <th className="text-right" style={{ color: '#10b981' }}>Debit (Dr)</th>
-                <th className="text-right" style={{ color: '#ef4444' }}>Credit (Cr)</th>
-                <th className="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMasterVouchers.length === 0 ? (
+            <table className="custom-table">
+              <thead>
                 <tr>
-                  <td colSpan={9} className="text-center text-muted" style={{ padding: '30px' }}>
-                    No vouchers match your current search and date parameters.
-                  </td>
+                  <th>#</th>
+                  <th>Date</th>
+                  <th>Party / Customer Name</th>
+                  <th>Vch Type</th>
+                  <th>Vch No</th>
+                  <th>Particulars / Description</th>
+                  <th className="text-right" style={{ color: '#10b981' }}>Debit (Dr)</th>
+                  <th className="text-right" style={{ color: '#ef4444' }}>Credit (Cr)</th>
+                  <th className="text-right">Actions</th>
                 </tr>
-              ) : (
-                filteredMasterVouchers.map((v, idx) => (
-                  <tr key={v.id}>
-                    <td>{idx + 1}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>{formatDateShort(v.date)}</td>
-                    <td>
-                      <strong style={{ color: 'var(--accent-gold)' }}>{v.partyName}</strong>
-                    </td>
-                    <td>
-                      <span className="badge" style={{
-                        backgroundColor: v.vchType === 'Purchase' || v.vchType === 'Purchase Note' ? 'rgba(59,130,246,0.15)' : (v.vchType === 'Credit Note' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)'),
-                        color: v.vchType === 'Purchase' || v.vchType === 'Purchase Note' ? '#3b82f6' : (v.vchType === 'Credit Note' ? '#ef4444' : '#10b981'),
-                        fontSize: '0.75rem'
-                      }}>
-                        {v.vchType}
-                      </span>
-                    </td>
-                    <td><strong>{v.vchNo || '-'}</strong></td>
-                    <td style={{ fontSize: '0.86rem' }}>{v.particulars}</td>
-                    <td className="text-right" style={{ fontWeight: 'bold', color: v.debit > 0 ? '#10b981' : 'inherit' }}>
-                      {v.debit > 0 ? `₹${v.debit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
-                    </td>
-                    <td className="text-right" style={{ fontWeight: 'bold', color: v.credit > 0 ? '#ef4444' : 'inherit' }}>
-                      {v.credit > 0 ? `₹${v.credit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
-                    </td>
-                    <td className="text-right">
-                      <div className="d-flex justify-end gap-2">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            setSelectedParty(v.partyName);
-                            setViewMode('statement');
-                          }}
-                          title="View party statement"
-                        >
-                          📜 View Statement
-                        </button>
-                        {!v.isAutoBill && (
-                          <button
-                            className="btn btn-rose btn-sm"
-                            onClick={() => {
-                              if (window.confirm(`Delete voucher ${v.vchType} (${v.particulars})?`)) {
-                                onDeleteLedgerEntry && onDeleteLedgerEntry(v.id);
-                              }
-                            }}
-                            title="Delete entry"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
+              </thead>
+              <tbody>
+                {filteredMasterVouchers.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="text-center text-muted" style={{ padding: '30px' }}>
+                      No vouchers match your current search and date parameters.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredMasterVouchers.map((v, idx) => (
+                    <tr key={v.id}>
+                      <td>{idx + 1}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formatDateShort(v.date)}</td>
+                      <td>
+                        <strong style={{ color: 'var(--accent-gold)' }}>{v.partyName}</strong>
+                      </td>
+                      <td>
+                        <span className="badge" style={{
+                          backgroundColor: v.vchType === 'Purchase' || v.vchType === 'Purchase Note' ? 'rgba(59,130,246,0.15)' : (v.vchType === 'Credit Note' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)'),
+                          color: v.vchType === 'Purchase' || v.vchType === 'Purchase Note' ? '#3b82f6' : (v.vchType === 'Credit Note' ? '#ef4444' : '#10b981'),
+                          fontSize: '0.75rem'
+                        }}>
+                          {v.vchType}
+                        </span>
+                      </td>
+                      <td><strong>{v.vchNo || '-'}</strong></td>
+                      <td style={{ fontSize: '0.86rem' }}>{v.particulars}</td>
+                      <td className="text-right" style={{ fontWeight: 'bold', color: v.debit > 0 ? '#10b981' : 'inherit' }}>
+                        {v.debit > 0 ? `₹${v.debit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                      </td>
+                      <td className="text-right" style={{ fontWeight: 'bold', color: v.credit > 0 ? '#ef4444' : 'inherit' }}>
+                        {v.credit > 0 ? `₹${v.credit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                      </td>
+                      <td className="text-right">
+                        <div className="d-flex justify-end gap-2">
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              setSelectedParty(v.partyName);
+                              setViewMode('statement');
+                            }}
+                            title="View party statement"
+                          >
+                            📜 View Statement
+                          </button>
+                          {!v.isAutoBill && (
+                            <button
+                              className="btn btn-rose btn-sm"
+                              onClick={() => {
+                                if (window.confirm(`Delete voucher ${v.vchType} (${v.particulars})?`)) {
+                                  onDeleteLedgerEntry && onDeleteLedgerEntry(v.id);
+                                }
+                              }}
+                              title="Delete entry"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* PRINTABLE MASTER VOUCHERS PAPER SHEET WITH AUTHORIZED SIGNATURE */}
+          <div 
+            id="printable-all-vouchers" 
+            className="ledger-print-paper"
+            style={{
+              background: '#fdfaf2',
+              color: '#4a2c11',
+              padding: '24px 30px',
+              fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+              boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+              borderRadius: '6px',
+              margin: '0 auto',
+              maxWidth: '920px',
+              border: '3px double #b45309',
+              boxSizing: 'border-box',
+              position: 'relative'
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              backgroundColor: '#fffef9',
+              borderRadius: '6px',
+              padding: '14px 18px',
+              marginBottom: '16px',
+              display: 'grid',
+              gridTemplateColumns: '1.4fr 1fr',
+              gap: '16px',
+              alignItems: 'center',
+              border: '1px solid #b45309',
+              boxShadow: 'inset 0 0 0 2px #fef3c7, 0 2px 6px rgba(180,83,9,0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <img src={activeLogo} alt="Logo" style={{ height: '76px', width: '76px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #b45309', backgroundColor: '#ffffff', padding: '3px', flexShrink: 0 }} />
+                <div>
+                  <h1 className="brand-heading" style={{ fontSize: '1.85rem', color: '#78350f', fontWeight: '800', margin: 0, lineHeight: '1.05' }}>
+                    {activeShopName}
+                  </h1>
+                  <div className="gold-badge" style={{ backgroundColor: '#fef3c7', color: '#78350f', border: '1px solid #f59e0b', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '700', marginTop: '4px', display: 'inline-block' }}>
+                    ✨ Master Vouchers Log & Transaction Register
+                  </div>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', fontWeight: '600', color: '#451a03' }}>
+                    Manufacturer of Maheshwari Handloom Sarees, Suits & Fabrics
+                  </p>
+                </div>
+              </div>
+
+              <div style={{
+                backgroundColor: '#fef7e6',
+                border: '1px solid #f59e0b',
+                borderRadius: '6px',
+                padding: '8px 12px',
+                fontSize: '0.78rem',
+                color: '#451a03',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+                  <span>📍</span>
+                  <span style={{ fontWeight: '600' }}>{settings.shopAddress || '73, LaxmiBai Marg, Maheshwar, MP'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+                  <span>📞</span>
+                  <span style={{ fontWeight: '700' }}>
+                    {settings.shopPhone ? (settings.shopPhone.startsWith('+') ? settings.shopPhone : `+91 ${settings.shopPhone}`) : '+91 9617444445'}
+                  </span>
+                </div>
+                {settings.shopGSTIN && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🏛️</span>
+                    <span style={{ fontWeight: '800', color: '#78350f' }}>GSTIN: {settings.shopGSTIN}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Banner */}
+            <div style={{
+              backgroundColor: '#fef3c7',
+              border: '1px solid #f59e0b',
+              borderRadius: '5px',
+              padding: '8px 14px',
+              marginBottom: '14px',
+              display: 'flex',
+              justify: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#78350f', textTransform: 'uppercase' }}>
+                📋 MASTER VOUCHERS REGISTER (सब वाउचर)
+              </h2>
+              <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#451a03' }}>
+                Total Vouchers: <strong>{filteredMasterVouchers.length} Entries</strong>
+              </div>
+            </div>
+
+            {/* Vouchers Table */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '0.82rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc', borderTop: '2px solid #94a3b8', borderBottom: '2px solid #94a3b8' }}>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '5%', fontWeight: '700' }}>#</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '10%', fontWeight: '700' }}>Date</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', width: '20%', fontWeight: '700' }}>Party Name</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 8px', textAlign: 'center', width: '10%', fontWeight: '700' }}>Type</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', width: '35%', fontWeight: '700' }}>Particulars</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '10%', fontWeight: '700', color: '#059669' }}>Debit (₹)</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '10%', fontWeight: '700', color: '#dc2626' }}>Credit (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMasterVouchers.map((v, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfc', borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', fontWeight: '500' }}>{idx + 1}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', whiteSpace: 'nowrap' }}>{formatDateShort(v.date)}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', fontWeight: '700', color: '#1e293b' }}>{v.partyName}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 8px', textAlign: 'center', fontWeight: '600' }}>{v.vchType}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', fontSize: '0.78rem' }}>{v.particulars}</td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: v.debit > 0 ? '#059669' : '#94a3b8' }}>
+                      {v.debit > 0 ? v.debit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '-'}
+                    </td>
+                    <td style={{ border: '1px solid #e2e8f0', padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: v.credit > 0 ? '#dc2626' : '#94a3b8' }}>
+                      {v.credit > 0 ? v.credit.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Footer with Authorized Signature */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', marginTop: '20px', fontSize: '0.78rem', color: '#475569' }}>
+              <div>
+                <div style={{ fontWeight: '700', textTransform: 'uppercase', marginBottom: '4px', color: '#1e293b' }}>Master Audit Note:</div>
+                <div>
+                  1. Comprehensive transaction ledger record for <strong>{activeShopName}</strong>.<br />
+                  2. Verified and audited.
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontWeight: '600', color: '#1e293b' }}>For <strong>{activeShopName}</strong></div>
+                <div style={{ minHeight: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2px 0' }}>
+                  <img src="/signature.png" alt="Authorized Signature" style={{ height: '52px', width: 'auto', objectFit: 'contain' }} />
+                </div>
+                <div style={{ borderTop: '1px solid #94a3b8', width: '80%', paddingTop: '3px', fontWeight: '600', color: '#1e293b' }}>
+                  Authorized Signatory
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

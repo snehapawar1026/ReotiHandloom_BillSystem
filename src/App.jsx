@@ -40,6 +40,7 @@ export default function App() {
   });
 
   const [invoices, setInvoices] = useState([]);
+  const [allInvoices, setAllInvoices] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [ledgerEntries, setLedgerEntries] = useState([]);
@@ -201,16 +202,18 @@ export default function App() {
       .then(data => {
         const rawDbInvoices = (data.invoices || []).filter(inv => !['RH-2026-0001', 'RH-2026-0002', 'RH-2026-0003'].includes(inv.invoiceNo));
         const dbInvoices = rawDbInvoices.length > 0 ? rawDbInvoices : loadedInvoices;
+        const dbAllInvoices = (data.allInvoices && data.allInvoices.length > 0) ? data.allInvoices : dbInvoices;
         const dbInventory = data.inventory && data.inventory.length > 0 ? data.inventory : loadedProducts;
         let dbSettings = data.settings || loadedSettings;
-        if ((systemMode === 'ambekar' || systemMode === 'ambekar_pn') && (!dbSettings.shopName || dbSettings.shopName === 'Ambekar Handloom')) {
-          dbSettings = { ...dbSettings, shopName: 'Ambekar Handloom House' };
+        if (systemMode === 'ambekar' || systemMode === 'ambekar_pn') {
+          dbSettings = { ...dbSettings, shopName: 'Ambekar Handloom House', shopGSTIN: '' };
         }
 
         const rawDbLedger = data.ledgerEntries && data.ledgerEntries.length > 0 ? data.ledgerEntries : finalLoadedLedger;
         const finalDbLedger = mergeJayshree(rawDbLedger);
 
         setInvoices(dbInvoices);
+        setAllInvoices(dbAllInvoices);
         setInventory(dbInventory);
         setSettings(dbSettings);
         setLedgerEntries(finalDbLedger);
@@ -357,6 +360,15 @@ export default function App() {
     });
 
     setInvoices(updatedInvoices);
+    setAllInvoices(prev => {
+      const idx = prev.findIndex(inv => inv.invoiceNo === savedInvoice.invoiceNo);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = savedInvoice;
+        return copy;
+      }
+      return [savedInvoice, ...prev];
+    });
     setInventory(updatedInventory);
 
     // Save to Database via Backend API
@@ -879,6 +891,9 @@ export default function App() {
           {activeTab === 'pos' && (
             <PosConsole 
               inventory={inventory}
+              invoices={invoices}
+              allInvoices={allInvoices}
+              ledgerEntries={ledgerEntries}
               currentInvoice={currentInvoice}
               settings={settings}
               onSaveInvoice={handleSaveInvoice}

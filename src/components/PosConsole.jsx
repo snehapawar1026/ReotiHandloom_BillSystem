@@ -5,6 +5,9 @@ import { CATEGORIES } from '../constants';
 
 export default function PosConsole({
   inventory = [],
+  invoices = [],
+  allInvoices = [],
+  ledgerEntries = [],
   currentInvoice = null,
   settings = {},
   onSaveInvoice,
@@ -80,32 +83,206 @@ export default function PosConsole({
 
   const dueAmount = Math.max(0, grandTotal - actualPaidAmount);
 
+  // Extract unique saved customer profiles from all invoices & ledger entries
+  const savedCustomers = useMemo(() => {
+    const customerMap = new Map();
+
+    const addCustomerProfile = (name, phone, email, address, gstin) => {
+      const cleanName = (name || '').trim();
+      const cleanPhone = (phone || '').trim();
+      if (!cleanName && !cleanPhone) return;
+
+      const key = cleanName ? cleanName.toLowerCase() : cleanPhone;
+      if (!customerMap.has(key)) {
+        customerMap.set(key, {
+          customerName: cleanName,
+          customerPhone: cleanPhone,
+          customerEmail: (email || '').trim(),
+          customerAddress: (address || '').trim(),
+          customerGSTIN: (gstin || '').trim()
+        });
+      } else {
+        const existing = customerMap.get(key);
+        customerMap.set(key, {
+          customerName: existing.customerName || cleanName,
+          customerPhone: existing.customerPhone || cleanPhone,
+          customerEmail: existing.customerEmail || (email || '').trim(),
+          customerAddress: existing.customerAddress || (address || '').trim(),
+          customerGSTIN: existing.customerGSTIN || (gstin || '').trim()
+        });
+      }
+    };
+
+    const sourceInvoices = (allInvoices && allInvoices.length > 0) ? allInvoices : invoices;
+    (sourceInvoices || []).forEach(inv => {
+      addCustomerProfile(
+        inv.customerName,
+        inv.customerPhone,
+        inv.customerEmail,
+        inv.customerAddress,
+        inv.customerGSTIN
+      );
+    });
+
+    (ledgerEntries || []).forEach(ent => {
+      addCustomerProfile(
+        ent.partyName || ent.customerName,
+        ent.customerPhone || ent.phone,
+        ent.customerEmail || ent.email,
+        ent.customerAddress || ent.address,
+        ent.customerGSTIN || ent.gstin
+      );
+    });
+
+    return Array.from(customerMap.values());
+  }, [invoices, allInvoices, ledgerEntries]);
+
+  const handleSelectSavedCustomer = (cust) => {
+    if (!cust) return;
+    let updatedInvoice = {
+      ...currentInvoice,
+      customerName: cust.customerName || '',
+      customerPhone: cust.customerPhone || '',
+      customerEmail: cust.customerEmail || '',
+      customerAddress: cust.customerAddress || '',
+      customerGSTIN: cust.customerGSTIN || ''
+    };
+
+    if (cust.customerGSTIN) {
+      const cleanGSTIN = cust.customerGSTIN.trim().toUpperCase();
+      const shopStateCode = settings?.shopGSTIN?.substring(0, 2) || '23';
+      if (cleanGSTIN.length >= 2) {
+        const custStateCode = cleanGSTIN.substring(0, 2);
+        updatedInvoice.isInterState = (custStateCode !== shopStateCode);
+      }
+    }
+
+    onUpdateCurrentInvoice(updatedInvoice);
+  };
+
   // Form input update handler
   const handleInputChange = (field, value) => {
     let updatedInvoice = {
       ...currentInvoice,
       [field]: value
     };
-    
-    // Auto-detect inter-state tax type if Customer GSTIN changes
-    if (field === 'customerGSTIN') {
-      const cleanGSTIN = value.trim().toUpperCase();
-      const shopStateCode = settings?.shopGSTIN?.substring(0, 2) || '23';
-      if (cleanGSTIN.length >= 2) {
-        const custStateCode = cleanGSTIN.substring(0, 2);
-        updatedInvoice.isInterState = (custStateCode !== shopStateCode);
-      } else {
-        updatedInvoice.isInterState = false;
+
+    // Auto-fill existing customer details if Customer Name matches a saved record
+    if (field === 'customerName') {
+      const valTrim = value.trim().toLowerCase();
+      if (valTrim.length >= 2) {
+        const match = savedCustomers.find(
+          c => c.customerName && c.customerName.trim().toLowerCase() === valTrim
+        );
+        if (match) {
+          updatedInvoice = {
+            ...updatedInvoice,
+            customerPhone: match.customerPhone || updatedInvoice.customerPhone,
+            customerEmail: match.customerEmail || updatedInvoice.customerEmail,
+            customerAddress: match.customerAddress || updatedInvoice.customerAddress,
+            customerGSTIN: match.customerGSTIN || updatedInvoice.customerGSTIN
+          };
+        }
       }
+    }
+
+    // Auto-fill existing customer details if Customer Phone matches a saved record
+    if (field === 'customerPhone') {
+      const cleanPhone = value.trim();
+      if (cleanPhone.length >= 4) {
+        const match = savedCustomers.find(
+          c => c.customerPhone && c.customerPhone.trim() === cleanPhone
+        );
+        if (match) {
+          updatedInvoice = {
+            ...updatedInvoice,
+            customerName: match.customerName || updatedInvoice.customerName,
+            customerEmail: match.customerEmail || updatedInvoice.customerEmail,
+            customerAddress: match.customerAddress || updatedInvoice.customerAddress,
+            customerGSTIN: match.customerGSTIN || updatedInvoice.customerGSTIN
+          };
+        }
+      }
+    }
+
+    // Auto-detect inter-state tax type if Customer GSTIN changes or gets auto-filled
+    const activeGSTIN = (field === 'customerGSTIN' ? value : (updatedInvoice.customerGSTIN || '')).trim().toUpperCase();
+    if (activeGSTIN.length >= 2) {
+      const shopStateCode = settings?.shopGSTIN?.substring(0, 2) || '23';
+      const custStateCode = activeGSTIN.substring(0, 2);
+      updatedInvoice.isInterState = (custStateCode !== shopStateCode);
+    } else if (field === 'customerGSTIN') {
+      updatedInvoice.isInterState = false;
     }
     
     onUpdateCurrentInvoice(updatedInvoice);
   };
 
+  // Extract all unique item suggestions from inventory & past invoices
+  const itemSuggestions = useMemo(() => {
+    const map = new Map();
+    (inventory || []).forEach(p => {
+      if (p.name && p.name.trim()) {
+        const cleanName = p.name.trim();
+        const key = cleanName.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, {
+            name: cleanName,
+            rate: (p.rate !== undefined && p.rate !== null && p.rate !== '') ? p.rate : '',
+            meter: (p.meter !== undefined && p.meter !== null && p.meter !== '') ? p.meter : '6.20',
+            hsn: p.hsn || '5208',
+            unit: p.unit || 'Pcs',
+            sku: p.sku || 'CUSTOM'
+          });
+        }
+      }
+    });
+
+    const sourceInvoices = (allInvoices && allInvoices.length > 0) ? allInvoices : invoices;
+    (sourceInvoices || []).forEach(inv => {
+      (inv.items || []).forEach(it => {
+        if (it.name && it.name.trim()) {
+          const cleanName = it.name.trim();
+          const key = cleanName.toLowerCase();
+          if (!map.has(key)) {
+            map.set(key, {
+              name: cleanName,
+              rate: (it.rate !== undefined && it.rate !== null && it.rate !== '') ? it.rate : '',
+              meter: (it.meter !== undefined && it.meter !== null && it.meter !== '') ? it.meter : '6.20',
+              hsn: it.hsn || '5208',
+              unit: it.unit || 'Pcs',
+              sku: it.sku || 'CUSTOM'
+            });
+          }
+        }
+      });
+    });
+
+    return Array.from(map.values());
+  }, [inventory, invoices, allInvoices]);
+
   // Item row operations
   const handleItemRowChange = (index, field, value) => {
     const updatedItems = [...items];
-    if (field === 'total') {
+    if (field === 'name') {
+      const trimmedVal = value.trim().toLowerCase();
+      const match = itemSuggestions.find(s => s.name.toLowerCase() === trimmedVal);
+      if (match) {
+        updatedItems[index] = {
+          ...updatedItems[index],
+          name: value,
+          meter: (match.meter !== undefined && match.meter !== null && match.meter !== '') ? match.meter : updatedItems[index].meter,
+          hsn: match.hsn || updatedItems[index].hsn,
+          unit: match.unit || updatedItems[index].unit,
+          rate: (match.rate !== undefined && match.rate !== null && match.rate !== '' && (!updatedItems[index].rate || updatedItems[index].rate === '')) ? match.rate : updatedItems[index].rate
+        };
+      } else {
+        updatedItems[index] = {
+          ...updatedItems[index],
+          name: value
+        };
+      }
+    } else if (field === 'total') {
       const newTotal = value === '' ? '' : parseFloat(value);
       if (newTotal === '' || isNaN(newTotal)) {
         updatedItems[index] = {
@@ -123,7 +300,7 @@ export default function PosConsole({
     } else {
       updatedItems[index] = {
         ...updatedItems[index],
-        [field]: field === 'qty' || field === 'rate'
+        [field]: field === 'qty' || field === 'rate' || field === 'meter'
           ? (value === '' ? '' : value)
           : value
       };
@@ -154,7 +331,8 @@ export default function PosConsole({
         name: product.name,
         sku: product.sku,
         hsn: product.hsn || '5208',
-        qty: 1,
+        meter: product.meter !== undefined && product.meter !== null ? product.meter : '6.20',
+        qty: '',
         unit: product.unit || 'Pcs',
         rate: product.rate,
         gstRate: product.gstRate || 0
@@ -166,10 +344,11 @@ export default function PosConsole({
   const handleAddCustomItem = () => {
     const newItem = {
       productId: `custom-${Date.now()}`,
-      name: isCreditNote ? 'Returned Fabric / Item' : 'Custom Fabric / Item',
+      name: '',
       sku: 'CUSTOM',
       hsn: '5208',
-      qty: 1,
+      meter: '6.20',
+      qty: '',
       unit: 'Pcs',
       rate: '',
       gstRate: 5
@@ -195,7 +374,10 @@ export default function PosConsole({
       originalInvoiceDate: originalInvoiceDate,
       reasonForCN: reasonForCN,
       invoiceGstRate, // Save the selected overall invoice GST rate
-      items: totals.items, // Saves with computed rates
+      items: totals.items.map(item => ({
+        ...item,
+        name: item.name?.trim() ? item.name : (isCreditNote ? 'Returned Fabric / Item' : 'Custom Fabric / Item')
+      })),
       subtotal: totals.subtotal,
       totalDiscount: totals.totalDiscount,
       taxableValue: totals.taxableValue,
@@ -356,20 +538,38 @@ export default function PosConsole({
               <input
                 id="custName"
                 type="text"
+                list="saved-customer-names-list"
                 value={customerName}
                 onChange={(e) => handleInputChange('customerName', e.target.value)}
                 placeholder={isPurchaseNote ? "Weaver / Vendor Name" : "Walk-in Customer / Client Name"}
+                autoComplete="on"
               />
+              <datalist id="saved-customer-names-list">
+                {savedCustomers.filter(c => c.customerName).map((c, i) => (
+                  <option key={i} value={c.customerName}>
+                    {c.customerPhone ? `Phone: ${c.customerPhone}` : ''} {c.customerAddress ? `| ${c.customerAddress}` : ''}
+                  </option>
+                ))}
+              </datalist>
             </div>
             <div>
               <label htmlFor="custPhone">{isPurchaseNote ? 'Supplier Phone Number' : 'Phone Number'}</label>
               <input
                 id="custPhone"
                 type="text"
+                list="saved-customer-phones-list"
                 value={customerPhone}
                 onChange={(e) => handleInputChange('customerPhone', e.target.value)}
                 placeholder="+91 XXXXX XXXXX"
+                autoComplete="on"
               />
+              <datalist id="saved-customer-phones-list">
+                {savedCustomers.filter(c => c.customerPhone).map((c, i) => (
+                  <option key={i} value={c.customerPhone}>
+                    {c.customerName ? `Name: ${c.customerName}` : ''} {c.customerAddress ? `| ${c.customerAddress}` : ''}
+                  </option>
+                ))}
+              </datalist>
             </div>
             <div>
               <label htmlFor="custEmail">{isPurchaseNote ? 'Supplier Email' : 'Email Address'}</label>
@@ -422,11 +622,12 @@ export default function PosConsole({
             <table className="custom-table" style={{ fontSize: '0.9rem' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '40%' }}>Item / Description</th>
-                  <th style={{ width: '15%' }}>Rate</th>
-                  <th style={{ width: '12%', textAlign: 'center' }}>Qty</th>
-                  <th style={{ width: '11%' }}>Unit</th>
-                  <th style={{ width: '17%', textAlign: 'right' }}>Total</th>
+                  <th style={{ width: '34%' }}>Item / Description</th>
+                  <th style={{ width: '13%', textAlign: 'center' }}>Meter (कट/मीटर)</th>
+                  <th style={{ width: '14%' }}>Rate (₹)</th>
+                  <th style={{ width: '10%', textAlign: 'center' }}>Qty</th>
+                  <th style={{ width: '9%' }}>Unit</th>
+                  <th style={{ width: '15%', textAlign: 'right' }}>Total (₹)</th>
                   <th style={{ width: '5%', textAlign: 'center' }}></th>
                 </tr>
               </thead>
@@ -443,10 +644,12 @@ export default function PosConsole({
                         <div className="d-flex flex-column gap-1">
                           <input
                             type="text"
+                            list="custom-item-suggestions-list"
                             value={item.name}
                             onChange={(e) => handleItemRowChange(index, 'name', e.target.value)}
+                            placeholder={isCreditNote ? 'Returned Fabric / Item' : 'Custom Fabric / Item'}
                             style={{ padding: '6px' }}
-                            required
+                            autoComplete="on"
                           />
                           <div className="d-flex align-center gap-2" style={{ paddingLeft: '2px', fontSize: '0.75rem' }}>
                             <span className="text-muted">HSN:</span>
@@ -462,13 +665,26 @@ export default function PosConsole({
                         </div>
                       </td>
 
+                      {/* Meter (Cut/Length) */}
+                      <td>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={item.meter !== undefined && item.meter !== null ? item.meter : '6.20'}
+                          onChange={(e) => handleItemRowChange(index, 'meter', e.target.value)}
+                          style={{ padding: '6px', textAlign: 'center', fontWeight: '600', color: 'var(--text-gold)' }}
+                          placeholder="6.20"
+                        />
+                      </td>
+
                       {/* Rate */}
                       <td>
                         <input
                           type="number"
                           step="0.01"
-                          value={item.rate === 0 ? '' : item.rate}
+                          value={item.rate === 0 || item.rate === '' || item.rate === null || item.rate === undefined ? '' : item.rate}
                           onChange={(e) => handleItemRowChange(index, 'rate', e.target.value)}
+                          placeholder="Rate (₹)"
                           style={{ padding: '6px', textAlign: 'right' }}
                           required
                         />
@@ -481,8 +697,9 @@ export default function PosConsole({
                             type="number"
                             min="1"
                             step="any"
-                            value={item.qty === 0 ? '' : item.qty}
+                            value={item.qty === 0 || item.qty === '' || item.qty === null || item.qty === undefined ? '' : item.qty}
                             onChange={(e) => handleItemRowChange(index, 'qty', e.target.value)}
+                            placeholder="Qty (मात्रा)"
                             style={{ padding: '6px', textAlign: 'center' }}
                             required
                           />
@@ -532,7 +749,7 @@ export default function PosConsole({
                 })}
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="text-center text-muted" style={{ padding: '24px' }}>
+                    <td colSpan={7} className="text-center text-muted" style={{ padding: '24px' }}>
                       Your billing list is empty. Click items in the stock panel on the right side to add them.
                     </td>
                   </tr>
@@ -541,7 +758,7 @@ export default function PosConsole({
               {items.length > 0 && (
                 <tfoot>
                   <tr style={{ borderTop: '2px solid var(--border-color)', fontWeight: 'bold', backgroundColor: 'var(--card-bg-subtle)' }}>
-                    <td colSpan={4} style={{ textAlign: 'right', padding: '10px 12px' }}>Total Quantity:</td>
+                    <td colSpan={3} style={{ textAlign: 'right', padding: '10px 12px' }}>Total Quantity:</td>
                     <td style={{ textAlign: 'center', padding: '10px 12px' }}>
                       <span className="badge badge-primary" style={{ fontSize: '0.9rem', padding: '4px 10px' }}>
                         {totalQty}
@@ -554,6 +771,13 @@ export default function PosConsole({
                 </tfoot>
               )}
             </table>
+            <datalist id="custom-item-suggestions-list">
+              {itemSuggestions.map((s, i) => (
+                <option key={i} value={s.name}>
+                  {s.meter ? `${s.meter}m` : ''} {s.hsn ? `| HSN:${s.hsn}` : ''} {s.rate ? `| ₹${s.rate}` : ''}
+                </option>
+              ))}
+            </datalist>
           </div>
         </div>
 
@@ -675,18 +899,20 @@ export default function PosConsole({
               </>
             )}
 
-            <div className="d-flex justify-between align-center" style={{ fontSize: '0.9rem' }}>
-              <span className="text-muted">Courier Charges:</span>
-              <div style={{ width: '100px' }}>
-                <input
-                  type="number"
-                  placeholder="₹ Amount"
-                  value={courierCharges === 0 || courierCharges === '0' ? '' : courierCharges}
-                  onChange={(e) => handleInputChange('courierCharges', e.target.value)}
-                  style={{ padding: '4px 8px', fontSize: '0.85rem', textAlign: 'right' }}
-                />
+            {!isPurchaseNote && !isCreditNote && (
+              <div className="d-flex justify-between align-center" style={{ fontSize: '0.9rem' }}>
+                <span className="text-muted">Courier Charges:</span>
+                <div style={{ width: '100px' }}>
+                  <input
+                    type="number"
+                    placeholder="₹ Amount"
+                    value={courierCharges === 0 || courierCharges === '0' ? '' : courierCharges}
+                    onChange={(e) => handleInputChange('courierCharges', e.target.value)}
+                    style={{ padding: '4px 8px', fontSize: '0.85rem', textAlign: 'right' }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
 
 
