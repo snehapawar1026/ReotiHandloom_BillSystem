@@ -644,7 +644,7 @@ label {
 
 /* --- FORCE LIGHT RECEIPT TEXT REGARDLESS OF THEME --- */
 #printable-invoice {
-  background-color: #ffffff !important;
+  background-color: #fdfaf2 !important; /* Soft warm cream matching the logo */
   color: #000000 !important;
   position: relative;
 }
