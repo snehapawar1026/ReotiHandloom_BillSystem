@@ -265,23 +265,10 @@ export default function PosConsole({
   const handleItemRowChange = (index, field, value) => {
     const updatedItems = [...items];
     if (field === 'name') {
-      const trimmedVal = value.trim().toLowerCase();
-      const match = itemSuggestions.find(s => s.name.toLowerCase() === trimmedVal);
-      if (match) {
-        updatedItems[index] = {
-          ...updatedItems[index],
-          name: value,
-          meter: (match.meter !== undefined && match.meter !== null && match.meter !== '') ? match.meter : updatedItems[index].meter,
-          hsn: match.hsn || updatedItems[index].hsn,
-          unit: match.unit || updatedItems[index].unit,
-          rate: (match.rate !== undefined && match.rate !== null && match.rate !== '' && (!updatedItems[index].rate || updatedItems[index].rate === '')) ? match.rate : updatedItems[index].rate
-        };
-      } else {
-        updatedItems[index] = {
-          ...updatedItems[index],
-          name: value
-        };
-      }
+      updatedItems[index] = {
+        ...updatedItems[index],
+        name: value
+      };
     } else if (field === 'total') {
       const newTotal = value === '' ? '' : parseFloat(value);
       if (newTotal === '' || isNaN(newTotal)) {
@@ -773,9 +760,7 @@ export default function PosConsole({
             </table>
             <datalist id="custom-item-suggestions-list">
               {itemSuggestions.map((s, i) => (
-                <option key={i} value={s.name}>
-                  {s.meter ? `${s.meter}m` : ''} {s.hsn ? `| HSN:${s.hsn}` : ''} {s.rate ? `| ₹${s.rate}` : ''}
-                </option>
+                <option key={i} value={s.name} />
               ))}
             </datalist>
           </div>
