@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS = {
   shopAddress: '73, LaxmiBai Marg, Maheshwar , Madhya Pradesh  - 451224',
   shopPhone: '+91 9617444445',
   shopEmail: 'reotihandloom@hotmail.com',
+  shopWebsite: 'https://reotihandloom.com/',
   shopGSTIN: '23BDFPA9843J1ZJ', // Madhya Pradesh state code prefix is 23 (Varanasi/UP was 09)
   bankName: 'HDFC',
   bankAccountNo: '99954444444445',

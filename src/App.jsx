@@ -9,7 +9,8 @@ import {
   History, 
   FileText,
   ArrowLeft,
-  BookOpen
+  BookOpen,
+  Package
 } from 'lucide-react';
 
 import { 
@@ -30,6 +31,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import SettingsPanel from './components/SettingsPanel';
 import PrintInvoiceModal from './components/PrintInvoiceModal';
 import PartyLedgerConsole from './components/PartyLedgerConsole';
+import ParcelSlipConsole from './components/ParcelSlipConsole';
 
 import './App.css';
 
@@ -728,10 +730,96 @@ export default function App() {
               Launch Purchase Note Console
             </button>
           </div>
+
+          {/* Card 5: Parcel Dispatch Slip & Address Label */}
+          <div 
+            className="glass-card d-flex flex-column align-center justify-between" 
+            style={{
+              width: '275px',
+              padding: '28px 20px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              border: '1px solid #0284c7',
+              borderRadius: 'var(--radius-lg)',
+              background: 'var(--bg-sidebar)',
+              boxShadow: '0 4px 20px rgba(2, 132, 199, 0.2)',
+              transition: 'all 0.3s ease',
+              minHeight: '440px',
+              boxSizing: 'border-box'
+            }} 
+            onClick={() => setSystemMode('parcel_slip')}
+          >
+            <div className="d-flex flex-column align-center">
+              <div style={{ position: 'relative' }}>
+                <div style={{
+                  width: '110px',
+                  height: '110px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '3px solid #38bdf8',
+                  boxShadow: '0 4px 15px rgba(2, 132, 199, 0.35)',
+                  marginBottom: '16px',
+                  color: '#ffffff'
+                }}>
+                  <Package size={52} />
+                </div>
+                <span style={{
+                  position: 'absolute',
+                  bottom: '18px',
+                  right: '0',
+                  backgroundColor: '#0284c7',
+                  color: '#fff',
+                  fontSize: '0.65rem',
+                  fontWeight: '800',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  textTransform: 'uppercase'
+                }}>
+                  A4 SLIP
+                </span>
+              </div>
+              <h2 className="brand-heading text-gold mb-2" style={{ fontSize: '1.45rem', color: '#38bdf8' }}>Parcel Dispatch Slip</h2>
+              <span className="badge" style={{ fontSize: '0.75rem', backgroundColor: 'rgba(2, 132, 199, 0.15)', color: '#38bdf8', padding: '4px 10px', borderRadius: '12px', fontWeight: '600' }}>
+                COURIER & PARCEL LABEL
+              </span>
+              <p className="text-muted" style={{ fontSize: '0.88rem', lineHeight: '1.4', marginTop: '14px' }}>
+                Instant A4 shipping address labels & parcel slips. Auto-fetches party addresses from database, formats sender info, and prints high-visibility courier stickers.
+              </p>
+            </div>
+            <button className="btn w-full mt-4" style={{ padding: '12px', backgroundColor: '#0284c7', borderColor: '#0284c7', color: '#fff', fontWeight: '600' }}>
+              Launch Parcel Console
+            </button>
+          </div>
         </div>
 
         <div className="text-muted mt-5" style={{ fontSize: '0.9rem' }}>
           Crafted with care for Maheshwar handloom weavers. © 2026.
+        </div>
+      </div>
+    );
+  }
+
+  if (systemMode === 'parcel_slip') {
+    return (
+      <div className="home-container" style={{
+        minHeight: '100vh',
+        background: 'var(--bg-app)',
+        padding: '24px 30px',
+        fontFamily: 'var(--font-ui)',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto' }}>
+          <ParcelSlipConsole 
+            invoices={invoices}
+            allInvoices={allInvoices}
+            ledgerEntries={ledgerEntries}
+            settings={settings}
+            systemMode={systemMode}
+            onBackToHome={() => setSystemMode(null)}
+          />
         </div>
       </div>
     );
@@ -820,6 +908,15 @@ export default function App() {
             </li>
             <li>
               <button 
+                className={`nav-item w-full ${activeTab === 'parcel_slip' ? 'active' : ''}`}
+                onClick={() => setActiveTab('parcel_slip')}
+                style={{ background: 'none', border: 'none', textAlign: 'left', color: activeTab === 'parcel_slip' ? '#38bdf8' : '' }}
+              >
+                <Package size={18} /> Parcel Slip / पार्सल स्लिप
+              </button>
+            </li>
+            <li>
+              <button 
                 className={`nav-item w-full ${activeTab === 'settings' ? 'active' : ''}`}
                 onClick={() => setActiveTab('settings')}
                 style={{ background: 'none', border: 'none', textAlign: 'left' }}
@@ -856,6 +953,7 @@ export default function App() {
               {activeTab === 'pos' && (systemMode === 'reoti_cn' ? 'Create Credit Note (GST Return)' : (systemMode === 'ambekar_pn' ? 'Create Purchase Note (Non-GST)' : 'Create Sale Invoices'))}
               {activeTab === 'invoices' && (systemMode === 'reoti_cn' ? 'Credit Notes Archive Ledger' : (systemMode === 'ambekar_pn' ? 'Purchase Notes Archive Ledger' : 'Invoices Archive Ledger'))}
               {activeTab === 'ledger' && 'Party Ledger Statement (खाता बही)'}
+              {activeTab === 'parcel_slip' && 'Parcel & Shipping Dispatch Console (पार्सल स्लिप)'}
               {activeTab === 'inventory' && 'Handloom Stock Warehouse'}
               {activeTab === 'analytics' && 'Operational reports & Trends'}
               {activeTab === 'settings' && 'Configure Business Profile'}
@@ -922,7 +1020,6 @@ export default function App() {
             />
           )}
 
-
           {activeTab === 'ledger' && (
             <PartyLedgerConsole 
               invoices={invoices}
@@ -934,6 +1031,16 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'parcel_slip' && (
+            <ParcelSlipConsole 
+              invoices={invoices}
+              allInvoices={allInvoices}
+              ledgerEntries={ledgerEntries}
+              settings={settings}
+              systemMode={systemMode}
+              onBackToHome={() => setSystemMode(null)}
+            />
+          )}
 
           {activeTab === 'inventory' && (
             <InventoryManager 
