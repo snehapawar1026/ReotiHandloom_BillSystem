@@ -896,9 +896,12 @@ export default function App() {
               ledgerEntries={ledgerEntries}
               currentInvoice={currentInvoice}
               settings={settings}
+              systemMode={systemMode}
               onSaveInvoice={handleSaveInvoice}
               onClearInvoice={handleClearInvoice}
               onUpdateCurrentInvoice={setCurrentInvoice}
+              onSaveLedgerEntry={handleSaveLedgerEntry}
+              onDeleteLedgerEntry={handleDeleteLedgerEntry}
               hasGST={systemMode === 'reoti' || systemMode === 'reoti_cn'}
             />
           )}

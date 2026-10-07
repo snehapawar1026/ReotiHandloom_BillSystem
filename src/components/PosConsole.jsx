@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, RotateCcw, Save, Printer, Search, Info, PlusCircle } from 'lucide-react';
+import { Trash2, RotateCcw, Save, Printer, Search, PlusCircle, Edit, X } from 'lucide-react';
 import { formatCurrency, calculateTotals } from '../utils';
 import { CATEGORIES } from '../constants';
 
@@ -10,13 +10,28 @@ export default function PosConsole({
   ledgerEntries = [],
   currentInvoice = null,
   settings = {},
+  systemMode = 'reoti',
   onSaveInvoice,
   onClearInvoice,
   onUpdateCurrentInvoice,
+  onSaveLedgerEntry,
+  onDeleteLedgerEntry,
   hasGST = true
 }) {
   const [catalogSearch, setCatalogSearch] = useState('');
   const [selectedCatalogCat, setSelectedCatalogCat] = useState('All');
+
+  // Advance Payment Modal states
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+  const [advanceModalTab, setAdvanceModalTab] = useState('add'); // 'add' | 'history'
+  const [editingAdvanceEntry, setEditingAdvanceEntry] = useState(null);
+  const [advanceForm, setAdvanceForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    amount: '',
+    paymentMode: 'UPI',
+    remarks: 'Advance Payment for Weaver Stock',
+    vchNo: ''
+  });
 
   // Destructure invoice fields from parent-controlled object
   const {
@@ -37,12 +52,15 @@ export default function PosConsole({
     paymentMode = 'Cash',
     paymentStatus = 'Paid',
     paidAmount = null,
+    advanceAdjusted = 0,
     remarks = '',
     isInterState = false,
     cgstOverride = null,
     sgstOverride = null,
     igstOverride = null
   } = currentInvoice || {};
+
+  const effectiveIsPurchaseNote = systemMode === 'ambekar_pn' || isPurchaseNote;
 
   // Compute live calculations
   const totals = useMemo(() => {
@@ -76,12 +94,17 @@ export default function PosConsole({
   const roundOff = grandTotal - finalPreRound;
   const totalQty = items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
 
+  // Advance adjustment & Net payable computation
+  const adjAdvance = parseFloat(advanceAdjusted) || 0;
+  const netPayable = Math.max(0, grandTotal - adjAdvance);
+
   // Udhar / Partial payment computation
   const actualPaidAmount = paymentStatus === 'Paid'
-    ? (paidAmount !== null && paidAmount !== undefined && paidAmount !== '' ? parseFloat(paidAmount) : grandTotal)
+    ? (paidAmount !== null && paidAmount !== undefined && paidAmount !== '' ? parseFloat(paidAmount) : netPayable)
     : (paymentStatus === 'Unpaid' ? 0 : (paidAmount !== null && paidAmount !== undefined && paidAmount !== '' ? parseFloat(paidAmount) : 0));
 
-  const dueAmount = Math.max(0, grandTotal - actualPaidAmount);
+  const dueAmount = Math.max(0, netPayable - actualPaidAmount);
+  const excessPaid = Math.max(0, actualPaidAmount - netPayable);
 
   // Extract unique saved customer profiles from all invoices & ledger entries
   const savedCustomers = useMemo(() => {
@@ -136,6 +159,79 @@ export default function PosConsole({
 
     return Array.from(customerMap.values());
   }, [invoices, allInvoices, ledgerEntries]);
+
+  // Compute live ledger balance / available advance for current customer/supplier
+  const partyBalanceInfo = useMemo(() => {
+    if (!customerName || !customerName.trim()) {
+      return { totalDebit: 0, totalCredit: 0, advanceBalance: 0, pendingDue: 0, entries: [] };
+    }
+
+    const partyNorm = customerName.trim().toLowerCase();
+    let totalDebit = 0;
+    let totalCredit = 0;
+    const entries = [];
+
+    // Filter relevant invoices (excluding current invoice if editing)
+    const sourceInvoices = (allInvoices && allInvoices.length > 0) ? allInvoices : invoices;
+    (sourceInvoices || []).forEach(inv => {
+      if (inv.invoiceNo === invoiceNo) return; // exclude current invoice being edited
+      if (inv.customerName && inv.customerName.trim().toLowerCase() === partyNorm) {
+        const isCN = inv.isCreditNote || (inv.invoiceNo && inv.invoiceNo.includes('CN')) || systemMode === 'reoti_cn';
+        const isPN = inv.isPurchaseNote || (inv.invoiceNo && inv.invoiceNo.includes('PN')) || systemMode === 'ambekar_pn';
+        
+        const total = parseFloat(inv.grandTotal) || 0;
+        const paidVal = inv.paidAmount !== undefined && inv.paidAmount !== null ? parseFloat(inv.paidAmount) : (inv.paymentStatus === 'Unpaid' ? 0 : total);
+
+        if (isPN) {
+          // In Purchase Note: Goods purchased = Credit to supplier, Payments made = Debit to supplier
+          totalCredit += total;
+          totalDebit += paidVal;
+        } else if (isCN) {
+          totalDebit += total;
+        } else {
+          // Sales: Goods sold = Debit to customer, Payments received = Credit to customer
+          totalDebit += total;
+          totalCredit += paidVal;
+        }
+      }
+    });
+
+    // Ledger entries for this party
+    (ledgerEntries || []).forEach(ent => {
+      if (ent.partyName && ent.partyName.trim().toLowerCase() === partyNorm) {
+        const deb = parseFloat(ent.debit) || 0;
+        const cred = parseFloat(ent.credit) || 0;
+        totalDebit += deb;
+        totalCredit += cred;
+        entries.push(ent);
+      }
+    });
+
+    let advanceBalance = 0;
+    let pendingDue = 0;
+
+    if (isPurchaseNote) {
+      if (totalDebit > totalCredit) {
+        advanceBalance = totalDebit - totalCredit;
+      } else {
+        pendingDue = totalCredit - totalDebit;
+      }
+    } else {
+      if (totalCredit > totalDebit) {
+        advanceBalance = totalCredit - totalDebit;
+      } else {
+        pendingDue = totalDebit - totalCredit;
+      }
+    }
+
+    return {
+      totalDebit,
+      totalCredit,
+      advanceBalance: Math.round(advanceBalance * 100) / 100,
+      pendingDue: Math.round(pendingDue * 100) / 100,
+      entries
+    };
+  }, [customerName, invoices, allInvoices, ledgerEntries, invoiceNo, isPurchaseNote, systemMode]);
 
   const handleSelectSavedCustomer = (cust) => {
     if (!cust) return;
@@ -216,6 +312,139 @@ export default function PosConsole({
     }
     
     onUpdateCurrentInvoice(updatedInvoice);
+  };
+
+  const handlePaymentStatusChange = (status) => {
+    let newPaid = paidAmount;
+    if (status === 'Paid') {
+      newPaid = netPayable;
+    } else if (status === 'Unpaid') {
+      newPaid = 0;
+    } else if (status === 'Partial') {
+      if (newPaid === netPayable || newPaid === null || newPaid === undefined || newPaid === 0 || newPaid === '0') {
+        newPaid = '';
+      }
+    }
+
+    onUpdateCurrentInvoice({
+      ...currentInvoice,
+      paymentStatus: status,
+      paidAmount: newPaid
+    });
+  };
+
+  const handlePaidAmountChange = (val) => {
+    let newStatus = paymentStatus;
+    if (val === '' || val === null || val === undefined) {
+      newStatus = 'Partial';
+    } else {
+      const num = parseFloat(val);
+      if (!isNaN(num)) {
+        if (num >= netPayable) {
+          newStatus = 'Paid';
+        } else if (num <= 0) {
+          newStatus = 'Unpaid';
+        } else {
+          newStatus = 'Partial';
+        }
+      }
+    }
+
+    onUpdateCurrentInvoice({
+      ...currentInvoice,
+      paidAmount: val,
+      paymentStatus: newStatus
+    });
+  };
+
+  // Advance adjustment handlers - free manual entry
+  const handleAdvanceAdjustChange = (val) => {
+    const rawVal = val === '' ? 0 : parseFloat(val) || 0;
+    const newNetPayable = Math.max(0, grandTotal - rawVal);
+
+    let newPaid = paidAmount;
+    if (paymentStatus === 'Paid') {
+      newPaid = newNetPayable;
+    }
+
+    onUpdateCurrentInvoice({
+      ...currentInvoice,
+      advanceAdjusted: val,
+      paidAmount: newPaid
+    });
+  };
+
+  const handleClearAdvance = () => {
+    onUpdateCurrentInvoice({
+      ...currentInvoice,
+      advanceAdjusted: 0,
+      paidAmount: paymentStatus === 'Paid' ? grandTotal : paidAmount
+    });
+  };
+
+  // Save Advance Voucher directly to Ledger
+  const handleSaveAdvanceVoucher = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const partyNameTrim = (customerName || '').trim();
+    if (!partyNameTrim) {
+      alert("Please enter / select a Supplier / Weaver name first.");
+      return;
+    }
+
+    const amt = parseFloat(advanceForm.amount);
+    if (isNaN(amt) || amt <= 0) {
+      alert("Please enter a valid advance payment amount (₹).");
+      return;
+    }
+
+    const entryToSave = {
+      id: editingAdvanceEntry ? editingAdvanceEntry.id : `ledg_adv_${Date.now()}`,
+      partyName: partyNameTrim,
+      date: advanceForm.date || new Date().toISOString().split('T')[0],
+      vchType: 'Payment',
+      vchNo: advanceForm.vchNo || (isPurchaseNote ? 'ADV-PAY' : 'ADV-REC'),
+      particulars: advanceForm.remarks ? `${advanceForm.remarks} (${advanceForm.paymentMode})` : `Advance Payment (${advanceForm.paymentMode})`,
+      drCr: isPurchaseNote ? 'Dr' : 'Cr',
+      debit: isPurchaseNote ? amt : 0,
+      credit: isPurchaseNote ? 0 : amt,
+      phone: customerPhone || '',
+      address: customerAddress || ''
+    };
+
+    if (onSaveLedgerEntry) {
+      onSaveLedgerEntry(entryToSave);
+    }
+
+    setIsAdvanceModalOpen(false);
+    setEditingAdvanceEntry(null);
+    setAdvanceForm({
+      date: new Date().toISOString().split('T')[0],
+      amount: '',
+      paymentMode: 'UPI',
+      remarks: isPurchaseNote ? 'Advance Payment for Weaver Stock' : 'Advance from Customer',
+      vchNo: ''
+    });
+  };
+
+  const handleEditAdvanceEntry = (entry) => {
+    setEditingAdvanceEntry(entry);
+    const amt = isPurchaseNote ? (entry.debit || 0) : (entry.credit || 0);
+    setAdvanceForm({
+      date: entry.date || new Date().toISOString().split('T')[0],
+      amount: amt > 0 ? amt : '',
+      paymentMode: entry.particulars && entry.particulars.includes('Cash') ? 'Cash' : (entry.particulars && entry.particulars.includes('Bank') ? 'Bank Transfer' : 'UPI'),
+      remarks: entry.particulars || '',
+      vchNo: entry.vchNo || ''
+    });
+    setAdvanceModalTab('add');
+  };
+
+  const handleDeleteAdvanceEntry = (id) => {
+    if (window.confirm("Are you sure you want to delete this advance payment voucher?")) {
+      if (onDeleteLedgerEntry) {
+        onDeleteLedgerEntry(id);
+      }
+    }
   };
 
   // Extract all unique item suggestions from inventory & past invoices
@@ -375,6 +604,8 @@ export default function PosConsole({
       courierCharges: parseFloat(courierCharges) || 0,
       roundOff: roundOff,
       grandTotal: grandTotal,
+      advanceAdjusted: parseFloat(advanceAdjusted) || 0,
+      netPayable: netPayable,
       paidAmount: actualPaidAmount,
       dueAmount: dueAmount,
       paymentStatus: derivedStatus,
@@ -786,7 +1017,7 @@ export default function PosConsole({
 
               <div>
                 <label htmlFor="payStat">Payment Status</label>
-                <select id="payStat" value={paymentStatus} onChange={(e) => handleInputChange('paymentStatus', e.target.value)}>
+                <select id="payStat" value={paymentStatus} onChange={(e) => handlePaymentStatusChange(e.target.value)}>
                   <option value="Paid">Paid</option>
                   <option value="Unpaid">Unpaid</option>
                   <option value="Partial">Partial</option>
@@ -913,28 +1144,43 @@ export default function PosConsole({
               <span>{formatCurrency(grandTotal)}</span>
             </div>
 
+            {/* Advance Adjustment Row - Only for Purchase Note (WITHOUT GST - Ambekar Purchase Note) */}
+            {systemMode === 'ambekar_pn' && (
+              <div className="d-flex flex-column gap-2 p-2 rounded" style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)', border: '1px solid #8b5cf6' }}>
+                <div className="d-flex justify-between align-center" style={{ fontSize: '0.9rem' }}>
+                  <span style={{ fontWeight: '600', color: '#8b5cf6' }}>Advance Paid / Adjusted:</span>
+                  <div style={{ width: '120px' }}>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="₹ 0"
+                      value={advanceAdjusted === 0 || advanceAdjusted === '0' ? '' : advanceAdjusted}
+                      onChange={(e) => handleAdvanceAdjustChange(e.target.value)}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '4px 8px', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold', color: '#8b5cf6' }}
+                    />
+                  </div>
+                </div>
+                {parseFloat(advanceAdjusted) > 0 && (
+                  <div className="d-flex justify-between align-center pt-1" style={{ fontSize: '0.9rem', fontWeight: '700', borderTop: '1px dashed rgba(139, 92, 246, 0.3)' }}>
+                    <span>Net Payable After Advance:</span>
+                    <span style={{ color: '#a855f7' }}>{formatCurrency(netPayable)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Udhar / Partial Payment Row */}
             <div className="d-flex flex-column gap-2 p-2 rounded" style={{ backgroundColor: paymentStatus !== 'Paid' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.05)', border: `1px solid ${paymentStatus !== 'Paid' ? '#ef4444' : '#10b981'}` }}>
               <div className="d-flex justify-between align-center" style={{ fontSize: '0.9rem' }}>
-                <span style={{ fontWeight: '600' }}>Amount Paid:</span>
+                <span style={{ fontWeight: '600' }}>Amount Paid Now:</span>
                 <div style={{ width: '120px' }}>
                   <input
                     type="number"
                     step="any"
                     placeholder="₹ Paid"
-                    value={paidAmount !== null && paidAmount !== undefined ? paidAmount : (paymentStatus === 'Paid' ? grandTotal : (paymentStatus === 'Unpaid' ? 0 : ''))}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      handleInputChange('paidAmount', val);
-                      if (parseFloat(val) >= grandTotal) {
-                        handleInputChange('paymentStatus', 'Paid');
-                      } else if (parseFloat(val) > 0) {
-                        handleInputChange('paymentStatus', 'Partial');
-                      } else if (val === '0' || val === 0) {
-                        handleInputChange('paymentStatus', 'Unpaid');
-                      }
-                    }}
-                    style={{ padding: '4px 8px', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}
+                    value={paidAmount !== null && paidAmount !== undefined ? paidAmount : (paymentStatus === 'Paid' ? netPayable : (paymentStatus === 'Unpaid' ? 0 : ''))}
+                    onChange={(e) => handlePaidAmountChange(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '4px 8px', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}
                   />
                 </div>
               </div>
@@ -943,6 +1189,13 @@ export default function PosConsole({
                 <div className="d-flex justify-between align-center pt-1" style={{ fontSize: '0.95rem', fontWeight: '800', color: '#dc2626', borderTop: '1px dashed rgba(220, 38, 38, 0.3)' }}>
                   <span>Balance Due Amount:</span>
                   <span>{formatCurrency(dueAmount)}</span>
+                </div>
+              )}
+
+              {excessPaid > 0 && (
+                <div className="d-flex justify-between align-center pt-1" style={{ fontSize: '0.85rem', fontWeight: '700', color: '#10b981', borderTop: '1px dashed rgba(16, 185, 129, 0.3)' }}>
+                  <span>✨ Excess / Advance Paid:</span>
+                  <span>{formatCurrency(excessPaid)}</span>
                 </div>
               )}
             </div>
@@ -1057,6 +1310,217 @@ export default function PosConsole({
           )}
         </div>
       </div>
+
+      {/* Advance Payment Manager Modal */}
+      {isAdvanceModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1000, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+          <div className="glass-card modal-content" style={{ width: '92%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', position: 'relative' }}>
+            {/* Modal Header */}
+            <div className="d-flex justify-between align-center border-bottom pb-3 mb-3">
+              <div className="d-flex align-center gap-2">
+                <span style={{ fontSize: '1.4rem' }}>💰</span>
+                <div>
+                  <h3 className="brand-heading text-gold" style={{ fontSize: '1.2rem', margin: 0 }}>
+                    {isPurchaseNote ? 'Supplier Advance Manager' : 'Customer Advance Manager'}
+                  </h3>
+                  <span className="text-muted" style={{ fontSize: '0.8rem' }}>
+                    Party: <strong style={{ color: 'var(--text-gold)' }}>{customerName || 'N/A'}</strong>
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  setIsAdvanceModalOpen(false);
+                  setEditingAdvanceEntry(null);
+                }}
+                style={{ padding: '4px 8px' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Current Advance Status card */}
+            <div className="d-flex justify-between align-center p-3 rounded mb-3" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid #10b981' }}>
+              <div>
+                <span style={{ fontSize: '0.8rem', color: '#10b981', textTransform: 'uppercase', fontWeight: 'bold' }}>Current Net Advance Balance</span>
+                <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#10b981' }}>
+                  {formatCurrency(partyBalanceInfo.advanceBalance)}
+                </div>
+              </div>
+              {partyBalanceInfo.pendingDue > 0 && (
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#ef4444', textTransform: 'uppercase', fontWeight: 'bold' }}>Previous Pending Due</span>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ef4444' }}>
+                    {formatCurrency(partyBalanceInfo.pendingDue)}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="d-flex gap-2 mb-3 border-bottom pb-2">
+              <button
+                type="button"
+                className={`btn btn-sm ${advanceModalTab === 'add' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => {
+                  setAdvanceModalTab('add');
+                  setEditingAdvanceEntry(null);
+                }}
+              >
+                ➕ {editingAdvanceEntry ? 'Edit Advance Entry' : 'Add New Advance Payment'}
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${advanceModalTab === 'history' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setAdvanceModalTab('history')}
+              >
+                📋 Payment History ({partyBalanceInfo.entries.length})
+              </button>
+            </div>
+
+            {/* Tab 1: Add/Edit Advance Entry Form */}
+            {advanceModalTab === 'add' && (
+              <div className="d-flex flex-column gap-3">
+                <div className="grid-2" style={{ gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: '600' }}>Payment Date *</label>
+                    <input
+                      type="date"
+                      value={advanceForm.date}
+                      onChange={(e) => setAdvanceForm({ ...advanceForm, date: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: '600' }}>Advance Amount (₹) *</label>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 30000"
+                      value={advanceForm.amount}
+                      onChange={(e) => setAdvanceForm({ ...advanceForm, amount: e.target.value })}
+                      required
+                      style={{ fontSize: '1.05rem', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid-2" style={{ gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: '600' }}>Payment Mode</label>
+                    <select
+                      value={advanceForm.paymentMode}
+                      onChange={(e) => setAdvanceForm({ ...advanceForm, paymentMode: e.target.value })}
+                    >
+                      <option value="UPI">📱 GooglePay / PhonePe / UPI</option>
+                      <option value="Cash">💵 Cash</option>
+                      <option value="Bank Transfer">🏦 Bank Transfer / NEFT / IMPS</option>
+                      <option value="Cheque">📜 Cheque</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.85rem', fontWeight: '600' }}>Voucher / Ref No. (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ADV-2026-01 or UPI Ref"
+                      value={advanceForm.vchNo}
+                      onChange={(e) => setAdvanceForm({ ...advanceForm, vchNo: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '600' }}>Remarks / Note</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Advance paid for next 50 sarees lot"
+                    value={advanceForm.remarks}
+                    onChange={(e) => setAdvanceForm({ ...advanceForm, remarks: e.target.value })}
+                  />
+                </div>
+
+                <div className="d-flex justify-end gap-2 mt-3 pt-3 border-top">
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => {
+                      setIsAdvanceModalOpen(false);
+                      setEditingAdvanceEntry(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-emerald"
+                    onClick={handleSaveAdvanceVoucher}
+                    style={{ fontWeight: '700' }}
+                  >
+                    <Save size={16} /> {editingAdvanceEntry ? 'Update Advance Entry' : '💾 Save Advance Payment'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2: History of Manual Payment Vouchers for this party */}
+            {advanceModalTab === 'history' && (
+              <div className="d-flex flex-column gap-2" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {partyBalanceInfo.entries.length > 0 ? (
+                  partyBalanceInfo.entries.map((ent) => {
+                    const amt = parseFloat(ent.debit || ent.credit || 0);
+                    return (
+                      <div
+                        key={ent.id}
+                        className="d-flex justify-between align-center p-2 rounded"
+                        style={{ border: '1px solid var(--border-color)', backgroundColor: 'rgba(255,255,255,0.02)' }}
+                      >
+                        <div className="d-flex flex-column">
+                          <div className="d-flex align-center gap-2">
+                            <strong style={{ fontSize: '0.9rem' }}>{ent.date}</strong>
+                            <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>{ent.vchType || 'Payment'}</span>
+                            {ent.vchNo && <span className="text-muted" style={{ fontSize: '0.75rem' }}>#{ent.vchNo}</span>}
+                          </div>
+                          <span className="text-muted" style={{ fontSize: '0.8rem' }}>{ent.particulars}</span>
+                        </div>
+
+                        <div className="d-flex align-center gap-3">
+                          <strong style={{ fontSize: '1rem', color: '#10b981' }}>{formatCurrency(amt)}</strong>
+                          <div className="d-flex gap-1">
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => handleEditAdvanceEntry(ent)}
+                              title="Edit Entry"
+                              style={{ padding: '3px 6px' }}
+                            >
+                              <Edit size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-rose btn-sm"
+                              onClick={() => handleDeleteAdvanceEntry(ent.id)}
+                              title="Delete Entry"
+                              style={{ padding: '3px 6px' }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center text-muted p-4">
+                    No manual advance / payment ledger entries recorded yet for this supplier.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </form>
   );
 }

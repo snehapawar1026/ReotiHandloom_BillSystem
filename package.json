@@ -12,11 +12,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.14.0",
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

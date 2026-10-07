@@ -53,6 +53,13 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
   const sgstVal = effectiveHasGST ? (invoice.totalSGST !== undefined && invoice.totalSGST !== null ? invoice.totalSGST : (isInterState ? 0 : parseFloat((taxableValue * 0.025).toFixed(2)))) : 0;
   const igstVal = effectiveHasGST ? (invoice.totalIGST !== undefined && invoice.totalIGST !== null ? invoice.totalIGST : (isInterState ? parseFloat((taxableValue * 0.05).toFixed(2)) : 0)) : 0;
   const finalTotal = invoice.grandTotal !== undefined && invoice.grandTotal !== null ? invoice.grandTotal : (taxableValue + (isInterState ? igstVal : (cgstVal + sgstVal)) + (parseFloat(invoice.courierCharges) || 0));
+  const advanceAdjustedVal = parseFloat(invoice.advanceAdjusted) || 0;
+  const netPayableTotal = Math.max(0, finalTotal - advanceAdjustedVal);
+  const paidVal = (invoice.paidAmount !== undefined && invoice.paidAmount !== null && invoice.paidAmount !== '') 
+    ? parseFloat(invoice.paidAmount) 
+    : (invoice.paymentStatus === 'Unpaid' ? 0 : netPayableTotal);
+  const excessPaidVal = Math.max(0, paidVal - netPayableTotal);
+  const dueAmountVal = Math.max(0, netPayableTotal - paidVal);
 
   // Multi-tier dynamic scaling based on item count to guarantee 100% full A4 page utilization & single-page fit without any cutoff
   const itemCount = items.length;
@@ -225,21 +232,23 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
 
         <div className="modal-body print-invoice-layout" id="printable-invoice" style={{ fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif", padding: containerPadding, background: '#fdfaf2', color: '#4a2c11', position: 'relative', border: '3px double #b45309', boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1', borderRadius: '4px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
           {/* Centered background watermark logo */}
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
-            height: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
-            backgroundImage: `url(${activeLogo})`,
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            opacity: 0.035,
-            pointerEvents: 'none',
-            zIndex: 0
-          }} />
+          {!isAmbekarInvoice && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
+              height: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
+              backgroundImage: `url(${activeLogo})`,
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              opacity: 0.035,
+              pointerEvents: 'none',
+              zIndex: 0
+            }} />
+          )}
 
           {/* TOP GROUP: Header, Meta Banner, Customer Info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: sectionMarginBottom, flexShrink: 0, position: 'relative', zIndex: 1 }}>
@@ -377,7 +386,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                     GSTIN: <span style={{ textTransform: 'uppercase' }}>{invoice.customerGSTIN}</span>
                   </p>
                 )}
-                {invoice.remarks && (
+                {invoice.remarks && !isPurchaseNote && (
                   <p style={{ margin: '3px 0 0 0', borderTop: '1px dashed #cbd5e1', paddingTop: '2px', fontSize: '0.76rem', fontStyle: 'italic', color: '#475569' }}>
                     Remarks: {invoice.remarks}
                   </p>
@@ -526,21 +535,44 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                       </tr>
                     )}
                     <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '1.02rem' : '0.92rem', backgroundColor: '#f1f5f9' }}>
-                      <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #000' }}>Net Payable Amount:</td>
+                      <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #000' }}>
+                        {advanceAdjustedVal > 0 ? 'Gross Total Amount:' : 'Net Payable Amount:'}
+                      </td>
                       <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #000', textAlign: 'right' }}>{formatCurrency(finalTotal)}</td>
                     </tr>
 
-                    {/* Udhar / Partial payment schedule on printed receipt */}
-                    {(invoice.dueAmount > 0 || (invoice.paidAmount !== undefined && parseFloat(invoice.paidAmount) < finalTotal)) && (
+                    {advanceAdjustedVal > 0 && (
+                      <>
+                        <tr style={{ fontWeight: '600', fontSize: isFewItems ? '0.88rem' : '0.8rem', color: '#6d28d9', backgroundColor: '#f5f3ff' }}>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Advance Payment:</td>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>-₹{advanceAdjustedVal.toFixed(2)}</td>
+                        </tr>
+                        <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '1.02rem' : '0.92rem', backgroundColor: '#e0e7ff' }}>
+                          <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #4338ca', color: '#312e81' }}>Net Payable Amount:</td>
+                          <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #4338ca', textAlign: 'right', color: '#312e81' }}>{formatCurrency(netPayableTotal)}</td>
+                        </tr>
+                      </>
+                    )}
+
+                    {/* Payment breakdown on printed receipt */}
+                    {((paidVal !== netPayableTotal) || excessPaidVal > 0) && (
                       <>
                         <tr style={{ fontWeight: '600', fontSize: isFewItems ? '0.9rem' : '0.82rem', color: '#16a34a' }}>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Amount Paid:</td>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>{formatCurrency(invoice.paidAmount !== undefined ? parseFloat(invoice.paidAmount) : (invoice.paymentStatus === 'Unpaid' ? 0 : finalTotal))}</td>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Amount Paid Now:</td>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>{formatCurrency(paidVal)}</td>
                         </tr>
-                        <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '0.95rem' : '0.88rem', color: '#dc2626', backgroundColor: '#fef2f2' }}>
-                          <td style={{ padding: calcCellPadding, border: '2px solid #dc2626' }}>Balance Due Amount:</td>
-                          <td style={{ padding: calcCellPadding, border: '2px solid #dc2626', textAlign: 'right' }}>{formatCurrency(invoice.dueAmount !== undefined ? parseFloat(invoice.dueAmount) : Math.max(0, finalTotal - (parseFloat(invoice.paidAmount) || 0)))}</td>
-                        </tr>
+                        {dueAmountVal > 0 && (
+                          <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '0.95rem' : '0.88rem', color: '#dc2626', backgroundColor: '#fef2f2' }}>
+                            <td style={{ padding: calcCellPadding, border: '2px solid #dc2626' }}>Balance Due Amount:</td>
+                            <td style={{ padding: calcCellPadding, border: '2px solid #dc2626', textAlign: 'right' }}>{formatCurrency(dueAmountVal)}</td>
+                          </tr>
+                        )}
+                        {excessPaidVal > 0 && (
+                          <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '0.95rem' : '0.88rem', color: '#047857', backgroundColor: '#ecfdf5' }}>
+                            <td style={{ padding: calcCellPadding, border: '2px solid #10b981' }}>✨ Excess / Advance Paid:</td>
+                            <td style={{ padding: calcCellPadding, border: '2px solid #10b981', textAlign: 'right' }}>{formatCurrency(excessPaidVal)}</td>
+                          </tr>
+                        )}
                       </>
                     )}
                   </tbody>
@@ -551,7 +583,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             {/* Amount In Words */}
             <div style={{ border: '1px solid #cbd5e1', padding: isFewItems ? '6px 12px' : '4px 8px', borderRadius: '4px', fontSize: isFewItems ? '0.84rem' : '0.78rem', backgroundColor: '#fffef9' }}>
               <span>Amount Chargeable in Words: </span>
-              <strong style={{ textTransform: 'capitalize' }}>{priceToWords(finalTotal)}</strong>
+              <strong style={{ textTransform: 'capitalize' }}>{priceToWords(netPayableTotal)}</strong>
             </div>
 
             {/* Bill Terms and Signatures */}

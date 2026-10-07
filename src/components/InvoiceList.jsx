@@ -549,12 +549,34 @@ export default function InvoiceList({ invoices = [], onSelectInvoice, onEditInvo
                   <td className="text-right">
                     <div className="d-flex flex-column align-end">
                       <strong style={{ fontSize: '0.95rem', color: isCN ? '#ef4444' : 'inherit' }}>{formatCurrency(inv.grandTotal)}</strong>
-                      {(inv.dueAmount > 0 || inv.paymentStatus !== 'Paid') && (
-                        <div className="d-flex flex-column align-end" style={{ fontSize: '0.75rem', marginTop: '2px' }}>
-                          <span style={{ color: 'var(--accent-emerald, #10b981)' }}>Paid: {formatCurrency(inv.paidAmount !== undefined ? inv.paidAmount : (inv.paymentStatus === 'Unpaid' ? 0 : inv.grandTotal))}</span>
-                          <span style={{ color: '#dc2626', fontWeight: 'bold' }}>Due: {formatCurrency(inv.dueAmount !== undefined ? inv.dueAmount : (inv.paymentStatus === 'Unpaid' ? inv.grandTotal : 0))}</span>
-                        </div>
+                      {(parseFloat(inv.advanceAdjusted) || 0) > 0 && (
+                        <span style={{ fontSize: '0.72rem', color: '#8b5cf6', fontWeight: '600', whiteSpace: 'nowrap' }}>
+                          Advance: -{formatCurrency(inv.advanceAdjusted)}
+                        </span>
                       )}
+                      {(() => {
+                        const netPayable = Math.max(0, inv.grandTotal - (parseFloat(inv.advanceAdjusted) || 0));
+                        const paidVal = (inv.paidAmount !== undefined && inv.paidAmount !== null && inv.paidAmount !== '') ? parseFloat(inv.paidAmount) : (inv.paymentStatus === 'Unpaid' ? 0 : netPayable);
+                        const excessPaid = Math.max(0, paidVal - netPayable);
+                        const dueAmt = inv.dueAmount !== undefined ? inv.dueAmount : (inv.paymentStatus === 'Unpaid' ? netPayable : 0);
+
+                        return (
+                          <>
+                            {(dueAmt > 0 || inv.paymentStatus !== 'Paid') && (
+                              <div className="d-flex flex-column align-end" style={{ fontSize: '0.75rem', marginTop: '2px' }}>
+                                <span style={{ color: 'var(--accent-emerald, #10b981)', whiteSpace: 'nowrap' }}>Paid: {formatCurrency(paidVal)}</span>
+                                <span style={{ color: '#dc2626', fontWeight: 'bold', whiteSpace: 'nowrap' }}>Due: {formatCurrency(dueAmt)}</span>
+                              </div>
+                            )}
+                            {excessPaid > 0 && (
+                              <div className="d-flex flex-column align-end" style={{ fontSize: '0.75rem', marginTop: '2px' }}>
+                                <span style={{ color: 'var(--accent-emerald, #10b981)', whiteSpace: 'nowrap' }}>Paid: {formatCurrency(paidVal)}</span>
+                                <span style={{ color: '#059669', fontWeight: 'bold', whiteSpace: 'nowrap' }}>✨ Excess: {formatCurrency(excessPaid)}</span>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </td>
 
