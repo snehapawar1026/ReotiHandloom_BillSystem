@@ -331,7 +331,101 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       );
     }
 
-    // Default: Royal Devi Ahilyabai Holkar & Maheshwar Ghat Vintage Hand-Drawn Sketch Design
+    if (backTheme === 'merged_heritage') {
+      return (
+        <div 
+          id="printable-invoice-back"
+          className="print-invoice-back-page"
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            padding: '16px 20px 14px 20px',
+            background: '#fdfbf7',
+            color: '#451a03',
+            position: 'relative',
+            border: '2px solid #b45309',
+            boxShadow: 'inset 0 0 0 3px #fdfbf7, inset 0 0 0 5px #d4af37, inset 0 0 0 7px #fdfbf7, inset 0 0 0 8px #cbd5e1',
+            borderRadius: '4px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '1093px',
+            height: '1093px',
+            width: '100%',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Main Full-Page Authentic Luxury Heritage Mural Card (Fills Full Page) */}
+          <div style={{ 
+            position: 'relative', 
+            zIndex: 1, 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            width: '100%',
+            flexGrow: 1,
+            overflow: 'hidden'
+          }}>
+            <img 
+              src="/maheshwar_heritage_mural_full.png" 
+              alt="Rajmata Devi Ahilyabai Holkar & Traditional Maheshwari Pit-Loom Weaving Heritage Mural" 
+              style={{
+                width: '100%',
+                maxHeight: '940px',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block'
+              }} 
+            />
+          </div>
+
+          {/* Dynamic Store Address & Contact Details Block */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            borderTop: '1.5px solid #b45309',
+            paddingTop: '8px',
+            marginTop: '4px',
+            display: 'grid',
+            gridTemplateColumns: '1.2fr 1fr',
+            gap: '16px',
+            alignItems: 'center',
+            fontSize: '11.5px',
+            color: '#451a03',
+            fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif"
+          }}>
+            {/* Left Column: Store Name & Physical Address */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <MapPin size={16} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div style={{ lineHeight: '1.35' }}>
+                <strong style={{ color: '#78350f', fontSize: '12.5px', display: 'block', marginBottom: '2px' }}>
+                  {activeShopName}
+                </strong>
+                {settings.shopAddress || "73, LaxmiBai Marg, Maheshwar, Madhya Pradesh - 451224"}
+              </div>
+            </div>
+
+            {/* Right Column: Phone, Email & GSTIN */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', lineHeight: '1.3' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Phone size={13} color="#b45309" />
+                <span>Phone: <strong>+91 {invoice.shopPhone || settings.shopPhone || "9617444445"}</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Mail size={13} color="#b45309" />
+                <span>Email: <strong>{settings.shopEmail || "contact@reotihandloom.com"}</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Award size={13} color="#b45309" />
+                <span>GSTIN: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || "23AAAFR1234A1Z5") : "Pure Handloom Certified"}</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default: Individual Ahilyabai Sketch or Pit-Loom Sketch Design
     return (
       <div 
         id="printable-invoice-back"
@@ -444,173 +538,63 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           </p>
         </div>
 
-        {/* 2. CENTER HERO ARTWORK: SINGLE AUTHENTIC VINTAGE HERITAGE MURAL */}
-        {backTheme === 'merged_heritage' ? (
+        {/* 2. CENTER HERO ARTWORK */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '6px 0',
+          flexGrow: 1
+        }}>
           <div style={{
-            position: 'relative',
-            zIndex: 1,
+            border: '2px solid #b45309',
+            padding: '3px',
+            background: '#ffffff',
+            boxShadow: '0 4px 12px rgba(120,53,15,0.12)',
+            borderRadius: '4px',
+            maxWidth: '430px',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            margin: '4px 0',
-            flexGrow: 1,
-            width: '100%',
-            gap: '8px'
+            justifyContent: 'center'
           }}>
-            {/* ✦ SINGLE UNIFIED GRAND MURAL CANVAS ✦ */}
-            <div style={{
-              width: '100%',
-              maxWidth: '730px',
-              background: '#ffffff',
-              border: '2px solid #b45309',
-              borderRadius: '8px',
-              padding: '6px',
-              boxShadow: '0 4px 18px rgba(120,53,15,0.12)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxSizing: 'border-box'
-            }}>
-              <img 
-                src="/maheshwar_heritage_mural_full.png" 
-                alt="Rajmata Devi Ahilyabai Holkar & Traditional Maheshwari Pit-Loom Weaving Heritage Mural" 
-                style={{
-                  width: '100%',
-                  maxHeight: '480px',
-                  objectFit: 'contain',
-                  display: 'block',
-                  borderRadius: '4px'
-                }} 
-              />
-            </div>
-
-            {/* ✦ 4 HERITAGE CHRONICLE CARDS (FILLING PAGE WITH BALANCED ROYAL CONTENT) ✦ */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '8px',
-              width: '100%',
-              marginTop: '2px'
-            }}>
-              <div style={{
-                backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '6px',
-                padding: '7px 10px',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>👑</span> 18th Century Royal Origin:
-                </div>
-                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
-                  Rajmata Ahilyabai Holkar invited master weavers from Surat, Malwa & Mandu to Maheshwar, establishing royal <em>'Garbha Reshmi'</em> handloom weaving.
-                </div>
-              </div>
-
-              <div style={{
-                backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '6px',
-                padding: '7px 10px',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>🏛️</span> Fort Architecture Motifs:
-                </div>
-                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
-                  Iconic saree borders—<strong>Bugdi, Chatai, Chameli & Narmada Waves</strong>—are directly inspired by stone carvings of Maheshwar Fort.
-                </div>
-              </div>
-
-              <div style={{
-                backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '6px',
-                padding: '7px 10px',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>🧵</span> 100% Traditional Pit-Loom:
-                </div>
-                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
-                  Handwoven on wooden pit-looms by generational artisan families of Maheshwar with pure natural yarns and authentic craftsmanship.
-                </div>
-              </div>
-
-              <div style={{
-                backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '6px',
-                padding: '7px 10px',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>💎</span> Reversible Zari Border:
-                </div>
-                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
-                  Maheshwari weaves feature a signature reversible border—wearable on either side—with lightweight, glossy silk-cotton elegance.
-                </div>
-              </div>
-            </div>
+            <img 
+              src={backTheme === 'pit_loom' ? "/maheshwari_pit_loom_sketch.jpg" : "/ahilyabai_vintage_sketch.jpg"} 
+              alt={backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom Artisan Weaving" : "Rajmata Devi Ahilyabai Holkar & Maheshwar Ghat"} 
+              style={{
+                width: '100%',
+                maxHeight: '460px',
+                objectFit: 'contain',
+                display: 'block',
+                borderRadius: '2px'
+              }} 
+            />
           </div>
-        ) : (
           <div style={{
-            position: 'relative',
-            zIndex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '6px 0',
-            flexGrow: 1
+            marginTop: '6px',
+            textAlign: 'center',
+            fontSize: '13px',
+            fontWeight: '800',
+            color: '#78350f',
+            letterSpacing: '0.6px',
+            textTransform: 'uppercase'
           }}>
-            <div style={{
-              border: '2px solid #b45309',
-              padding: '3px',
-              background: '#ffffff',
-              boxShadow: '0 4px 12px rgba(120,53,15,0.12)',
-              borderRadius: '4px',
-              maxWidth: '430px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <img 
-                src={backTheme === 'pit_loom' ? "/maheshwari_pit_loom_sketch.jpg" : "/ahilyabai_vintage_sketch.jpg"} 
-                alt={backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom Artisan Weaving" : "Rajmata Devi Ahilyabai Holkar & Maheshwar Ghat"} 
-                style={{
-                  width: '100%',
-                  maxHeight: '460px',
-                  objectFit: 'contain',
-                  display: 'block',
-                  borderRadius: '2px'
-                }} 
-              />
-            </div>
-            <div style={{
-              marginTop: '6px',
-              textAlign: 'center',
-              fontSize: '13px',
-              fontWeight: '800',
-              color: '#78350f',
-              letterSpacing: '0.6px',
-              textTransform: 'uppercase'
-            }}>
-              {backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom" : "Rajmata Devi Ahilyabai Holkar"}
-            </div>
-            <div style={{
-              fontSize: '10.5px',
-              fontStyle: 'italic',
-              color: '#92400e',
-              letterSpacing: '0.3px'
-            }}>
-              {backTheme === 'pit_loom' 
-                ? "Authentic Handcrafted Weaves by Master Artisans of Maheshwar" 
-                : "Visionary Patron & Pioneer of Maheshwari Handloom Craft"}
-            </div>
+            {backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom" : "Rajmata Devi Ahilyabai Holkar"}
           </div>
-        )}
+          <div style={{
+            fontSize: '10.5px',
+            fontStyle: 'italic',
+            color: '#92400e',
+            letterSpacing: '0.3px'
+          }}>
+            {backTheme === 'pit_loom' 
+              ? "Authentic Handcrafted Weaves by Master Artisans of Maheshwar" 
+              : "Visionary Patron & Pioneer of Maheshwari Handloom Craft"}
+          </div>
+        </div>
+
 
         {/* 3. HERITAGE STORY & GRATITUDE MESSAGE */}
         <div style={{
