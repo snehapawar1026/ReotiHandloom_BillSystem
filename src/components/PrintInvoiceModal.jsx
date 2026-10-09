@@ -18,6 +18,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
   const [printMode, setPrintMode] = useState('duplex_2sided'); // 'duplex_2sided' | 'invoice_only' | 'heritage_only'
   const [previewTab, setPreviewTab] = useState('all'); // 'all' | 'front' | 'back'
   const [backTheme, setBackTheme] = useState('ahilyabai_sketch'); // 'ahilyabai_sketch' | 'weaving_loom'
+  const [showPdfDropdown, setShowPdfDropdown] = useState(false); // PDF download options dropdown
 
   useEffect(() => {
     if (isOpen) {
@@ -105,7 +106,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     }, 150);
   };
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = async (pages = 'both') => {
     try {
       const frontEl = document.getElementById('printable-invoice');
       const backEl = document.getElementById('printable-invoice-back');
@@ -118,8 +119,8 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         compress: true
       });
 
-      const includeFront = printMode === 'duplex_2sided' || previewTab === 'all' || previewTab === 'front' || printMode === 'invoice_only';
-      const includeBack = (printMode === 'duplex_2sided' || previewTab === 'all' || previewTab === 'back' || printMode === 'heritage_only') && backEl;
+      const includeFront = pages === 'both' || pages === 'front';
+      const includeBack = (pages === 'both' || pages === 'back') && backEl;
 
       // Use actual viewport width so layout matches screen exactly (no text wrapping/reflow)
       const actualViewportWidth = document.documentElement.clientWidth || window.innerWidth || 1440;
@@ -181,7 +182,8 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       }
 
       if (pageCount > 0) {
-        const filename = `Invoice_${invoice.invoiceNo || 'Draft'}${pageCount > 1 ? '_2Sided' : ''}.pdf`;
+        const suffix = pages === 'front' ? '_Page1_Bill' : pages === 'back' ? '_Page2_Heritage' : '_2Sided';
+        const filename = `Invoice_${invoice.invoiceNo || 'Draft'}${suffix}.pdf`;
         pdf.save(filename);
       }
     } catch (err) {
@@ -687,14 +689,73 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
 
             {/* Right: Actions & Close */}
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <button 
-                className="btn btn-emerald btn-sm" 
-                onClick={handleDownloadPDF} 
-                title="Download PDF for Adobe Acrobat or archiving"
-                style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
-                <Download size={15} /> Download PDF
-              </button>
+              {/* PDF Download Dropdown */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="btn btn-emerald btn-sm"
+                  onClick={() => setShowPdfDropdown(prev => !prev)}
+                  title="Download PDF options"
+                  style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}
+                >
+                  <Download size={15} /> Download PDF ▾
+                </button>
+                {showPdfDropdown && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '110%',
+                    right: 0,
+                    backgroundColor: '#ffffff',
+                    border: '1.5px solid #d4af37',
+                    borderRadius: '8px',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
+                    zIndex: 9999,
+                    minWidth: '210px',
+                    overflow: 'hidden'
+                  }}>
+                    <button
+                      onClick={() => { setShowPdfDropdown(false); handleDownloadPDF('front'); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        width: '100%', padding: '10px 16px', border: 'none',
+                        background: 'none', cursor: 'pointer', fontSize: '13px',
+                        fontWeight: '600', color: '#1e293b', textAlign: 'left'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#fef3c7'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      📄 Page 1 Only (Bill)
+                    </button>
+                    <div style={{ height: '1px', background: '#f1f5f9', margin: '0 10px' }} />
+                    <button
+                      onClick={() => { setShowPdfDropdown(false); handleDownloadPDF('back'); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        width: '100%', padding: '10px 16px', border: 'none',
+                        background: 'none', cursor: 'pointer', fontSize: '13px',
+                        fontWeight: '600', color: '#1e293b', textAlign: 'left'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#fef3c7'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      🎨 Page 2 Only (Heritage Card)
+                    </button>
+                    <div style={{ height: '1px', background: '#f1f5f9', margin: '0 10px' }} />
+                    <button
+                      onClick={() => { setShowPdfDropdown(false); handleDownloadPDF('both'); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        width: '100%', padding: '10px 16px', border: 'none',
+                        background: 'none', cursor: 'pointer', fontSize: '13px',
+                        fontWeight: '600', color: '#78350f', textAlign: 'left'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#fef3c7'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      📋 Both Pages (2-Sided)
+                    </button>
+                  </div>
+                )}
+              </div>
               <button 
                 className="btn btn-primary btn-sm" 
                 onClick={handleDownloadImage} 
