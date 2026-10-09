@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Printer, Download, Sparkles, Layers, FileText, Phone, Mail, Award, MapPin, ArrowLeft } from 'lucide-react';
-import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { formatCurrency, priceToWords } from '../utils';
 
@@ -17,6 +17,7 @@ const formatDateToDDMMYYYY = (dateStr) => {
 export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, hasGST = true }) {
   const [printMode, setPrintMode] = useState('duplex_2sided'); // 'duplex_2sided' | 'invoice_only' | 'heritage_only'
   const [previewTab, setPreviewTab] = useState('all'); // 'all' | 'front' | 'back'
+  const [backTheme, setBackTheme] = useState('ahilyabai_sketch'); // 'ahilyabai_sketch' | 'weaving_loom'
 
   useEffect(() => {
     if (isOpen) {
@@ -105,124 +106,110 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
   };
 
   const handleDownloadPDF = async () => {
-    const frontEl = document.getElementById('printable-invoice');
-    const backEl = document.getElementById('printable-invoice-back');
-    if (!frontEl && !backEl) return;
-
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '794px';
-    container.style.zIndex = '-9999';
-    container.style.backgroundColor = '#ffffff';
-    container.style.overflow = 'hidden';
-    container.style.margin = '0';
-    container.style.padding = '0';
-
-    if (printMode === 'duplex_2sided' || previewTab === 'all') {
-      if (frontEl) {
-        const cloneFront = frontEl.cloneNode(true);
-        cloneFront.style.height = '1120px';
-        cloneFront.style.pageBreakAfter = 'always';
-        cloneFront.style.breakAfter = 'page';
-        container.appendChild(cloneFront);
-      }
-      if (backEl) {
-        const cloneBack = backEl.cloneNode(true);
-        cloneBack.style.height = '1120px';
-        cloneBack.style.pageBreakBefore = 'always';
-        cloneBack.style.breakBefore = 'page';
-        container.appendChild(cloneBack);
-      }
-    } else if (printMode === 'heritage_only' || previewTab === 'back') {
-      if (backEl) {
-        const cloneBack = backEl.cloneNode(true);
-        cloneBack.style.height = '1120px';
-        container.appendChild(cloneBack);
-      }
-    } else {
-      if (frontEl) {
-        const cloneFront = frontEl.cloneNode(true);
-        cloneFront.style.height = '1120px';
-        container.appendChild(cloneFront);
-      }
-    }
-
-    document.body.appendChild(container);
-    await new Promise((resolve) => setTimeout(resolve, 80));
-
-    const filename = `Invoice_${invoice.invoiceNo || 'Draft'}${printMode === 'duplex_2sided' ? '_2Sided' : ''}.pdf`;
-    const opt = {
-      margin:       [4, 4, 4, 4],
-      filename:     filename,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { 
-        scale: 3, 
-        useCORS: true, 
-        letterRendering: false, 
-        scrollY: 0, 
-        scrollX: 0,
-        windowWidth: 794
-      },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-    
     try {
-      const blob = await html2pdf().set(opt).from(container).output('blob');
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const frontEl = document.getElementById('printable-invoice');
+      const backEl = document.getElementById('printable-invoice-back');
+      if (!frontEl && !backEl) return;
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      const includeFront = printMode === 'duplex_2sided' || previewTab === 'all' || previewTab === 'front' || printMode === 'invoice_only';
+      const includeBack = (printMode === 'duplex_2sided' || previewTab === 'all' || previewTab === 'back' || printMode === 'heritage_only') && backEl;
+
+      const captureOptions = {
+        scale: 2.2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 15000,
+        windowWidth: 794
+      };
+
+      let pageCount = 0;
+
+      // 1. Capture Front Page (Bill)
+      if (includeFront && frontEl) {
+        const origFrontDisplay = frontEl.style.display;
+        if (origFrontDisplay === 'none') frontEl.style.display = 'flex';
+        
+        await new Promise((r) => setTimeout(r, 60));
+        
+        const canvasFront = await html2canvas(frontEl, captureOptions);
+        if (origFrontDisplay === 'none') frontEl.style.display = origFrontDisplay;
+
+        const imgData = canvasFront.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+        pageCount++;
+      }
+
+      // 2. Capture Back Page (Heritage Card)
+      if (includeBack && backEl) {
+        const origBackDisplay = backEl.style.display;
+        const parentEl = backEl.parentElement;
+        const origParentDisplay = parentEl ? parentEl.style.display : '';
+        
+        if (origBackDisplay === 'none') backEl.style.display = 'flex';
+        if (parentEl && origParentDisplay === 'none') parentEl.style.display = 'block';
+
+        await new Promise((r) => setTimeout(r, 60));
+
+        const canvasBack = await html2canvas(backEl, captureOptions);
+        if (origBackDisplay === 'none') backEl.style.display = origBackDisplay;
+        if (parentEl && origParentDisplay === 'none') parentEl.style.display = origParentDisplay;
+
+        if (pageCount > 0) {
+          pdf.addPage('a4', 'portrait');
+        }
+        const imgData = canvasBack.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+        pageCount++;
+      }
+
+      if (pageCount > 0) {
+        const filename = `Invoice_${invoice.invoiceNo || 'Draft'}${pageCount > 1 ? '_2Sided' : ''}.pdf`;
+        pdf.save(filename);
+      }
     } catch (err) {
       console.error('PDF generation failed:', err);
-    } finally {
-      if (document.body.contains(container)) {
-        document.body.removeChild(container);
-      }
+      alert('PDF generation error: ' + (err.message || 'Unknown error'));
     }
   };
 
   const handleDownloadImage = async () => {
-    const targetId = (previewTab === 'back' || printMode === 'heritage_only') ? 'printable-invoice-back' : 'printable-invoice';
-    const element = document.getElementById(targetId) || document.getElementById('printable-invoice');
-    if (!element) return;
-
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '794px';
-    container.style.height = '1120px';
-    container.style.zIndex = '-9999';
-    container.style.backgroundColor = '#ffffff';
-    container.style.overflow = 'hidden';
-    container.style.margin = '0';
-    container.style.padding = '0';
-
-    const clone = element.cloneNode(true);
-    container.appendChild(clone);
-    document.body.appendChild(container);
-
-    await new Promise((resolve) => setTimeout(resolve, 80));
-
-    const filename = `Invoice_${invoice.invoiceNo || 'Draft'}_${targetId === 'printable-invoice-back' ? 'BackCard' : 'Bill'}.png`;
-    
     try {
-      const canvas = await html2canvas(clone, {
-        scale: 3,
+      const targetId = (previewTab === 'back' || printMode === 'heritage_only') ? 'printable-invoice-back' : 'printable-invoice';
+      const element = document.getElementById(targetId) || document.getElementById('printable-invoice');
+      if (!element) return;
+
+      const origDisplay = element.style.display;
+      const parentEl = element.parentElement;
+      const origParentDisplay = parentEl ? parentEl.style.display : '';
+
+      if (origDisplay === 'none') element.style.display = 'flex';
+      if (parentEl && origParentDisplay === 'none') parentEl.style.display = 'block';
+
+      await new Promise((r) => setTimeout(r, 60));
+
+      const canvas = await html2canvas(element, {
+        scale: 2.5,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
-        scrollY: 0,
-        scrollX: 0,
-        windowWidth: 794,
-        windowHeight: 1120
+        logging: false,
+        imageTimeout: 15000,
+        windowWidth: 794
       });
+
+      if (origDisplay === 'none') element.style.display = origDisplay;
+      if (parentEl && origParentDisplay === 'none') parentEl.style.display = origParentDisplay;
+
+      const filename = `Invoice_${invoice.invoiceNo || 'Draft'}_${targetId === 'printable-invoice-back' ? 'BackCard' : 'Bill'}.png`;
       const link = document.createElement('a');
       link.download = filename;
       link.href = canvas.toDataURL('image/png');
@@ -231,29 +218,119 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       document.body.removeChild(link);
     } catch (err) {
       console.error('Image generation failed:', err);
-    } finally {
-      if (document.body.contains(container)) {
-        document.body.removeChild(container);
-      }
     }
   };
 
-  // Render the Authentic Luxury Heritage Card (Exact Reoti Handloom Reference Design)
+  // Render the Authentic Luxury Heritage Card
   const renderInvoiceHeritageBack = () => {
     const activeMainCard = isAmbekarInvoice ? '/ambekar_heritage_main_card.jpg' : '/reoti_heritage_main_card.jpg';
 
+    if (backTheme === 'weaving_loom') {
+      return (
+        <div 
+          id="printable-invoice-back"
+          className="print-invoice-back-page"
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            padding: '16px 22px 14px 22px',
+            background: '#fcfaf6',
+            color: '#451a03',
+            position: 'relative',
+            border: '2px solid #b45309',
+            boxShadow: 'inset 0 0 0 3px #fcfaf6, inset 0 0 0 5px #d4af37, inset 0 0 0 7px #fcfaf6, inset 0 0 0 8px #cbd5e1',
+            borderRadius: '4px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '1093px',
+            height: '1093px',
+            width: '100%',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Main Authentic Luxury Heritage Art Card */}
+          <div style={{ 
+            position: 'relative', 
+            zIndex: 1, 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            width: '100%',
+            flexGrow: 1,
+            overflow: 'hidden'
+          }}>
+            <img 
+              src={activeMainCard} 
+              alt="Reoti Handloom Heritage Card" 
+              style={{
+                width: '100%',
+                maxHeight: '920px',
+                objectFit: 'contain',
+                display: 'block'
+              }} 
+            />
+          </div>
+
+          {/* Dynamic Store Address & Contact Details Block */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            borderTop: '1.5px solid #b45309',
+            paddingTop: '10px',
+            marginTop: '4px',
+            display: 'grid',
+            gridTemplateColumns: '1.2fr 1fr',
+            gap: '16px',
+            alignItems: 'center',
+            fontSize: '11.5px',
+            color: '#451a03',
+            fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif"
+          }}>
+            {/* Left Column: Store Name & Physical Address */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <MapPin size={16} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div style={{ lineHeight: '1.35' }}>
+                <strong style={{ color: '#78350f', fontSize: '12.5px', display: 'block', marginBottom: '2px' }}>
+                  {activeShopName}
+                </strong>
+                {settings.shopAddress || "73, LaxmiBai Marg, Maheshwar, Madhya Pradesh - 451224"}
+              </div>
+            </div>
+
+            {/* Right Column: Phone, Email & GSTIN */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', lineHeight: '1.3' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Phone size={13} color="#b45309" />
+                <span>Phone: <strong>+91 {invoice.shopPhone || settings.shopPhone || "9617444445"}</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Mail size={13} color="#b45309" />
+                <span>Email: <strong>{settings.shopEmail || "contact@reotihandloom.com"}</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Award size={13} color="#b45309" />
+                <span>GSTIN: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || "23AAAFR1234A1Z5") : "Pure Handloom Certified"}</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default: Royal Devi Ahilyabai Holkar & Maheshwar Ghat Vintage Hand-Drawn Sketch Design
     return (
       <div 
         id="printable-invoice-back"
         className="print-invoice-back-page"
         style={{
           fontFamily: "'Playfair Display', Georgia, serif",
-          padding: '16px 22px 14px 22px',
-          background: '#fcfaf6',
+          padding: '20px 26px 14px 26px',
+          background: '#fdfbf7',
           color: '#451a03',
           position: 'relative',
           border: '2px solid #b45309',
-          boxShadow: 'inset 0 0 0 3px #fcfaf6, inset 0 0 0 5px #d4af37, inset 0 0 0 7px #fcfaf6, inset 0 0 0 8px #cbd5e1',
+          boxShadow: 'inset 0 0 0 3px #fdfbf7, inset 0 0 0 5px #d4af37, inset 0 0 0 7px #fdfbf7, inset 0 0 0 8px #cbd5e1',
           borderRadius: '4px',
           boxSizing: 'border-box',
           display: 'flex',
@@ -265,49 +342,199 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           overflow: 'hidden'
         }}
       >
-        {/* Main Authentic Luxury Heritage Art Card */}
-        <div style={{ 
-          position: 'relative', 
-          zIndex: 1, 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          width: '100%',
-          flexGrow: 1,
-          overflow: 'hidden'
-        }}>
-          <img 
-            src={activeMainCard} 
-            alt="Reoti Handloom Heritage Card" 
-            style={{
+        {/* Subtle Watermark Monogram */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '420px',
+          height: '420px',
+          backgroundImage: `url(${activeLogo})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          opacity: 0.02,
+          pointerEvents: 'none',
+          zIndex: 0
+        }} />
+
+        {/* 1. TOP ROYAL EMBLEM & BRAND TITLE */}
+        <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+          <div style={{
+            width: '96px',
+            height: '66px',
+            margin: '0 auto 6px auto',
+            background: 'linear-gradient(135deg, #fef08a 0%, #eab308 25%, #ca8a04 55%, #fef08a 85%, #854d0e 100%)',
+            borderRadius: '10px',
+            padding: '2px',
+            boxShadow: '0 4px 10px rgba(161,98,7,0.3), inset 0 1px 2px rgba(255,255,255,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid #a16207'
+          }}>
+            <div style={{
               width: '100%',
-              maxHeight: '920px',
-              objectFit: 'contain',
-              display: 'block'
-            }} 
-          />
+              height: '100%',
+              borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.6)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2px 4px',
+              background: 'linear-gradient(135deg, rgba(254,240,138,0.3) 0%, rgba(202,138,4,0.1) 100%)'
+            }}>
+              <img 
+                src={activeLogo} 
+                alt="Emblem" 
+                style={{ width: '28px', height: '28px', objectFit: 'contain' }} 
+              />
+              <div style={{ 
+                fontSize: '8.5px', 
+                fontWeight: '900', 
+                color: '#451a03', 
+                letterSpacing: '0.4px', 
+                textTransform: 'uppercase', 
+                lineHeight: '1.1',
+                marginTop: '1px'
+              }}>
+                {activeShopName}
+              </div>
+            </div>
+          </div>
+
+          <h1 style={{ 
+            fontFamily: "'Playfair Display', Georgia, serif", 
+            fontSize: '34px', 
+            color: '#854d0e', 
+            letterSpacing: '1.5px', 
+            margin: '0', 
+            fontWeight: '800', 
+            lineHeight: '1.1' 
+          }}>
+            <span style={{ fontStyle: 'italic', fontWeight: '900', color: '#78350f' }}>
+              {isAmbekarInvoice ? 'Ambekar' : 'Reoti'}
+            </span>{' '}
+            HANDLOOM
+          </h1>
+          <p style={{ 
+            fontFamily: "'Playfair Display', Georgia, serif", 
+            fontSize: '15px', 
+            fontWeight: '600', 
+            letterSpacing: '1px', 
+            color: '#451a03', 
+            margin: '2px 0 0 0' 
+          }}>
+            A Legacy of Maheshwari Handloom
+          </p>
         </div>
 
-        {/* Dynamic Store Address & Contact Details Block */}
+        {/* 2. CENTER HERO ARTWORK: VINTAGE HAND-DRAWN SKETCH */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '6px 0',
+          flexGrow: 1
+        }}>
+          <div style={{
+            border: '2px solid #b45309',
+            padding: '3px',
+            background: '#ffffff',
+            boxShadow: '0 4px 12px rgba(120,53,15,0.12)',
+            borderRadius: '4px',
+            maxWidth: '430px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <img 
+              src="/ahilyabai_vintage_sketch.jpg" 
+              alt="Rajmata Devi Ahilyabai Holkar & Maheshwar Ghat" 
+              style={{
+                width: '100%',
+                maxHeight: '480px',
+                objectFit: 'contain',
+                display: 'block',
+                borderRadius: '2px'
+              }} 
+            />
+          </div>
+          <div style={{
+            marginTop: '6px',
+            textAlign: 'center',
+            fontSize: '13px',
+            fontWeight: '800',
+            color: '#78350f',
+            letterSpacing: '0.6px',
+            textTransform: 'uppercase'
+          }}>
+            Rajmata Devi Ahilyabai Holkar
+          </div>
+          <div style={{
+            fontSize: '10.5px',
+            fontStyle: 'italic',
+            color: '#92400e',
+            letterSpacing: '0.3px'
+          }}>
+            Visionary Patron & Pioneer of Maheshwari Handloom Craft
+          </div>
+        </div>
+
+        {/* 3. HERITAGE STORY & GRATITUDE MESSAGE */}
+        <div style={{
+          textAlign: 'center',
+          margin: '2px 0 8px 0',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          <p style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '12px',
+            color: '#334155',
+            lineHeight: '1.4',
+            margin: '0 0 3px 0',
+            fontStyle: 'italic'
+          }}>
+            "Revived in the 18th century under the visionary patronage of Rajmata Ahilyabai Holkar, every Maheshwari weave carries a royal legacy of timeless elegance and master craftsmanship."
+          </p>
+          <p style={{
+            fontFamily: "'Playfair Display', 'Brush Script MT', 'Great Vibes', Georgia, cursive",
+            fontStyle: 'italic',
+            fontSize: '17px',
+            color: '#78350f',
+            margin: 0,
+            fontWeight: '700'
+          }}>
+            Thank you for supporting handloom weavers. We hope you cherish your exquisite piece.
+          </p>
+        </div>
+
+        {/* 4. DYNAMIC STORE ADDRESS & CONTACT DETAILS BLOCK */}
         <div style={{
           position: 'relative',
           zIndex: 1,
           borderTop: '1.5px solid #b45309',
-          paddingTop: '10px',
-          marginTop: '4px',
+          paddingTop: '8px',
+          marginTop: '2px',
           display: 'grid',
           gridTemplateColumns: '1.2fr 1fr',
-          gap: '16px',
+          gap: '14px',
           alignItems: 'center',
-          fontSize: '11.5px',
+          fontSize: '11px',
           color: '#451a03',
           fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif"
         }}>
           {/* Left Column: Store Name & Physical Address */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-            <MapPin size={16} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div style={{ lineHeight: '1.35' }}>
-              <strong style={{ color: '#78350f', fontSize: '12.5px', display: 'block', marginBottom: '2px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+            <MapPin size={15} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ lineHeight: '1.3' }}>
+              <strong style={{ color: '#78350f', fontSize: '12px', display: 'block', marginBottom: '1px' }}>
                 {activeShopName}
               </strong>
               {settings.shopAddress || "73, LaxmiBai Marg, Maheshwar, Madhya Pradesh - 451224"}
@@ -315,17 +542,17 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           </div>
 
           {/* Right Column: Phone, Email & GSTIN */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', lineHeight: '1.3' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Phone size={13} color="#b45309" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5px', lineHeight: '1.25' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Phone size={12} color="#b45309" />
               <span>Phone: <strong>+91 {invoice.shopPhone || settings.shopPhone || "9617444445"}</strong></span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Mail size={13} color="#b45309" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Mail size={12} color="#b45309" />
               <span>Email: <strong>{settings.shopEmail || "contact@reotihandloom.com"}</strong></span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Award size={13} color="#b45309" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Award size={12} color="#b45309" />
               <span>GSTIN: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || "23AAAFR1234A1Z5") : "Pure Handloom Certified"}</strong></span>
             </div>
           </div>
@@ -550,59 +777,106 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
               </button>
             </div>
 
-            {/* Interactive Preview Tabs */}
-            <div style={{ display: 'flex', backgroundColor: '#e2e8f0', borderRadius: '6px', padding: '2px', gap: '2px' }}>
-              <button
-                type="button"
-                onClick={() => setPreviewTab('all')}
-                style={{
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 10px',
-                  fontSize: '11.5px',
-                  fontWeight: previewTab === 'all' ? '800' : '600',
-                  backgroundColor: previewTab === 'all' ? '#ffffff' : 'transparent',
-                  color: previewTab === 'all' ? '#0f172a' : '#64748b',
-                  boxShadow: previewTab === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                Both Pages
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewTab('front')}
-                style={{
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 10px',
-                  fontSize: '11.5px',
-                  fontWeight: previewTab === 'front' ? '800' : '600',
-                  backgroundColor: previewTab === 'front' ? '#ffffff' : 'transparent',
-                  color: previewTab === 'front' ? '#0f172a' : '#64748b',
-                  boxShadow: previewTab === 'front' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                Page 1 (Bill)
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewTab('back')}
-                style={{
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 10px',
-                  fontSize: '11.5px',
-                  fontWeight: previewTab === 'back' ? '800' : '600',
-                  backgroundColor: previewTab === 'back' ? '#ffffff' : 'transparent',
-                  color: previewTab === 'back' ? '#0f172a' : '#64748b',
-                  boxShadow: previewTab === 'back' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                Page 2 (Heritage Back)
-              </button>
+            {/* Interactive Back Card Theme Selector & Preview Tabs */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              
+              {/* Theme Pill Toggle */}
+              <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', border: '1px solid #fde68a', borderRadius: '6px', padding: '2px', gap: '2px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#92400e', padding: '0 5px' }}>
+                  Back Theme:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setBackTheme('ahilyabai_sketch')}
+                  style={{
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '3.5px 8px',
+                    fontSize: '11px',
+                    fontWeight: backTheme === 'ahilyabai_sketch' ? '800' : '600',
+                    backgroundColor: backTheme === 'ahilyabai_sketch' ? '#78350f' : 'transparent',
+                    color: backTheme === 'ahilyabai_sketch' ? '#ffffff' : '#78350f',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Royal Devi Ahilyabai Holkar & Maheshwar Ghat Vintage Sketch"
+                >
+                  🏛️ Ahilyabai Sketch
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBackTheme('weaving_loom')}
+                  style={{
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '3.5px 8px',
+                    fontSize: '11px',
+                    fontWeight: backTheme === 'weaving_loom' ? '800' : '600',
+                    backgroundColor: backTheme === 'weaving_loom' ? '#78350f' : 'transparent',
+                    color: backTheme === 'weaving_loom' ? '#ffffff' : '#78350f',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Authentic Handloom Loom & 4 Weaving Medallions Designer Card"
+                >
+                  🧵 Weaving Loom Card
+                </button>
+              </div>
+
+              {/* View Preview Tabs */}
+              <div style={{ display: 'flex', backgroundColor: '#e2e8f0', borderRadius: '6px', padding: '2px', gap: '2px' }}>
+                <button
+                  type="button"
+                  onClick={() => setPreviewTab('all')}
+                  style={{
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 10px',
+                    fontSize: '11.5px',
+                    fontWeight: previewTab === 'all' ? '800' : '600',
+                    backgroundColor: previewTab === 'all' ? '#ffffff' : 'transparent',
+                    color: previewTab === 'all' ? '#0f172a' : '#64748b',
+                    boxShadow: previewTab === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Both Pages
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewTab('front')}
+                  style={{
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 10px',
+                    fontSize: '11.5px',
+                    fontWeight: previewTab === 'front' ? '800' : '600',
+                    backgroundColor: previewTab === 'front' ? '#ffffff' : 'transparent',
+                    color: previewTab === 'front' ? '#0f172a' : '#64748b',
+                    boxShadow: previewTab === 'front' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Page 1 (Bill)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewTab('back')}
+                  style={{
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 10px',
+                    fontSize: '11.5px',
+                    fontWeight: previewTab === 'back' ? '800' : '600',
+                    backgroundColor: previewTab === 'back' ? '#ffffff' : 'transparent',
+                    color: previewTab === 'back' ? '#0f172a' : '#64748b',
+                    boxShadow: previewTab === 'back' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Page 2 (Heritage Back)
+                </button>
+              </div>
             </div>
 
           </div>
@@ -624,29 +898,28 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         >
           
           {/* ════ PAGE 1: TAX INVOICE / BILL ════ */}
-          {showFront && (
-            <div 
-              className={`print-invoice-layout ${printMode === 'duplex_2sided' ? 'print-page-break' : ''}`} 
-              id="printable-invoice" 
-              style={{ 
-                fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif", 
-                padding: containerPadding, 
-                background: '#fdfaf2', 
-                color: '#4a2c11', 
-                position: 'relative', 
-                border: '3px double #b45309', 
-                boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1', 
-                borderRadius: '4px', 
-                boxSizing: 'border-box', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between', 
-                minHeight: '1093px',
-                height: '1093px',
-                width: '100%',
-                maxWidth: '794px'
-              }}
-            >
+          <div 
+            className={`print-invoice-layout ${printMode === 'duplex_2sided' ? 'print-page-break' : ''}`} 
+            id="printable-invoice" 
+            style={{ 
+              display: showFront ? 'flex' : 'none',
+              fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif", 
+              padding: containerPadding, 
+              background: '#fdfaf2', 
+              color: '#4a2c11', 
+              position: 'relative', 
+              border: '3px double #b45309', 
+              boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1', 
+              borderRadius: '4px', 
+              boxSizing: 'border-box', 
+              flexDirection: 'column', 
+              justifyContent: 'space-between', 
+              minHeight: '1093px',
+              height: '1093px',
+              width: '100%',
+              maxWidth: '794px'
+            }}
+          >
               {/* Centered background watermark logo */}
               {!isAmbekarInvoice && (
                 <div style={{
@@ -1030,7 +1303,6 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                 </div>
               </div>
             </div>
-          )}
 
           {/* Screen Divider between Page 1 and Page 2 in 'Both Pages' mode */}
           {previewTab === 'all' && (
@@ -1055,11 +1327,9 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           )}
 
           {/* ════ PAGE 2: HERITAGE BACK CARD ════ */}
-          {showBack && (
-            <div style={{ width: '100%', maxWidth: '794px' }}>
-              {renderInvoiceHeritageBack()}
-            </div>
-          )}
+          <div style={{ width: '100%', maxWidth: '794px', display: showBack ? 'block' : 'none' }}>
+            {renderInvoiceHeritageBack()}
+          </div>
 
         </div>
 
