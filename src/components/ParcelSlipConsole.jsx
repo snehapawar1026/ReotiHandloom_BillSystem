@@ -1399,7 +1399,8 @@ export default function ParcelSlipConsole({
             maxWidth: '92%',
             margin: '0 auto 12px auto'
           }}>
-            Thank you for buying from <strong style={{ color: '#0f172a', fontWeight: '900', fontSize: '16px' }}>{senderProfile.name}</strong> and being a cherished part of our community. Your purchase is directly helping us preserve this centuries-old sustainable weaving culture. We feel deeply grateful to have you encourage and empower the traditional master weavers of the sacred <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '16px' }}>"Maheshwar"</strong> heritage.
+            ✨ You didn't just make a purchase — you chose to keep a <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '16px' }}>700-year-old art</strong> alive. Every thread in your parcel carries the dream, sweat, and soul of a master weaver sitting by the sacred banks of the <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '16px' }}>Narmada in "Maheshwar"</strong>. Your choice creates a ripple — one that sustains weaver families, honors a timeless craft, and carries forward a legacy the world is only beginning to rediscover. <strong style={{ color: '#0f172a', fontWeight: '900', fontSize: '16px' }}>{senderProfile.name}</strong> is humbled and forever grateful to weave this journey with you. 🙏
+
           </div>
 
           {/* ── 3. LARGE MAHESHWAR FORT & GHATS ARCHITECTURAL SKETCH ILLUSTRATION (FULL CANVAS) ── */}
