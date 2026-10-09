@@ -338,7 +338,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           className="print-invoice-back-page"
           style={{
             fontFamily: "'Playfair Display', Georgia, serif",
-            padding: '16px 20px 14px 20px',
+            padding: '16px 20px 12px 20px',
             background: '#fdfbf7',
             color: '#451a03',
             position: 'relative',
@@ -355,50 +355,304 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             overflow: 'hidden'
           }}
         >
-          {/* Main Full-Page Authentic Luxury Heritage Mural Card (Fills Full Page) */}
-          <div style={{ 
-            position: 'relative', 
-            zIndex: 1, 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            width: '100%',
-            flexGrow: 1,
-            overflow: 'hidden'
-          }}>
-            <img 
-              src="/maheshwar_heritage_mural_full.png" 
-              alt="Rajmata Devi Ahilyabai Holkar & Traditional Maheshwari Pit-Loom Weaving Heritage Mural" 
-              style={{
+          {/* Subtle Watermark Monogram */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '420px',
+            height: '420px',
+            backgroundImage: `url(${activeLogo})`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            opacity: 0.02,
+            pointerEvents: 'none',
+            zIndex: 0
+          }} />
+
+          {/* 1. TOP ROYAL EMBLEM & BRAND TITLE */}
+          <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, marginBottom: '2px' }}>
+            <div style={{
+              width: '90px',
+              height: '60px',
+              margin: '0 auto 4px auto',
+              background: 'linear-gradient(135deg, #fef08a 0%, #eab308 25%, #ca8a04 55%, #fef08a 85%, #854d0e 100%)',
+              borderRadius: '8px',
+              padding: '2px',
+              boxShadow: '0 4px 10px rgba(161,98,7,0.3), inset 0 1px 2px rgba(255,255,255,0.85)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px solid #a16207'
+            }}>
+              <div style={{
                 width: '100%',
-                maxHeight: '940px',
                 height: '100%',
-                objectFit: 'contain',
-                display: 'block'
-              }} 
-            />
+                borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.6)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '2px 4px',
+                background: 'linear-gradient(135deg, rgba(254,240,138,0.3) 0%, rgba(202,138,4,0.1) 100%)'
+              }}>
+                <img 
+                  src={activeLogo} 
+                  alt="Emblem" 
+                  style={{ width: '26px', height: '26px', objectFit: 'contain' }} 
+                />
+                <div style={{ 
+                  fontSize: '8px', 
+                  fontWeight: '900', 
+                  color: '#451a03', 
+                  letterSpacing: '0.4px', 
+                  textTransform: 'uppercase', 
+                  lineHeight: '1.1',
+                  marginTop: '1px'
+                }}>
+                  {activeShopName}
+                </div>
+              </div>
+            </div>
+
+            <h1 style={{ 
+              fontFamily: "'Playfair Display', Georgia, serif", 
+              fontSize: '30px', 
+              color: '#854d0e', 
+              letterSpacing: '1.5px', 
+              margin: '0', 
+              fontWeight: '800', 
+              lineHeight: '1.1' 
+            }}>
+              <span style={{ fontStyle: 'italic', fontWeight: '900', color: '#78350f' }}>
+                {isAmbekarInvoice ? 'Ambekar' : 'Reoti'}
+              </span>{' '}
+              HANDLOOM
+            </h1>
+            <p style={{ 
+              fontFamily: "'Playfair Display', Georgia, serif", 
+              fontSize: '14px', 
+              fontWeight: '600', 
+              letterSpacing: '1px', 
+              color: '#451a03', 
+              margin: '2px 0 0 0' 
+            }}>
+              A Legacy of Maheshwari Handloom
+            </p>
           </div>
 
-          {/* Dynamic Store Address & Contact Details Block */}
+          {/* 2. CENTER HERO ARTWORK: SINGLE UNIFIED GRAND MURAL CANVAS (EXPANDED TO FILL ALL AVAILABLE SPACE) */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            margin: '4px 0',
+            flexGrow: 1,
+            width: '100%'
+          }}>
+            <div style={{
+              width: '100%',
+              background: '#ffffff',
+              border: '2px solid #b45309',
+              borderRadius: '8px',
+              padding: '6px',
+              boxShadow: '0 4px 16px rgba(120,53,15,0.12)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box',
+              flexGrow: 1,
+              justifyContent: 'space-between'
+            }}>
+              
+              {/* Mural Top Title Bar */}
+              <div style={{
+                background: 'linear-gradient(90deg, #78350f 0%, #b45309 50%, #78350f 100%)',
+                color: '#fef3c7',
+                padding: '6px 12px',
+                borderRadius: '4px',
+                textAlign: 'center',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '6px'
+              }}>
+                <span style={{ fontSize: '11.5px', fontWeight: '900', letterSpacing: '0.5px' }}>
+                  👑 RAJMATA DEVI AHILYABAI HOLKAR
+                </span>
+                <span style={{ fontSize: '9.5px', color: '#fde68a', fontWeight: '700', letterSpacing: '1px' }}>
+                  ✦ SACRED WEAVING LEGACY OF MAHESHWAR ✦
+                </span>
+                <span style={{ fontSize: '11.5px', fontWeight: '900', letterSpacing: '0.5px' }}>
+                  TRADITIONAL PIT-LOOM WEAVER 🧵
+                </span>
+              </div>
+
+              {/* Continuous Dual-Art Panorama (Tall & Fills Available Space) */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
+                width: '100%',
+                flexGrow: 1,
+                minHeight: '490px',
+                maxHeight: '540px',
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: '4px',
+                background: '#fbf9f4'
+              }}>
+                {/* Left Side: Rajmata Ahilyabai Holkar at Ghats */}
+                <div style={{
+                  position: 'relative',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRight: '1.5px dashed #d4af37'
+                }}>
+                  <img 
+                    src="/ahilyabai_vintage_sketch.jpg" 
+                    alt="Rajmata Devi Ahilyabai Holkar" 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      maxHeight: '520px',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }} 
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(255, 255, 255, 0.94)',
+                    border: '1px solid #b45309',
+                    borderRadius: '20px',
+                    padding: '3px 12px',
+                    fontSize: '10px',
+                    fontWeight: '800',
+                    color: '#78350f',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                  }}>
+                    Visionary Royal Patron (1725–1795)
+                  </div>
+                </div>
+
+                {/* Right Side: Traditional Pit-Loom Master Artisan */}
+                <div style={{
+                  position: 'relative',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <img 
+                    src="/maheshwari_pit_loom_sketch.jpg" 
+                    alt="Traditional Maheshwari Pit-Loom Weaver" 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      maxHeight: '520px',
+                      objectFit: 'contain',
+                      display: 'block'
+                    }} 
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(255, 255, 255, 0.94)',
+                    border: '1px solid #b45309',
+                    borderRadius: '20px',
+                    padding: '3px 12px',
+                    fontSize: '10px',
+                    fontWeight: '800',
+                    color: '#78350f',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                  }}>
+                    700+ Years Living Pit-Loom Craft
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Plaque Inscription */}
+              <div style={{
+                textAlign: 'center',
+                paddingTop: '6px',
+                borderTop: '1px solid #f1f5f9',
+                marginTop: '4px'
+              }}>
+                <div style={{
+                  fontSize: '10.5px',
+                  fontWeight: '700',
+                  color: '#92400e',
+                  letterSpacing: '0.4px'
+                }}>
+                  From Royal Patronage at Maheshwar Fort Ghats to Handwoven Pit-Loom Mastery on the Banks of River Narmada
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* 3. HERITAGE STORY & GRATITUDE MESSAGE */}
+          <div style={{
+            textAlign: 'center',
+            margin: '2px 0 6px 0',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            <p style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: '11px',
+              color: '#334155',
+              lineHeight: '1.4',
+              margin: '0 0 3px 0',
+              fontStyle: 'italic'
+            }}>
+              "Initiated by Rajmata Devi Ahilyabai Holkar and preserved across generations by master pit-loom weavers of Maheshwar, every drape carries royal elegance and soulful craftsmanship."
+            </p>
+            <p style={{
+              fontFamily: "'Playfair Display', 'Brush Script MT', 'Great Vibes', Georgia, cursive",
+              fontStyle: 'italic',
+              fontSize: '16.5px',
+              color: '#78350f',
+              margin: 0,
+              fontWeight: '700'
+            }}>
+              Thank you for supporting handloom weavers. We hope you cherish your exquisite piece.
+            </p>
+          </div>
+
+          {/* 4. DYNAMIC STORE ADDRESS & CONTACT DETAILS BLOCK */}
           <div style={{
             position: 'relative',
             zIndex: 1,
             borderTop: '1.5px solid #b45309',
             paddingTop: '8px',
-            marginTop: '4px',
+            marginTop: '2px',
             display: 'grid',
             gridTemplateColumns: '1.2fr 1fr',
-            gap: '16px',
+            gap: '14px',
             alignItems: 'center',
-            fontSize: '11.5px',
+            fontSize: '11px',
             color: '#451a03',
             fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif"
           }}>
             {/* Left Column: Store Name & Physical Address */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-              <MapPin size={16} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div style={{ lineHeight: '1.35' }}>
-                <strong style={{ color: '#78350f', fontSize: '12.5px', display: 'block', marginBottom: '2px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
+              <MapPin size={15} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div style={{ lineHeight: '1.3' }}>
+                <strong style={{ color: '#78350f', fontSize: '12px', display: 'block', marginBottom: '1px' }}>
                   {activeShopName}
                 </strong>
                 {settings.shopAddress || "73, LaxmiBai Marg, Maheshwar, Madhya Pradesh - 451224"}
@@ -406,17 +660,17 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             </div>
 
             {/* Right Column: Phone, Email & GSTIN */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', lineHeight: '1.3' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Phone size={13} color="#b45309" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5px', lineHeight: '1.25' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Phone size={12} color="#b45309" />
                 <span>Phone: <strong>+91 {invoice.shopPhone || settings.shopPhone || "9617444445"}</strong></span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Mail size={13} color="#b45309" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Mail size={12} color="#b45309" />
                 <span>Email: <strong>{settings.shopEmail || "contact@reotihandloom.com"}</strong></span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Award size={13} color="#b45309" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Award size={12} color="#b45309" />
                 <span>GSTIN: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || "23AAAFR1234A1Z5") : "Pure Handloom Certified"}</strong></span>
               </div>
             </div>
@@ -424,6 +678,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         </div>
       );
     }
+
 
     // Default: Individual Ahilyabai Sketch or Pit-Loom Sketch Design
     return (
