@@ -1369,13 +1369,13 @@ export default function ParcelSlipConsole({
         </div>
 
         {/* ── 2. CALLIGRAPHY TITLE & GRATITUDE MESSAGE (FULL SIZED & BALANCED) ── */}
-        <div style={{ position: 'relative', zIndex: 1, margin: '6px 0', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ position: 'relative', zIndex: 1, margin: '8px 0', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px' }}>
           
-          <div style={{ textAlign: 'center', margin: '2px 0 2px 0' }}>
+          <div style={{ textAlign: 'center', margin: '0' }}>
             <div style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontStyle: 'italic',
-              fontSize: '48px',
+              fontSize: '46px',
               fontWeight: '900',
               color: '#0f172a',
               lineHeight: '1.05',
@@ -1389,7 +1389,7 @@ export default function ParcelSlipConsole({
               letterSpacing: '2.5px',
               color: '#b45309',
               textTransform: 'uppercase',
-              marginTop: '2px'
+              marginTop: '3px'
             }}>
               FOR YOUR VALUED PURCHASE • WITH SINCERE GRATITUDE
             </div>
@@ -1398,7 +1398,7 @@ export default function ParcelSlipConsole({
           {/* Dynamic Patron Greeting & Message */}
           <div style={{
             backgroundColor: '#ffffff',
-            padding: '8px 14px',
+            padding: '10px 16px',
             borderRadius: '8px',
             border: '1.5px solid #dcd3bf',
             boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
@@ -1427,23 +1427,23 @@ export default function ParcelSlipConsole({
             <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e1b4b', marginBottom: '6px', textAlign: 'center', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
               🧺 Handloom Wash & Care Guide:
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center', fontSize: '11px', color: '#334155', fontWeight: '600' }}>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px 4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', fontSize: '11px', color: '#334155', fontWeight: '600' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 4px' }}>
                 <div style={{ fontSize: '16px' }}>🧼</div>
                 <strong style={{ color: '#1e1b4b', display: 'block', fontSize: '11px' }}>Dry Clean</strong>
                 1st wash dry-clean
               </div>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px 4px' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 4px' }}>
                 <div style={{ fontSize: '16px' }}>☀️</div>
                 <strong style={{ color: '#1e1b4b', display: 'block', fontSize: '11px' }}>Shade Dry</strong>
                 Avoid harsh sun
               </div>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px 4px' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 4px' }}>
                 <div style={{ fontSize: '16px' }}>♨️</div>
                 <strong style={{ color: '#1e1b4b', display: 'block', fontSize: '11px' }}>Medium Iron</strong>
                 Iron on reverse side
               </div>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px 4px' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 4px' }}>
                 <div style={{ fontSize: '16px' }}>📦</div>
                 <strong style={{ color: '#1e1b4b', display: 'block', fontSize: '11px' }}>Muslin Wrap</strong>
                 Store in cotton cloth
@@ -1459,12 +1459,12 @@ export default function ParcelSlipConsole({
             border: '2px solid #b45309',
             backgroundColor: '#ffffff',
             boxShadow: '0 4px 18px rgba(0,0,0,0.12)',
-            margin: '0 auto',
             width: '100%',
-            height: '380px',
+            flex: 1,
+            minHeight: '440px',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
             alignItems: 'center'
           }}>
             <img 
@@ -1472,7 +1472,8 @@ export default function ParcelSlipConsole({
               alt="Maheshwar Fort Sketch" 
               style={{
                 width: '100%',
-                height: '345px',
+                flex: 1,
+                minHeight: '400px',
                 objectFit: 'cover',
                 display: 'block'
               }} 
@@ -1480,7 +1481,7 @@ export default function ParcelSlipConsole({
             <div style={{
               backgroundColor: '#fbf8f1',
               width: '100%',
-              padding: '6px 0',
+              padding: '7px 0',
               textAlign: 'center',
               fontSize: '12px',
               fontWeight: '900',
@@ -1500,7 +1501,7 @@ export default function ParcelSlipConsole({
           position: 'relative',
           zIndex: 1,
           borderTop: '2px solid #cbd5e1',
-          paddingTop: '14px',
+          paddingTop: '12px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -1578,7 +1579,7 @@ export default function ParcelSlipConsole({
           color: '#1e293b',
           border: '3.5px double #b45309',
           borderRadius: '10px',
-          padding: '24px 28px',
+          padding: '22px 26px',
           fontFamily: "'Outfit', 'Segoe UI', Arial, sans-serif",
           boxSizing: 'border-box',
           position: 'relative',
@@ -1684,7 +1685,7 @@ export default function ParcelSlipConsole({
           </div>
         </div>
 
-        {/* ── 2. TWO-COLUMN HERO SECTION: PORTRAIT (LEFT) + 4 EXPANDED CHRONICLE CARDS (RIGHT) ── */}
+        {/* ── 2. TWO-COLUMN HERO SECTION: PORTRAIT (LEFT) + 5 EXPANDED CHRONICLE CARDS (RIGHT) ── */}
         <div style={{
           position: 'relative',
           zIndex: 1,
@@ -1692,8 +1693,8 @@ export default function ParcelSlipConsole({
           gridTemplateColumns: '290px 1fr',
           gap: '16px',
           margin: '10px 0',
-          alignItems: 'center',
-          flexGrow: 1
+          alignItems: 'stretch',
+          flex: 1
         }}>
           
           {/* LEFT: RAJMATA AHILYABAI HOLKAR & FORT PORTRAIT (LARGE DISPLAY) */}
@@ -1701,17 +1702,18 @@ export default function ParcelSlipConsole({
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center', 
-            justifyContent: 'center', 
+            justifyContent: 'space-between', 
             backgroundColor: '#f6f2e6', 
             border: '2px solid #dcd3bf', 
             borderRadius: '10px', 
-            padding: '10px 10px',
+            padding: '12px 10px',
             height: '100%',
             boxSizing: 'border-box'
           }}>
             <div style={{
               width: '100%',
-              height: '480px',
+              flex: 1,
+              minHeight: '460px',
               borderRadius: '8px',
               overflow: 'hidden',
               border: '3px solid #b45309',
@@ -1729,48 +1731,52 @@ export default function ParcelSlipConsole({
                 }} 
               />
             </div>
-            <div style={{
-              fontSize: '15px',
-              fontWeight: '900',
-              color: '#0f172a',
-              marginTop: '8px',
-              textAlign: 'center',
-              lineHeight: '1.2'
-            }}>
-              Rajmata Devi Ahilyabai Holkar
-            </div>
-            <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#b45309', textAlign: 'center', marginTop: '2px' }}>
-              (1725–1795) • Visionary Patron & Creator of Maheshwari Weaves
-            </div>
-            <div style={{
-              backgroundColor: '#1e1b4b',
-              color: '#fef3c7',
-              padding: '3px 12px',
-              borderRadius: '4px',
-              fontSize: '10px',
-              fontWeight: '900',
-              marginTop: '4px',
-              letterSpacing: '0.6px',
-              textTransform: 'uppercase'
-            }}>
-              ★ ORIGINATED ON THE BANKS OF NARMADA ★
+            <div style={{ marginTop: '8px', textAlign: 'center', width: '100%' }}>
+              <div style={{
+                fontSize: '15.5px',
+                fontWeight: '900',
+                color: '#0f172a',
+                lineHeight: '1.2'
+              }}>
+                Rajmata Devi Ahilyabai Holkar
+              </div>
+              <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#b45309', marginTop: '2px' }}>
+                (1725–1795) • Visionary Patron & Creator of Maheshwari Weaves
+              </div>
+              <div style={{
+                backgroundColor: '#1e1b4b',
+                color: '#fef3c7',
+                padding: '4px 12px',
+                borderRadius: '4px',
+                fontSize: '10.5px',
+                fontWeight: '900',
+                marginTop: '5px',
+                letterSpacing: '0.6px',
+                textTransform: 'uppercase'
+              }}>
+                ★ ORIGINATED ON THE BANKS OF NARMADA ★
+              </div>
             </div>
           </div>
 
           {/* RIGHT: 5 EXPANDED HERITAGE CHRONICLE CARDS (FILLING VERTICAL HEIGHT FULLY) */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '6px', height: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px', height: '100%' }}>
             
             <div style={{
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '6px',
-              padding: '8px 12px',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+              padding: '11px 14px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
-              <div style={{ fontSize: '12.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>👑</span> 18th Century Royal Origin:
               </div>
-              <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.38', fontWeight: '600' }}>
+              <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: '1.42', fontWeight: '600' }}>
                 In the 18th century, revered ruler Rajmata Ahilyabai Holkar invited master weavers from Surat & Malwa to Maheshwar, establishing the royal handloom weaving of silk-cotton <em>'Garbha Reshmi'</em> sarees.
               </div>
             </div>
@@ -1779,13 +1785,17 @@ export default function ParcelSlipConsole({
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '6px',
-              padding: '8px 12px',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+              padding: '11px 14px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
-              <div style={{ fontSize: '12.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>🏛️</span> Fort Architecture & Temple Motifs:
               </div>
-              <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.38', fontWeight: '600' }}>
+              <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: '1.42', fontWeight: '600' }}>
                 Iconic saree borders—<strong>Bugdi, Chatai, Chameli, Rui Phool & Narmada Waves</strong>—are directly inspired by stone carvings, temples, and chhatris of the majestic Maheshwar Fort.
               </div>
             </div>
@@ -1794,13 +1804,17 @@ export default function ParcelSlipConsole({
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '6px',
-              padding: '8px 12px',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+              padding: '11px 14px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
-              <div style={{ fontSize: '12.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>🧵</span> 100% Traditional Pit-Loom Craft:
               </div>
-              <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.38', fontWeight: '600' }}>
+              <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: '1.42', fontWeight: '600' }}>
                 Each piece is handwoven on wooden pit-looms by generational artisan weaver families of Maheshwar with pure natural yarns, precision, and heartfelt devotion in every warp and weft.
               </div>
             </div>
@@ -1809,13 +1823,17 @@ export default function ParcelSlipConsole({
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '6px',
-              padding: '8px 12px',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+              padding: '11px 14px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
-              <div style={{ fontSize: '12.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>💎</span> Reversible Zari Border & Royal Grace:
               </div>
-              <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.38', fontWeight: '600' }}>
+              <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: '1.42', fontWeight: '600' }}>
                 The signature hallmark of Maheshwari weaving is its unique reversible border—wearable on either side—along with its lightweight, glossy texture, and regal elegance.
               </div>
             </div>
@@ -1824,13 +1842,17 @@ export default function ParcelSlipConsole({
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '6px',
-              padding: '8px 12px',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+              padding: '11px 14px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
             }}>
-              <div style={{ fontSize: '12.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>🌿</span> Pure Natural Yarns & Direct Weaver Care:
               </div>
-              <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.38', fontWeight: '600' }}>
+              <div style={{ fontSize: '11.5px', color: '#334155', lineHeight: '1.42', fontWeight: '600' }}>
                 Crafted with breathable natural mulberry silk & fine cotton yarns using heritage techniques that preserve genuine artisan livelihood and Indian handloom culture.
               </div>
             </div>
@@ -1846,15 +1868,15 @@ export default function ParcelSlipConsole({
           backgroundColor: '#f1f5f9',
           border: '1.5px solid #cbd5e1',
           borderRadius: '8px',
-          padding: '12px 18px',
-          margin: '6px 0 12px 0',
+          padding: '14px 18px',
+          margin: '8px 0 10px 0',
           display: 'flex',
           alignItems: 'center',
           gap: '14px'
         }}>
-          <div style={{ fontSize: '24px' }}>⚜️</div>
+          <div style={{ fontSize: '26px' }}>⚜️</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px' }}>
               {senderProfile.name} — Authentic Heritage of Maheshwar Handloom
             </div>
             <div style={{ fontSize: '12.5px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
