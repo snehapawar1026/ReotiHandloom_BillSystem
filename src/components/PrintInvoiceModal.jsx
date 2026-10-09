@@ -444,54 +444,74 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           </p>
         </div>
 
-        {/* 2. CENTER HERO ARTWORK: VINTAGE HAND-DRAWN SKETCHES (FULL PAGE EXPANSIVE LAYOUT) */}
+        {/* 2. CENTER HERO ARTWORK: SINGLE UNIFIED VINTAGE HERITAGE MURAL (MERGED AS ONE) */}
         {backTheme === 'merged_heritage' ? (
           <div style={{
             position: 'relative',
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
-            margin: '6px 0',
+            justifyContent: 'center',
+            margin: '8px 0',
             flexGrow: 1,
-            width: '100%',
-            gap: '8px'
+            width: '100%'
           }}>
-            {/* Dual Merged Side-by-Side Large Frames (Fills available space) */}
+            {/* ✦ SINGLE UNIFIED GRAND MURAL CANVAS (NO SEPARATE BOXES) ✦ */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '16px',
               width: '100%',
-              margin: '0 auto',
-              flexGrow: 1,
-              alignItems: 'stretch'
+              background: '#ffffff',
+              border: '3px double #b45309',
+              borderRadius: '8px',
+              padding: '8px',
+              boxShadow: '0 6px 20px rgba(120,53,15,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box'
             }}>
-              {/* Left Frame: Rajmata Ahilyabai Holkar */}
+              
+              {/* Mural Top Title Bar */}
               <div style={{
+                background: 'linear-gradient(90deg, #78350f 0%, #b45309 50%, #78350f 100%)',
+                color: '#fef3c7',
+                padding: '6px 14px',
+                borderRadius: '4px',
+                textAlign: 'center',
                 display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                background: '#fdfbf7',
-                border: '2px solid #b45309',
-                borderRadius: '8px',
-                padding: '10px',
-                boxShadow: '0 4px 16px rgba(120,53,15,0.12)'
+                alignItems: 'center',
+                marginBottom: '8px'
               }}>
+                <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '0.5px' }}>
+                  👑 RAJMATA DEVI AHILYABAI HOLKAR
+                </span>
+                <span style={{ fontSize: '10px', color: '#fde68a', fontWeight: '700', letterSpacing: '1px' }}>
+                  ✦ SACRED WEAVING LEGACY OF MAHESHWAR ✦
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '0.5px' }}>
+                  TRADITIONAL PIT-LOOM WEAVER 🧵
+                </span>
+              </div>
+
+              {/* Continuous Dual-Art Panorama (Seamlessly Connected) */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
+                width: '100%',
+                height: '470px',
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: '4px',
+                background: '#fbf9f4'
+              }}>
+                {/* Left Side: Rajmata Ahilyabai Holkar at Ghats */}
                 <div style={{
-                  width: '100%',
-                  flexGrow: 1,
+                  position: 'relative',
+                  height: '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: '#ffffff',
-                  borderRadius: '4px',
-                  border: '1px solid #e2e8f0',
-                  padding: '4px',
-                  minHeight: '430px',
-                  maxHeight: '460px',
-                  overflow: 'hidden'
+                  borderRight: '1.5px dashed #d4af37'
                 }}>
                   <img 
                     src="/ahilyabai_vintage_sketch.jpg" 
@@ -499,59 +519,37 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                     style={{
                       width: '100%',
                       height: '100%',
-                      maxHeight: '450px',
                       objectFit: 'contain',
                       display: 'block'
                     }} 
                   />
-                </div>
-                <div style={{ width: '100%', marginTop: '8px', textAlign: 'center' }}>
+                  {/* Subtle Floating Bottom Badge */}
                   <div style={{
-                    fontSize: '13px',
-                    fontWeight: '900',
-                    color: '#78350f',
-                    letterSpacing: '0.6px',
-                    textTransform: 'uppercase'
-                  }}>
-                    Rajmata Devi Ahilyabai Holkar
-                  </div>
-                  <div style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(255, 255, 255, 0.92)',
+                    border: '1px solid #b45309',
+                    borderRadius: '20px',
+                    padding: '3px 12px',
                     fontSize: '10.5px',
-                    fontWeight: '700',
-                    color: '#92400e',
-                    fontStyle: 'italic',
-                    marginTop: '2px'
+                    fontWeight: '800',
+                    color: '#78350f',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                   }}>
-                    (1725–1795) • Visionary Patron & Pioneer of Maheshwari Weaves
+                    Visionary Royal Patron (1725–1795)
                   </div>
                 </div>
-              </div>
 
-              {/* Right Frame: Traditional Pit-Loom Master Weaver */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: '#fdfbf7',
-                border: '2px solid #b45309',
-                borderRadius: '8px',
-                padding: '10px',
-                boxShadow: '0 4px 16px rgba(120,53,15,0.12)'
-              }}>
+                {/* Right Side: Traditional Pit-Loom Master Artisan */}
                 <div style={{
-                  width: '100%',
-                  flexGrow: 1,
+                  position: 'relative',
+                  height: '100%',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  background: '#ffffff',
-                  borderRadius: '4px',
-                  border: '1px solid #e2e8f0',
-                  padding: '4px',
-                  minHeight: '430px',
-                  maxHeight: '460px',
-                  overflow: 'hidden'
+                  justifyContent: 'center'
                 }}>
                   <img 
                     src="/maheshwari_pit_loom_sketch.jpg" 
@@ -559,74 +557,48 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                     style={{
                       width: '100%',
                       height: '100%',
-                      maxHeight: '450px',
                       objectFit: 'contain',
                       display: 'block'
                     }} 
                   />
-                </div>
-                <div style={{ width: '100%', marginTop: '8px', textAlign: 'center' }}>
+                  {/* Subtle Floating Bottom Badge */}
                   <div style={{
-                    fontSize: '13px',
-                    fontWeight: '900',
-                    color: '#78350f',
-                    letterSpacing: '0.6px',
-                    textTransform: 'uppercase'
-                  }}>
-                    Traditional Pit-Loom Weaving
-                  </div>
-                  <div style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'rgba(255, 255, 255, 0.92)',
+                    border: '1px solid #b45309',
+                    borderRadius: '20px',
+                    padding: '3px 12px',
                     fontSize: '10.5px',
-                    fontWeight: '700',
-                    color: '#92400e',
-                    fontStyle: 'italic',
-                    marginTop: '2px'
+                    fontWeight: '800',
+                    color: '#78350f',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                   }}>
-                    700+ Years Living Artisan Craft of Maheshwar Master Weavers
+                    700+ Years Living Pit-Loom Craft
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* 4 Heritage Pillar Highlights (Filling & Balancing the Page) */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '8px',
-              width: '100%',
-              marginTop: '4px'
-            }}>
+              {/* Bottom Plaque Description */}
               <div style={{
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                padding: '6px 10px',
-                fontSize: '10.5px',
-                color: '#334155',
-                lineHeight: '1.35',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
+                textAlign: 'center',
+                paddingTop: '8px',
+                borderTop: '1px solid #f1f5f9',
+                marginTop: '6px'
               }}>
-                <strong style={{ color: '#78350f', display: 'block', fontSize: '11px', marginBottom: '2px' }}>
-                  👑 18th Century Royal Origin
-                </strong>
-                Established by Rajmata Ahilyabai Holkar for royal dignitaries, patronizing pure silk-cotton <em>Garbha Reshmi</em> sarees.
+                <div style={{
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  color: '#92400e',
+                  letterSpacing: '0.4px'
+                }}>
+                  From Royal Patronage at Maheshwar Fort Ghats to Handwoven Pit-Loom Mastery on the Banks of River Narmada
+                </div>
               </div>
 
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                padding: '6px 10px',
-                fontSize: '10.5px',
-                color: '#334155',
-                lineHeight: '1.35',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
-              }}>
-                <strong style={{ color: '#78350f', display: 'block', fontSize: '11px', marginBottom: '2px' }}>
-                  🧵 100% Pit-Loom Mastery
-                </strong>
-                Painstakingly handwoven on wooden pit-looms by generational artisan families with pure natural yarns & reversible zari borders.
-              </div>
             </div>
           </div>
         ) : (
