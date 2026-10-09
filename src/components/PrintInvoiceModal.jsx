@@ -444,13 +444,14 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             </p>
           </div>
 
-          {/* 2. CENTER HERO ARTWORK: SINGLE UNIFIED GRAND MURAL CANVAS (EXPANDED TO FILL ALL AVAILABLE SPACE) */}
+          {/* 2. CENTER HERO ARTWORK: CLEAN CROPPED HERITAGE MURAL (FILLING ENTIRE CENTER SPACE) */}
           <div style={{
             position: 'relative',
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
+            alignItems: 'center',
             margin: '4px 0',
             flexGrow: 1,
             width: '100%'
@@ -461,146 +462,27 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
               border: '2px solid #b45309',
               borderRadius: '8px',
               padding: '6px',
-              boxShadow: '0 4px 16px rgba(120,53,15,0.12)',
+              boxShadow: '0 4px 18px rgba(120,53,15,0.12)',
               display: 'flex',
               flexDirection: 'column',
               boxSizing: 'border-box',
               flexGrow: 1,
-              justifyContent: 'space-between'
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden'
             }}>
-              
-              {/* Mural Top Title Bar */}
-              <div style={{
-                background: 'linear-gradient(90deg, #78350f 0%, #b45309 50%, #78350f 100%)',
-                color: '#fef3c7',
-                padding: '6px 12px',
-                borderRadius: '4px',
-                textAlign: 'center',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '6px'
-              }}>
-                <span style={{ fontSize: '11.5px', fontWeight: '900', letterSpacing: '0.5px' }}>
-                  👑 RAJMATA DEVI AHILYABAI HOLKAR
-                </span>
-                <span style={{ fontSize: '9.5px', color: '#fde68a', fontWeight: '700', letterSpacing: '1px' }}>
-                  ✦ SACRED WEAVING LEGACY OF MAHESHWAR ✦
-                </span>
-                <span style={{ fontSize: '11.5px', fontWeight: '900', letterSpacing: '0.5px' }}>
-                  TRADITIONAL PIT-LOOM WEAVER 🧵
-                </span>
-              </div>
-
-              {/* Continuous Dual-Art Panorama (Tall & Fills Available Space) */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '8px',
-                width: '100%',
-                flexGrow: 1,
-                minHeight: '490px',
-                maxHeight: '540px',
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: '4px',
-                background: '#fbf9f4'
-              }}>
-                {/* Left Side: Rajmata Ahilyabai Holkar at Ghats */}
-                <div style={{
-                  position: 'relative',
+              <img 
+                src="/maheshwar_heritage_mural_clean.png" 
+                alt="Rajmata Devi Ahilyabai Holkar & Traditional Maheshwari Pit-Loom Weaving Heritage Mural" 
+                style={{
+                  width: '100%',
                   height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRight: '1.5px dashed #d4af37'
-                }}>
-                  <img 
-                    src="/ahilyabai_vintage_sketch.jpg" 
-                    alt="Rajmata Devi Ahilyabai Holkar" 
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      maxHeight: '520px',
-                      objectFit: 'contain',
-                      display: 'block'
-                    }} 
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '8px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'rgba(255, 255, 255, 0.94)',
-                    border: '1px solid #b45309',
-                    borderRadius: '20px',
-                    padding: '3px 12px',
-                    fontSize: '10px',
-                    fontWeight: '800',
-                    color: '#78350f',
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-                  }}>
-                    Visionary Royal Patron (1725–1795)
-                  </div>
-                </div>
-
-                {/* Right Side: Traditional Pit-Loom Master Artisan */}
-                <div style={{
-                  position: 'relative',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <img 
-                    src="/maheshwari_pit_loom_sketch.jpg" 
-                    alt="Traditional Maheshwari Pit-Loom Weaver" 
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      maxHeight: '520px',
-                      objectFit: 'contain',
-                      display: 'block'
-                    }} 
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '8px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'rgba(255, 255, 255, 0.94)',
-                    border: '1px solid #b45309',
-                    borderRadius: '20px',
-                    padding: '3px 12px',
-                    fontSize: '10px',
-                    fontWeight: '800',
-                    color: '#78350f',
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-                  }}>
-                    700+ Years Living Pit-Loom Craft
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Plaque Inscription */}
-              <div style={{
-                textAlign: 'center',
-                paddingTop: '6px',
-                borderTop: '1px solid #f1f5f9',
-                marginTop: '4px'
-              }}>
-                <div style={{
-                  fontSize: '10.5px',
-                  fontWeight: '700',
-                  color: '#92400e',
-                  letterSpacing: '0.4px'
-                }}>
-                  From Royal Patronage at Maheshwar Fort Ghats to Handwoven Pit-Loom Mastery on the Banks of River Narmada
-                </div>
-              </div>
-
+                  maxHeight: '560px',
+                  objectFit: 'contain',
+                  display: 'block',
+                  borderRadius: '4px'
+                }} 
+              />
             </div>
           </div>
 
