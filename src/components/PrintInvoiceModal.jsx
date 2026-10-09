@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Printer, Download, Sparkles, Layers, FileText, Globe, Phone, MapPin, Award } from 'lucide-react';
+import { X, Printer, Download, Sparkles, Layers, FileText, Phone, Mail, Award, MapPin } from 'lucide-react';
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
 import html2canvas from 'html2canvas';
 import { formatCurrency, priceToWords } from '../utils';
@@ -229,387 +229,222 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     }
   };
 
-  // Render the Grand Full-A4 Heritage Tribute Card (Reverse Back Page of the Bill)
+  // Render the Authentic Luxury Heritage Card (Exact Reoti Handloom Reference Design)
   const renderInvoiceHeritageBack = () => {
     return (
       <div 
         id="printable-invoice-back"
         className="print-invoice-back-page"
         style={{
-          backgroundColor: '#faf6ed',
-          color: '#1e293b',
-          border: '3.5px double #b45309',
-          borderRadius: '8px',
-          padding: '24px 28px',
-          fontFamily: "'Outfit', 'Segoe UI', Arial, sans-serif",
-          boxSizing: 'border-box',
+          fontFamily: "'Playfair Display', Georgia, serif",
+          padding: '24px 30px',
+          background: '#fcfaf6',
+          color: '#451a03',
           position: 'relative',
-          width: '100%',
-          minHeight: '1093px',
-          height: '1093px',
+          border: '2px solid #b45309',
+          boxShadow: 'inset 0 0 0 3px #fcfaf6, inset 0 0 0 5px #d4af37, inset 0 0 0 7px #fcfaf6, inset 0 0 0 8px #cbd5e1',
+          borderRadius: '4px',
+          boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          pageBreakInside: 'avoid',
-          margin: '0 auto',
+          minHeight: '1093px',
+          height: '1093px',
+          width: '100%',
           overflow: 'hidden'
         }}
       >
-        {/* ── 4 ORNATE CORNER FLOURISHES ── */}
-        <svg style={{ position: 'absolute', top: '7px', left: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8 }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
-          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
-          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
-          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
-          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
-        </svg>
-        <svg style={{ position: 'absolute', top: '7px', right: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scaleX(-1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
-          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
-          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
-          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
-          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
-        </svg>
-        <svg style={{ position: 'absolute', bottom: '7px', left: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scaleY(-1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
-          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
-          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
-          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
-          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
-        </svg>
-        <svg style={{ position: 'absolute', bottom: '7px', right: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scale(-1, -1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
-          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
-          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
-          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
-          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
-        </svg>
-
-        {/* Inner Dashed Gold Frame */}
+        {/* Subtle Watermark Monogram */}
         <div style={{
           position: 'absolute',
-          top: '6px',
-          left: '6px',
-          right: '6px',
-          bottom: '6px',
-          border: '2px dashed #b45309',
-          borderRadius: '6px',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '420px',
+          height: '420px',
+          backgroundImage: `url(${activeLogo})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          opacity: 0.025,
           pointerEvents: 'none',
-          opacity: 0.65
+          zIndex: 0
         }} />
 
-        {/* ── 1. TOP ROYAL BRAND & HERITAGE BANNER ── */}
-        <div style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: '#f6f2e6',
-          border: '2px solid #dcd3bf',
-          borderRadius: '8px',
-          padding: '12px 18px',
-          gap: '14px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img 
-              src={activeLogo} 
-              alt={activeShopName} 
-              style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                objectFit: 'contain',
-                border: '3px solid #b45309',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.18)',
-                padding: '2px'
-              }} 
-            />
-            <div>
-              <div style={{ fontSize: '26px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase', letterSpacing: '0.8px', lineHeight: '1.1' }}>
-                {activeShopName}
-              </div>
-              <div style={{ fontSize: '13px', fontWeight: '800', color: '#b45309', marginTop: '3px' }}>
-                The Sacred Weaves of Maheshwar • 250+ Years Royal Living Tradition
-              </div>
-            </div>
-          </div>
-
-          <div style={{
-            backgroundColor: '#1e1b4b',
-            color: '#fef3c7',
-            padding: '8px 18px',
-            borderRadius: '6px',
-            fontSize: '13px',
-            fontWeight: '900',
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            boxShadow: '0 3px 8px rgba(0,0,0,0.2)'
-          }}>
-            ⚜️ HERITAGE OF RAJMATA AHILYABAI HOLKAR ⚜️
-          </div>
-        </div>
-
-        {/* ── 2. TWO-COLUMN HERO SECTION: PORTRAIT (LEFT) + 4 EXPANDED CHRONICLE CARDS (RIGHT) ── */}
-        <div style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'grid',
-          gridTemplateColumns: '290px 1fr',
-          gap: '20px',
-          margin: '12px 0',
-          alignItems: 'stretch',
-          flexGrow: 1
-        }}>
+        {/* 1. TOP 3D METALLIC GOLD BADGE & BRAND TITLE */}
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           
-          {/* LEFT: RAJMATA AHILYABAI HOLKAR & FORT PORTRAIT */}
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            backgroundColor: '#f6f2e6', 
-            border: '2px solid #dcd3bf', 
-            borderRadius: '10px', 
-            padding: '14px 10px' 
+          {/* 3D Metallic Gold Embossed Square Emblem */}
+          <div style={{
+            width: '130px',
+            height: '92px',
+            margin: '0 auto 8px auto',
+            background: 'linear-gradient(135deg, #fef08a 0%, #eab308 25%, #ca8a04 55%, #fef08a 85%, #854d0e 100%)',
+            borderRadius: '12px',
+            padding: '2.5px',
+            boxShadow: '0 6px 14px rgba(161,98,7,0.35), inset 0 1.5px 3px rgba(255,255,255,0.85), inset 0 -2px 3px rgba(113,63,18,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid #a16207'
           }}>
             <div style={{
-              width: '265px',
-              height: '355px',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              border: '3px solid #b45309',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
-              backgroundColor: '#ffffff'
+              width: '100%',
+              height: '100%',
+              borderRadius: '9px',
+              border: '1px solid rgba(255,255,255,0.6)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '3px 6px',
+              background: 'linear-gradient(135deg, rgba(254,240,138,0.3) 0%, rgba(202,138,4,0.1) 100%)'
             }}>
               <img 
-                src="/ahilyabai_portrait.jpg" 
-                alt="Rajmata Devi Ahilyabai Holkar" 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block'
+                src={activeLogo} 
+                alt="Emblem" 
+                style={{ 
+                  width: '38px', 
+                  height: '38px', 
+                  objectFit: 'contain', 
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' 
                 }} 
               />
-            </div>
-            
-            <div style={{
-              marginTop: '10px',
-              textAlign: 'center',
-              backgroundColor: '#1e1b4b',
-              color: '#fef3c7',
-              width: '265px',
-              padding: '6px 0',
-              borderRadius: '6px',
-              fontWeight: '900',
-              fontSize: '12.5px',
-              letterSpacing: '0.8px',
-              textTransform: 'uppercase'
-            }}>
-              👑 Devi Ahilyabai Holkar
-            </div>
-            <div style={{ fontSize: '11px', color: '#78350f', fontWeight: '800', marginTop: '4px', textAlign: 'center' }}>
-              Patron & Founder of Maheshwari Handloom (1767 AD)
+              <div style={{ 
+                fontSize: '11px', 
+                fontWeight: '900', 
+                color: '#451a03', 
+                letterSpacing: '0.6px', 
+                marginTop: '2px', 
+                textTransform: 'uppercase', 
+                lineHeight: '1.1' 
+              }}>
+                {activeShopName}
+              </div>
+              <div style={{ 
+                fontSize: '8px', 
+                fontWeight: '700', 
+                color: '#78350f', 
+                letterSpacing: '0.4px', 
+                marginTop: '1px' 
+              }}>
+                — Something "MORE" —
+              </div>
             </div>
           </div>
 
-          {/* RIGHT: 4 EXPANDED HERITAGE CHRONICLE CARDS */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: '10px'
+          {/* Large Calligraphy Brand Title & Subtitle */}
+          <h1 style={{ 
+            fontFamily: "'Playfair Display', Georgia, serif", 
+            fontSize: '46px', 
+            color: '#854d0e', 
+            letterSpacing: '1.8px', 
+            margin: '0', 
+            fontWeight: '800',
+            lineHeight: '1.05'
           }}>
-            
-            {/* Card 1: The Divine Vision */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              border: '1.5px solid #dcd3bf',
-              borderLeft: '5px solid #b45309',
-              borderRadius: '8px',
-              padding: '10px 14px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+            <span style={{ 
+              fontStyle: 'italic', 
+              fontWeight: '900', 
+              color: '#78350f' 
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                <span style={{ fontSize: '16px' }}>👑</span>
-                <span style={{ fontSize: '14px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase' }}>
-                  The Royal Vision of Rajmata Ahilyabai
-                </span>
-              </div>
-              <div style={{ fontSize: '12px', lineHeight: '1.45', color: '#334155', fontWeight: '600' }}>
-                In 1767 AD, Devi Ahilyabai Holkar invited master artisans from Surat and Malwa to establish handlooms in Maheshwar, creating an eternal royal legacy of handwoven luxury.
-              </div>
-            </div>
-
-            {/* Card 2: Sacred Fort Motifs */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              border: '1.5px solid #dcd3bf',
-              borderLeft: '5px solid #b45309',
-              borderRadius: '8px',
-              padding: '10px 14px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                <span style={{ fontSize: '16px' }}>🏛️</span>
-                <span style={{ fontSize: '14px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase' }}>
-                  Sacred Narmada Fort & Ghats Motifs
-                </span>
-              </div>
-              <div style={{ fontSize: '12px', lineHeight: '1.45', color: '#334155', fontWeight: '600' }}>
-                The signature border motifs like <strong style={{ color: '#b45309' }}>Chatai (Mat)</strong>, <strong style={{ color: '#b45309' }}>Chameli</strong>, <strong style={{ color: '#b45309' }}>Bugdi</strong>, and <strong style={{ color: '#b45309' }}>Lehariya (Narmada Waves)</strong> are inspired directly by the stone carvings of Maheshwar Fort.
-              </div>
-            </div>
-
-            {/* Card 3: Garbh Reshami Fabric */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              border: '1.5px solid #dcd3bf',
-              borderLeft: '5px solid #b45309',
-              borderRadius: '8px',
-              padding: '10px 14px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                <span style={{ fontSize: '16px' }}>🪡</span>
-                <span style={{ fontSize: '14px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase' }}>
-                  Pure Silk & Cotton "Garbh Reshami"
-                </span>
-              </div>
-              <div style={{ fontSize: '12px', lineHeight: '1.45', color: '#334155', fontWeight: '600' }}>
-                Woven with high-grade Mulberry silk warp and finest cotton weft, delivering an ultra-light, feather-soft drape with reversible golden zari borders.
-              </div>
-            </div>
-
-            {/* Card 4: Living Art & Support */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              border: '1.5px solid #dcd3bf',
-              borderLeft: '5px solid #b45309',
-              borderRadius: '8px',
-              padding: '10px 14px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                <span style={{ fontSize: '16px' }}>🌟</span>
-                <span style={{ fontSize: '14px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase' }}>
-                  A Living Art Supported by You
-                </span>
-              </div>
-              <div style={{ fontSize: '12px', lineHeight: '1.45', color: '#334155', fontWeight: '600' }}>
-                Your choice directly supports authentic pit-loom weaver families on the banks of holy Narmada, keeping this timeless heritage craft alive for generations.
-              </div>
-            </div>
-
-          </div>
-
+              {isAmbekarInvoice ? 'Ambekar' : 'Reoti'}
+            </span>{' '}
+            HANDLOOM
+          </h1>
+          <p style={{ 
+            fontFamily: "'Playfair Display', Georgia, serif", 
+            fontSize: '19px', 
+            fontWeight: '600', 
+            letterSpacing: '1.2px', 
+            color: '#451a03', 
+            margin: '4px 0 0 0' 
+          }}>
+            A Legacy of Maheshwari Handloom
+          </p>
         </div>
 
-        {/* ── 3. MAHESHWAR FORT & GHATS ARCHITECTURAL SKETCH PANORAMA ── */}
-        <div style={{
-          position: 'relative',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          border: '2px solid #dcd3bf',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 3px 12px rgba(0,0,0,0.08)',
-          margin: '0 auto 10px auto',
+        {/* 2. CENTER ARTWORK: 4 WEAVING MEDALLIONS & PIT-LOOM WEAVER ILLUSTRATION */}
+        <div style={{ 
+          position: 'relative', 
+          zIndex: 1, 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          margin: '6px 0',
           width: '100%',
-          maxHeight: '230px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center'
+          flexGrow: 1
         }}>
           <img 
-            src="/maheshwar_fort_sketch.jpg" 
-            alt="Maheshwar Fort Sketch" 
+            src="/reoti_heritage_art_core.jpg" 
+            alt="Handloom Weaving Heritage Artwork & Medallions" 
             style={{
               width: '100%',
-              maxHeight: '195px',
+              maxHeight: '520px',
               objectFit: 'contain',
               display: 'block'
             }} 
           />
-          <div style={{
-            backgroundColor: '#fbf8f1',
-            width: '100%',
-            padding: '5px 0',
-            textAlign: 'center',
-            fontSize: '11px',
-            fontWeight: '900',
-            color: '#78350f',
-            letterSpacing: '1px',
-            borderTop: '1.5px solid #e2e8f0',
-            textTransform: 'uppercase'
-          }}>
-            ★ The Majestic Ahilya Fort & Sacred Narmada Ghats • Maheshwar (M.P.) ★
-          </div>
         </div>
 
-        {/* ── 4. BOTTOM HIGH-CONTRAST VERIFIED CONTACT & AUTHENTICITY PILLS ── */}
+        {/* 3. ELEGANT SCRIPT GRATITUDE MESSAGE */}
+        <div style={{
+          textAlign: 'center',
+          fontFamily: "'Playfair Display', 'Brush Script MT', 'Great Vibes', Georgia, cursive",
+          fontStyle: 'italic',
+          fontSize: '22px',
+          color: '#1e293b',
+          letterSpacing: '0.4px',
+          lineHeight: '1.3',
+          margin: '4px 0 12px 0',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          Thank you for supporting handloom weavers. We hope you cherish your exquisite piece.
+        </div>
+
+        {/* 4. BOTTOM ADDRESS & VERIFIED CONTACT DETAILS */}
         <div style={{
           position: 'relative',
           zIndex: 1,
-          borderTop: '2px solid #cbd5e1',
-          paddingTop: '10px',
-          display: 'flex',
-          justifyContent: 'space-between',
+          borderTop: '1px solid #b45309',
+          paddingTop: '12px',
+          display: 'grid',
+          gridTemplateColumns: '1.2fr 1fr',
+          gap: '20px',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '10px'
+          fontSize: '12px',
+          color: '#451a03',
+          fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif"
         }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-              <span style={{
-                backgroundColor: '#fef08a',
-                color: '#1e1b4b',
-                border: '2px solid #b45309',
-                padding: '4px 14px',
-                borderRadius: '6px',
-                fontSize: '12.5px',
-                fontWeight: '900',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                boxShadow: '0 2px 4px rgba(180,83,9,0.15)'
-              }}>
-                🌐 Website: {settings.website || 'www.reotihandloom.com'}
-              </span>
-
-              <span style={{
-                backgroundColor: '#dcfce7',
-                color: '#14532d',
-                border: '2px solid #16a34a',
-                padding: '4px 14px',
-                borderRadius: '6px',
-                fontSize: '12.5px',
-                fontWeight: '900',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px'
-              }}>
-                💬 WhatsApp / Helpline: +91 {invoice.shopPhone || settings.shopPhone || '9617444445'}
-              </span>
-            </div>
-            
-            <div style={{ fontSize: '11.5px', color: '#475569', fontWeight: '700' }}>
-              📍 {settings.shopAddress || "73, Laxmibai Marg, Maheshwar (Madhya Pradesh) - 451224"}
+          
+          {/* Left Column: Physical Store Address */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <MapPin size={17} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ lineHeight: '1.4' }}>
+              <strong style={{ color: '#78350f', fontSize: '13px', display: 'block', marginBottom: '2px' }}>
+                {activeShopName}
+              </strong>
+              {settings.shopAddress || "73, LaxmiBai Marg, Maheshwar, Madhya Pradesh - 451224"}
             </div>
           </div>
 
-          <div style={{
-            border: '2px dashed #b45309',
-            backgroundColor: '#fffbeb',
-            padding: '6px 16px',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: '900',
-            color: '#b45309',
-            textTransform: 'uppercase',
-            letterSpacing: '0.6px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-          }}>
-            ★ 100% PURE HANDWOVEN WEAVES ★
+          {/* Right Column: Phone, Email & GSTIN */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', lineHeight: '1.3' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Phone size={14} color="#b45309" />
+              <span>Phone: <strong>+91 {invoice.shopPhone || settings.shopPhone || "9617444445"}</strong></span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Mail size={14} color="#b45309" />
+              <span>Email: <strong>{settings.shopEmail || "contact@reotihandloom.com"}</strong></span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Award size={14} color="#b45309" />
+              <span>GSTIN: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || "23AAAFR1234A1Z5") : "Pure Handloom Certified"}</strong></span>
+            </div>
           </div>
+
         </div>
 
       </div>
@@ -696,7 +531,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                   Invoice Print & Heritage Options
                 </h3>
                 <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                  Double-sided bill printing with Rajmata Ahilyabai & Maheshwar Fort reverse
+                  Double-sided bill printing with luxury heritage card reverse
                 </p>
               </div>
             </div>
