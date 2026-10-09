@@ -1368,14 +1368,14 @@ export default function ParcelSlipConsole({
           </div>
         </div>
 
-        {/* ── 2. CALLIGRAPHY TITLE & GRATITUDE MESSAGE (FULL SIZED & SPACIOUS) ── */}
-        <div style={{ position: 'relative', zIndex: 1, margin: '14px 0', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {/* ── 2. CALLIGRAPHY TITLE & GRATITUDE MESSAGE (FULL SIZED & BALANCED) ── */}
+        <div style={{ position: 'relative', zIndex: 1, margin: '8px 0', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: '8px' }}>
           
-          <div style={{ textAlign: 'center', margin: '4px 0 8px 0' }}>
+          <div style={{ textAlign: 'center', margin: '2px 0 4px 0' }}>
             <div style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontStyle: 'italic',
-              fontSize: '56px',
+              fontSize: '54px',
               fontWeight: '900',
               color: '#0f172a',
               lineHeight: '1.05',
@@ -1384,34 +1384,38 @@ export default function ParcelSlipConsole({
               Thank You!
             </div>
             <div style={{
-              fontSize: '14px',
+              fontSize: '13.5px',
               fontWeight: '900',
-              letterSpacing: '3px',
+              letterSpacing: '2.5px',
               color: '#b45309',
               textTransform: 'uppercase',
-              marginTop: '4px'
+              marginTop: '3px'
             }}>
               FOR YOUR VALUED PURCHASE • WITH SINCERE GRATITUDE
             </div>
           </div>
 
           {/* Dynamic Patron Greeting */}
-          <div style={{ fontSize: '18px', fontWeight: '900', color: '#1e1b4b', margin: '6px 0 8px 0', textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', fontWeight: '900', color: '#1e1b4b', margin: '2px 0 4px 0', textAlign: 'center' }}>
             🌸 Dear <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px', color: '#0f172a' }}>{recipData.partyName || 'Valued Handloom Patron'}</span>,
           </div>
 
           {/* Heartfelt Message */}
           <div style={{
-            fontSize: '15px',
-            lineHeight: '1.7',
+            fontSize: '14.5px',
+            lineHeight: '1.65',
             color: '#334155',
             textAlign: 'center',
             fontWeight: '600',
-            maxWidth: '92%',
-            margin: '0 auto 12px auto'
+            maxWidth: '96%',
+            margin: '0 auto 6px auto',
+            backgroundColor: '#ffffff',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1.5px solid #dcd3bf',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
           }}>
-            ✨ You didn't just make a purchase — you chose to keep a <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '16px' }}>700-year-old art</strong> alive. Every thread in your parcel carries the dream, sweat, and soul of a master weaver sitting by the sacred banks of the <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '16px' }}>Narmada in "Maheshwar"</strong>. Your choice creates a ripple — one that sustains weaver families, honors a timeless craft, and carries forward a legacy the world is only beginning to rediscover. <strong style={{ color: '#0f172a', fontWeight: '900', fontSize: '16px' }}>{senderProfile.name}</strong> is humbled and forever grateful to weave this journey with you. 🙏
-
+            ✨ You didn't just make a purchase — you chose to keep a <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '15.5px' }}>700-year-old art</strong> alive. Every thread in your parcel carries the dream, sweat, and soul of a master weaver sitting by the sacred banks of the <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '15.5px' }}>Narmada in "Maheshwar"</strong>. Your choice creates a ripple — one that sustains weaver families, honors a timeless craft, and carries forward a legacy the world is only beginning to rediscover. <strong style={{ color: '#0f172a', fontWeight: '900', fontSize: '15.5px' }}>{senderProfile.name}</strong> is humbled and forever grateful to weave this journey with you. 🙏
           </div>
 
           {/* ── 3. LARGE MAHESHWAR FORT & GHATS ARCHITECTURAL SKETCH ILLUSTRATION (FULL CANVAS) ── */}
@@ -1419,12 +1423,12 @@ export default function ParcelSlipConsole({
             position: 'relative',
             borderRadius: '10px',
             overflow: 'hidden',
-            border: '2px solid #dcd3bf',
+            border: '2px solid #b45309',
             backgroundColor: '#ffffff',
-            boxShadow: '0 4px 18px rgba(0,0,0,0.08)',
-            margin: '0 auto 10px auto',
+            boxShadow: '0 4px 18px rgba(0,0,0,0.12)',
+            margin: '0 auto 6px auto',
             width: '100%',
-            maxHeight: '360px',
+            height: '430px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -1435,17 +1439,17 @@ export default function ParcelSlipConsole({
               alt="Maheshwar Fort Sketch" 
               style={{
                 width: '100%',
-                maxHeight: '320px',
-                objectFit: 'contain',
+                height: '390px',
+                objectFit: 'cover',
                 display: 'block'
               }} 
             />
             <div style={{
               backgroundColor: '#fbf8f1',
               width: '100%',
-              padding: '6px 0',
+              padding: '7px 0',
               textAlign: 'center',
-              fontSize: '12px',
+              fontSize: '12.5px',
               fontWeight: '900',
               color: '#78350f',
               letterSpacing: '1px',
@@ -1794,18 +1798,18 @@ export default function ParcelSlipConsole({
           backgroundColor: '#f1f5f9',
           border: '1.5px solid #cbd5e1',
           borderRadius: '8px',
-          padding: '10px 16px',
-          margin: '4px 0 10px 0',
+          padding: '12px 18px',
+          margin: '6px 0 12px 0',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px'
+          gap: '14px'
         }}>
-          <div style={{ fontSize: '22px' }}>⚜️</div>
+          <div style={{ fontSize: '24px' }}>⚜️</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px' }}>
+            <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px' }}>
               {senderProfile.name} — Authentic Heritage of Maheshwar Handloom
             </div>
-            <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.4', fontWeight: '600' }}>
+            <div style={{ fontSize: '12.5px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
               Reoti Handloom is committed to honoring this sacred 250+ year royal craft, providing direct livelihood to traditional master weavers of Maheshwar, and bringing 100% pure, authentic handwoven treasures directly from the looms to you.
             </div>
           </div>
