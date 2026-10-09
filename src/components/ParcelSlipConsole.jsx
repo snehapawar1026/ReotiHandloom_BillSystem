@@ -1653,21 +1653,32 @@ export default function ParcelSlipConsole({
           zIndex: 1,
           display: 'grid',
           gridTemplateColumns: '290px 1fr',
-          gap: '20px',
-          margin: '14px 0',
-          alignItems: 'stretch',
+          gap: '16px',
+          margin: '10px 0',
+          alignItems: 'center',
           flexGrow: 1
         }}>
           
           {/* LEFT: RAJMATA AHILYABAI HOLKAR & FORT PORTRAIT (LARGE DISPLAY) */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f6f2e6', border: '2px solid #dcd3bf', borderRadius: '10px', padding: '12px 10px' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            backgroundColor: '#f6f2e6', 
+            border: '2px solid #dcd3bf', 
+            borderRadius: '10px', 
+            padding: '12px 10px',
+            height: '100%',
+            boxSizing: 'border-box'
+          }}>
             <div style={{
-              width: '265px',
-              height: '420px',
-              borderRadius: '10px',
+              width: '100%',
+              height: '430px',
+              borderRadius: '8px',
               overflow: 'hidden',
               border: '3px solid #b45309',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+              boxShadow: '0 6px 18px rgba(0,0,0,0.22)',
               backgroundColor: '#ffffff'
             }}>
               <img 
@@ -1709,14 +1720,14 @@ export default function ParcelSlipConsole({
             </div>
           </div>
 
-          {/* RIGHT: 4 EXPANDED HERITAGE CHRONICLE CARDS (FILLING VERTICAL HEIGHT) */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+          {/* RIGHT: 4 EXPANDED HERITAGE CHRONICLE CARDS (BALANCED GAP, NO HUGE BLANK SPACES) */}
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '10px', height: '100%' }}>
             
             <div style={{
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '8px',
-              padding: '10px 14px',
+              padding: '12px 14px',
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1731,7 +1742,7 @@ export default function ParcelSlipConsole({
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '8px',
-              padding: '10px 14px',
+              padding: '12px 14px',
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1746,7 +1757,7 @@ export default function ParcelSlipConsole({
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '8px',
-              padding: '10px 14px',
+              padding: '12px 14px',
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1761,7 +1772,7 @@ export default function ParcelSlipConsole({
               backgroundColor: '#ffffff',
               border: '1.5px solid #dcd3bf',
               borderRadius: '8px',
-              padding: '10px 14px',
+              padding: '12px 14px',
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
