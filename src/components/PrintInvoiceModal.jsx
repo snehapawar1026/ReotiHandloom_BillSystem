@@ -121,14 +121,18 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       const includeFront = printMode === 'duplex_2sided' || previewTab === 'all' || previewTab === 'front' || printMode === 'invoice_only';
       const includeBack = (printMode === 'duplex_2sided' || previewTab === 'all' || previewTab === 'back' || printMode === 'heritage_only') && backEl;
 
+      // Use actual viewport width so layout matches screen exactly (no text wrapping/reflow)
+      const actualViewportWidth = document.documentElement.clientWidth || window.innerWidth || 1440;
+
       const captureOptions = {
-        scale: 2.2,
+        scale: 2.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
         imageTimeout: 15000,
-        windowWidth: 794
+        windowWidth: actualViewportWidth,
+        windowHeight: document.documentElement.clientHeight || window.innerHeight || 900,
       };
 
       let pageCount = 0;
@@ -137,14 +141,17 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       if (includeFront && frontEl) {
         const origFrontDisplay = frontEl.style.display;
         if (origFrontDisplay === 'none') frontEl.style.display = 'flex';
-        
-        await new Promise((r) => setTimeout(r, 60));
-        
+
+        await new Promise((r) => setTimeout(r, 120));
+
         const canvasFront = await html2canvas(frontEl, captureOptions);
         if (origFrontDisplay === 'none') frontEl.style.display = origFrontDisplay;
 
-        const imgData = canvasFront.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+        const imgData = canvasFront.toDataURL('image/jpeg', 0.97);
+        // Maintain correct aspect ratio — fit to A4 width, let height follow
+        const pdfW = 210;
+        const pdfH = pdfW * (canvasFront.height / canvasFront.width);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH, undefined, 'FAST');
         pageCount++;
       }
 
@@ -153,11 +160,11 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         const origBackDisplay = backEl.style.display;
         const parentEl = backEl.parentElement;
         const origParentDisplay = parentEl ? parentEl.style.display : '';
-        
+
         if (origBackDisplay === 'none') backEl.style.display = 'flex';
         if (parentEl && origParentDisplay === 'none') parentEl.style.display = 'block';
 
-        await new Promise((r) => setTimeout(r, 60));
+        await new Promise((r) => setTimeout(r, 120));
 
         const canvasBack = await html2canvas(backEl, captureOptions);
         if (origBackDisplay === 'none') backEl.style.display = origBackDisplay;
@@ -166,8 +173,10 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         if (pageCount > 0) {
           pdf.addPage('a4', 'portrait');
         }
-        const imgData = canvasBack.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+        const imgData = canvasBack.toDataURL('image/jpeg', 0.97);
+        const pdfW = 210;
+        const pdfH = pdfW * (canvasBack.height / canvasBack.width);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH, undefined, 'FAST');
         pageCount++;
       }
 
@@ -180,6 +189,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       alert('PDF generation error: ' + (err.message || 'Unknown error'));
     }
   };
+
 
   const handleDownloadImage = async () => {
     try {
@@ -203,7 +213,8 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         backgroundColor: '#ffffff',
         logging: false,
         imageTimeout: 15000,
-        windowWidth: 794
+        windowWidth: document.documentElement.clientWidth || window.innerWidth || 1440,
+        windowHeight: document.documentElement.clientHeight || window.innerHeight || 900,
       });
 
       if (origDisplay === 'none') element.style.display = origDisplay;
