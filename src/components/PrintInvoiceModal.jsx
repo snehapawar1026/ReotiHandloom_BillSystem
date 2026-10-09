@@ -444,7 +444,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             </p>
           </div>
 
-          {/* 2. CENTER HERO ARTWORK: FULL UNCROPPED HERITAGE MURAL + 4 EXPANDED CHRONICLE CARDS */}
+          {/* 2. CENTER HERO ARTWORK: PROMINENTLY LARGE FULL HERITAGE MURAL */}
           <div style={{
             position: 'relative',
             zIndex: 1,
@@ -452,20 +452,19 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '8px 0',
+            margin: '4px 0',
             flexGrow: 1,
             width: '100%',
-            gap: '12px'
+            gap: '8px'
           }}>
-            {/* Full-Width Uncropped Mural Frame */}
+            {/* Full-Width Large Mural Frame */}
             <div style={{
               width: '100%',
-              maxWidth: '730px',
               background: '#ffffff',
               border: '2px solid #b45309',
               borderRadius: '8px',
               padding: '6px',
-              boxShadow: '0 4px 16px rgba(120,53,15,0.12)',
+              boxShadow: '0 4px 18px rgba(120,53,15,0.14)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -476,7 +475,8 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                 alt="Rajmata Devi Ahilyabai Holkar & Traditional Maheshwari Pit-Loom Weaving Heritage Mural" 
                 style={{
                   width: '100%',
-                  maxHeight: '460px',
+                  maxHeight: '580px',
+                  minHeight: '500px',
                   objectFit: 'contain',
                   display: 'block',
                   borderRadius: '4px'
@@ -484,70 +484,70 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
               />
             </div>
 
-            {/* 4 Luxury Heritage Chronicle Cards (Evenly Spaced & Filling Page) */}
+            {/* 4 Luxury Heritage Chronicle Cards (Compact & Elegant) */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: '10px',
+              gap: '6px',
               width: '100%'
             }}>
               <div style={{
                 backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                border: '1px solid #dcd3bf',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
               }}>
-                <div style={{ fontSize: '12px', fontWeight: '900', color: '#78350f', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>👑</span> 18th Century Royal Origin:
                 </div>
-                <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.4', fontWeight: '600' }}>
-                  Rajmata Ahilyabai Holkar invited master weavers from Surat, Malwa & Mandu to Maheshwar, establishing royal <em>'Garbha Reshmi'</em> handloom weaving.
+                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
+                  Rajmata Ahilyabai Holkar invited master weavers from Surat & Malwa, establishing royal <em>'Garbha Reshmi'</em> weaves.
                 </div>
               </div>
 
               <div style={{
                 backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                border: '1px solid #dcd3bf',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
               }}>
-                <div style={{ fontSize: '12px', fontWeight: '900', color: '#78350f', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>🏛️</span> Fort Architecture Motifs:
                 </div>
-                <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.4', fontWeight: '600' }}>
-                  Iconic saree borders—<strong>Bugdi, Chatai, Chameli & Narmada Waves</strong>—are directly inspired by stone carvings of Maheshwar Fort.
+                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
+                  Iconic borders—<strong>Bugdi, Chatai, Chameli & Narmada Waves</strong>—are inspired by Maheshwar Fort stone carvings.
                 </div>
               </div>
 
               <div style={{
                 backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                border: '1px solid #dcd3bf',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
               }}>
-                <div style={{ fontSize: '12px', fontWeight: '900', color: '#78350f', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>🧵</span> 100% Traditional Pit-Loom:
                 </div>
-                <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.4', fontWeight: '600' }}>
-                  Handwoven on wooden pit-looms by generational artisan families of Maheshwar with pure natural yarns and authentic craftsmanship.
+                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
+                  Handwoven on wooden pit-looms by generational artisan families of Maheshwar with pure natural yarns.
                 </div>
               </div>
 
               <div style={{
                 backgroundColor: '#ffffff',
-                border: '1.5px solid #dcd3bf',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                border: '1px solid #dcd3bf',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
               }}>
-                <div style={{ fontSize: '12px', fontWeight: '900', color: '#78350f', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span>💎</span> Reversible Zari Border:
                 </div>
-                <div style={{ fontSize: '11px', color: '#334155', lineHeight: '1.4', fontWeight: '600' }}>
-                  Maheshwari weaves feature a signature reversible border—wearable on either side—with lightweight, glossy silk-cotton elegance.
+                <div style={{ fontSize: '10px', color: '#334155', lineHeight: '1.35', fontWeight: '600' }}>
+                  Signature reversible border—wearable on either side—with lightweight, glossy silk-cotton royal elegance.
                 </div>
               </div>
             </div>
