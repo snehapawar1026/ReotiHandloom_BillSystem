@@ -182,7 +182,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       }
 
       if (pageCount > 0) {
-        const suffix = pages === 'front' ? '_Page1_Bill' : pages === 'back' ? '_Page2_Heritage' : '_2Sided';
+        const suffix = pages === 'back' ? '_Heritage' : pages === 'both' ? '_2Sided' : '';
         const filename = `Invoice_${invoice.invoiceNo || 'Draft'}${suffix}.pdf`;
         pdf.save(filename);
       }
