@@ -373,75 +373,57 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           }} />
 
           {/* 1. TOP ROYAL EMBLEM & BRAND TITLE */}
-          <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, marginBottom: '2px' }}>
-            <div style={{
-              width: '90px',
-              height: '60px',
-              margin: '0 auto 4px auto',
-              background: 'linear-gradient(135deg, #fef08a 0%, #eab308 25%, #ca8a04 55%, #fef08a 85%, #854d0e 100%)',
-              borderRadius: '8px',
-              padding: '2px',
-              boxShadow: '0 4px 10px rgba(161,98,7,0.3), inset 0 1px 2px rgba(255,255,255,0.85)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid #a16207'
-            }}>
-              <div style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '6px',
-                border: '1px solid rgba(255,255,255,0.6)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '2px 4px',
-                background: 'linear-gradient(135deg, rgba(254,240,138,0.3) 0%, rgba(202,138,4,0.1) 100%)'
-              }}>
-                <img 
-                  src={activeLogo} 
-                  alt="Emblem" 
-                  style={{ width: '26px', height: '26px', objectFit: 'contain' }} 
-                />
-                <div style={{ 
-                  fontSize: '8px', 
-                  fontWeight: '900', 
-                  color: '#451a03', 
-                  letterSpacing: '0.4px', 
-                  textTransform: 'uppercase', 
-                  lineHeight: '1.1',
-                  marginTop: '1px'
-                }}>
-                  {activeShopName}
-                </div>
-              </div>
+          <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, marginBottom: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
+              <img 
+                src={activeLogo} 
+                alt={activeShopName} 
+                style={{ 
+                  width: '52px', 
+                  height: '52px', 
+                  objectFit: 'contain',
+                  borderRadius: '50%',
+                  border: '2px solid #b45309',
+                  padding: '2px',
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 3px 10px rgba(180,83,9,0.14)'
+                }} 
+              />
             </div>
 
             <h1 style={{ 
-              fontFamily: "'Playfair Display', Georgia, serif", 
-              fontSize: '30px', 
-              color: '#854d0e', 
-              letterSpacing: '1.5px', 
+              fontFamily: "'Playfair Display', 'Cinzel', Georgia, serif", 
+              fontSize: '27px', 
+              color: '#78350f', 
+              letterSpacing: '1.8px', 
               margin: '0', 
-              fontWeight: '800', 
-              lineHeight: '1.1' 
+              fontWeight: '900', 
+              textTransform: 'uppercase',
+              lineHeight: '1.15' 
             }}>
-              <span style={{ fontStyle: 'italic', fontWeight: '900', color: '#78350f' }}>
-                {isAmbekarInvoice ? 'Ambekar' : 'Reoti'}
-              </span>{' '}
-              HANDLOOM
+              {activeShopName}
             </h1>
-            <p style={{ 
-              fontFamily: "'Playfair Display', Georgia, serif", 
-              fontSize: '14px', 
-              fontWeight: '600', 
-              letterSpacing: '1px', 
-              color: '#451a03', 
-              margin: '2px 0 0 0' 
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              marginTop: '2px'
             }}>
-              A Legacy of Maheshwari Handloom
-            </p>
+              <div style={{ height: '1px', width: '45px', background: 'linear-gradient(to right, transparent, #b45309)' }} />
+              <span style={{ 
+                fontFamily: "'Playfair Display', Georgia, serif", 
+                fontSize: '13px', 
+                fontStyle: 'italic',
+                fontWeight: '600', 
+                letterSpacing: '0.8px', 
+                color: '#92400e'
+              }}>
+                A Legacy of Maheshwari Handloom
+              </span>
+              <div style={{ height: '1px', width: '45px', background: 'linear-gradient(to left, transparent, #b45309)' }} />
+            </div>
           </div>
 
           {/* 2. CENTER HERO ARTWORK: FULL-SIZE HERITAGE MURAL FILLING THE PAGE */}
@@ -604,74 +586,56 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
 
         {/* 1. TOP ROYAL EMBLEM & BRAND TITLE */}
         <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          <div style={{
-            width: '96px',
-            height: '66px',
-            margin: '0 auto 6px auto',
-            background: 'linear-gradient(135deg, #fef08a 0%, #eab308 25%, #ca8a04 55%, #fef08a 85%, #854d0e 100%)',
-            borderRadius: '10px',
-            padding: '2px',
-            boxShadow: '0 4px 10px rgba(161,98,7,0.3), inset 0 1px 2px rgba(255,255,255,0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px solid #a16207'
-          }}>
-            <div style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '8px',
-              border: '1px solid rgba(255,255,255,0.6)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2px 4px',
-              background: 'linear-gradient(135deg, rgba(254,240,138,0.3) 0%, rgba(202,138,4,0.1) 100%)'
-            }}>
-              <img 
-                src={activeLogo} 
-                alt="Emblem" 
-                style={{ width: '28px', height: '28px', objectFit: 'contain' }} 
-              />
-              <div style={{ 
-                fontSize: '8.5px', 
-                fontWeight: '900', 
-                color: '#451a03', 
-                letterSpacing: '0.4px', 
-                textTransform: 'uppercase', 
-                lineHeight: '1.1',
-                marginTop: '1px'
-              }}>
-                {activeShopName}
-              </div>
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '5px' }}>
+            <img 
+              src={activeLogo} 
+              alt={activeShopName} 
+              style={{ 
+                width: '52px', 
+                height: '52px', 
+                objectFit: 'contain',
+                borderRadius: '50%',
+                border: '2px solid #b45309',
+                padding: '2px',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 3px 10px rgba(180,83,9,0.14)'
+              }} 
+            />
           </div>
 
           <h1 style={{ 
-            fontFamily: "'Playfair Display', Georgia, serif", 
-            fontSize: '34px', 
-            color: '#854d0e', 
-            letterSpacing: '1.5px', 
+            fontFamily: "'Playfair Display', 'Cinzel', Georgia, serif", 
+            fontSize: '27px', 
+            color: '#78350f', 
+            letterSpacing: '1.8px', 
             margin: '0', 
-            fontWeight: '800', 
-            lineHeight: '1.1' 
+            fontWeight: '900', 
+            textTransform: 'uppercase',
+            lineHeight: '1.15' 
           }}>
-            <span style={{ fontStyle: 'italic', fontWeight: '900', color: '#78350f' }}>
-              {isAmbekarInvoice ? 'Ambekar' : 'Reoti'}
-            </span>{' '}
-            HANDLOOM
+            {activeShopName}
           </h1>
-          <p style={{ 
-            fontFamily: "'Playfair Display', Georgia, serif", 
-            fontSize: '15px', 
-            fontWeight: '600', 
-            letterSpacing: '1px', 
-            color: '#451a03', 
-            margin: '2px 0 0 0' 
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            marginTop: '2px'
           }}>
-            A Legacy of Maheshwari Handloom
-          </p>
+            <div style={{ height: '1px', width: '45px', background: 'linear-gradient(to right, transparent, #b45309)' }} />
+            <span style={{ 
+              fontFamily: "'Playfair Display', Georgia, serif", 
+              fontSize: '13px', 
+              fontStyle: 'italic',
+              fontWeight: '600', 
+              letterSpacing: '0.8px', 
+              color: '#92400e'
+            }}>
+              A Legacy of Maheshwari Handloom
+            </span>
+            <div style={{ height: '1px', width: '45px', background: 'linear-gradient(to left, transparent, #b45309)' }} />
+          </div>
         </div>
 
         {/* 2. CENTER HERO ARTWORK */}
