@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { X, Printer, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Printer, Download, Sparkles, Layers, FileText, CheckCircle, Globe, Phone, MapPin, Award } from 'lucide-react';
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
 import html2canvas from 'html2canvas';
 import { formatCurrency, priceToWords } from '../utils';
@@ -15,6 +15,9 @@ const formatDateToDDMMYYYY = (dateStr) => {
 };
 
 export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, hasGST = true }) {
+  const [printMode, setPrintMode] = useState('duplex_2sided'); // 'duplex_2sided' | 'invoice_only' | 'heritage_only'
+  const [previewTab, setPreviewTab] = useState('all'); // 'all' | 'front' | 'back'
+
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('modal-open');
@@ -85,43 +88,69 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
   const isMediumItems = tier === 3;
 
   // Dynamic grid rows to fill vertical page height seamlessly without blank holes or footer cutoff
-  // Tier 1: 8 target rows, Tier 2: 9 target rows, Tier 3: 10 target rows
   const baseTargetRows = tier === 1 ? 8 : (tier === 2 ? 9 : (tier === 3 ? 10 : itemCount));
   const targetGridRows = effectiveHasGST ? Math.max(itemCount, baseTargetRows - 1) : baseTargetRows;
   const emptyRowCount = Math.max(0, targetGridRows - itemCount);
   const emptyRowHeight = tier === 1 ? '20px' : (tier === 2 ? '18px' : (tier === 3 ? '16px' : '14px'));
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = (mode = printMode) => {
+    setPrintMode(mode);
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   const handleDownloadPDF = async () => {
-    const element = document.getElementById('printable-invoice');
-    if (!element) return;
+    const frontEl = document.getElementById('printable-invoice');
+    const backEl = document.getElementById('printable-invoice-back');
+    if (!frontEl && !backEl) return;
 
-    // Create an isolated off-screen container with exact A4 printable dimensions (764px x 1093px)
-    // This leaves a clean, uniform 4mm white page margin on all 4 sides of the A4 sheet
+    // Create an isolated off-screen container with exact A4 printable dimensions (764px)
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.left = '-9999px';
     container.style.top = '0';
     container.style.width = '764px';
-    container.style.height = '1093px';
     container.style.zIndex = '-9999';
     container.style.backgroundColor = '#ffffff';
     container.style.overflow = 'hidden';
     container.style.margin = '0';
     container.style.padding = '0';
 
-    const clone = element.cloneNode(true);
-    clone.classList.add('a4-pdf-export');
-    container.appendChild(clone);
+    if (printMode === 'duplex_2sided' || previewTab === 'all') {
+      if (frontEl) {
+        const cloneFront = frontEl.cloneNode(true);
+        cloneFront.style.height = '1093px';
+        cloneFront.style.marginBottom = '20px';
+        cloneFront.style.pageBreakAfter = 'always';
+        cloneFront.style.breakAfter = 'page';
+        container.appendChild(cloneFront);
+      }
+      if (backEl) {
+        const cloneBack = backEl.cloneNode(true);
+        cloneBack.style.height = '1093px';
+        cloneBack.style.pageBreakBefore = 'always';
+        cloneBack.style.breakBefore = 'page';
+        container.appendChild(cloneBack);
+      }
+    } else if (printMode === 'heritage_only' || previewTab === 'back') {
+      if (backEl) {
+        const cloneBack = backEl.cloneNode(true);
+        cloneBack.style.height = '1093px';
+        container.appendChild(cloneBack);
+      }
+    } else {
+      if (frontEl) {
+        const cloneFront = frontEl.cloneNode(true);
+        cloneFront.style.height = '1093px';
+        container.appendChild(cloneFront);
+      }
+    }
+
     document.body.appendChild(container);
+    await new Promise((resolve) => setTimeout(resolve, 80));
 
-    // Brief layout tick for off-screen element
-    await new Promise((resolve) => setTimeout(resolve, 60));
-
-    const filename = `Invoice_${invoice.invoiceNo || 'Draft'}.pdf`;
+    const filename = `Invoice_${invoice.invoiceNo || 'Draft'}${printMode === 'duplex_2sided' ? '_2Sided' : ''}.pdf`;
     const opt = {
       margin:       [4, 4, 4, 4],
       filename:     filename,
@@ -132,15 +161,14 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         letterRendering: false, 
         scrollY: 0, 
         scrollX: 0,
-        windowWidth: 764,
-        windowHeight: 1093
+        windowWidth: 764
       },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
     
     try {
-      const blob = await html2pdf().set(opt).from(clone).output('blob');
+      const blob = await html2pdf().set(opt).from(container).output('blob');
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -159,10 +187,10 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
   };
 
   const handleDownloadImage = async () => {
-    const element = document.getElementById('printable-invoice');
+    const targetId = (previewTab === 'back' || printMode === 'heritage_only') ? 'printable-invoice-back' : 'printable-invoice';
+    const element = document.getElementById(targetId) || document.getElementById('printable-invoice');
     if (!element) return;
 
-    // Create an isolated off-screen container with exact A4 printable dimensions (764px x 1093px)
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.left = '-9999px';
@@ -176,17 +204,16 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     container.style.padding = '0';
 
     const clone = element.cloneNode(true);
-    clone.classList.add('a4-pdf-export');
     container.appendChild(clone);
     document.body.appendChild(container);
 
-    await new Promise((resolve) => setTimeout(resolve, 60));
+    await new Promise((resolve) => setTimeout(resolve, 80));
 
-    const filename = `Invoice_${invoice.invoiceNo || 'Draft'}.png`;
+    const filename = `Invoice_${invoice.invoiceNo || 'Draft'}_${targetId === 'printable-invoice-back' ? 'BackCard' : 'Bill'}.png`;
     
     try {
       const canvas = await html2canvas(clone, {
-        scale: 3, // High density scale for super clear text
+        scale: 3,
         useCORS: true,
         backgroundColor: '#ffffff',
         scrollY: 0,
@@ -209,412 +236,1037 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     }
   };
 
+  // Render the Luxury Heritage Card (Reverse Back Page of the Bill)
+  const renderInvoiceHeritageBack = () => {
+    return (
+      <div 
+        id="printable-invoice-back"
+        className="print-invoice-back-page"
+        style={{
+          fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif",
+          padding: '16px 20px',
+          background: '#fdfaf2',
+          color: '#4a2c11',
+          position: 'relative',
+          border: '3px double #b45309',
+          boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1',
+          borderRadius: '4px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          minHeight: '1093px',
+          height: '1093px',
+          width: '100%',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Subtle Watermark */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '380px',
+          height: '380px',
+          backgroundImage: `url(${activeLogo})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          opacity: 0.035,
+          pointerEvents: 'none',
+          zIndex: 0
+        }} />
+
+        {/* 1. TOP ORNAMENTAL HEADER */}
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', borderBottom: '2px solid #b45309', paddingBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '6px' }}>
+            <img 
+              src={activeLogo} 
+              alt={activeShopName} 
+              style={{ 
+                width: '64px', 
+                height: '64px', 
+                objectFit: 'contain', 
+                borderRadius: '50%', 
+                border: '2px solid #d97706', 
+                padding: '2px', 
+                backgroundColor: '#fff',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+              }} 
+            />
+            <div style={{ textAlign: 'left' }}>
+              <h1 style={{ 
+                margin: 0, 
+                fontSize: '26px', 
+                fontWeight: '900', 
+                letterSpacing: '1.5px', 
+                color: '#78350f', 
+                textTransform: 'uppercase',
+                fontFamily: "'Playfair Display', Georgia, serif"
+              }}>
+                {activeShopName}
+              </h1>
+              <p style={{ 
+                margin: '2px 0 0 0', 
+                fontSize: '11px', 
+                fontWeight: '800', 
+                letterSpacing: '2px', 
+                color: '#b45309', 
+                textTransform: 'uppercase' 
+              }}>
+                A Legacy of Maheshwari Handloom • Maheshwar (M.P.)
+              </p>
+            </div>
+          </div>
+
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#fef3c7',
+            border: '1px solid #f59e0b',
+            borderRadius: '9999px',
+            padding: '3px 16px',
+            fontSize: '10.5px',
+            fontWeight: '800',
+            color: '#92400e',
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase'
+          }}>
+            ✦ AUTHENTIC HANDLOOM WEAVING HERITAGE ✦
+          </div>
+        </div>
+
+        {/* 2. MIDDLE SECTION: Calligraphy Gratitude, Pit-Loom Art & 4 Weaving Medallions */}
+        <div style={{ position: 'relative', zIndex: 1, margin: '8px 0', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px' }}>
+          
+          {/* Gratitude & Patron Note */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontStyle: 'italic',
+              fontSize: '34px',
+              fontWeight: '900',
+              color: '#1e293b',
+              lineHeight: '1.1'
+            }}>
+              Thank You for Your Trust!
+            </div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '800',
+              color: '#b45309',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              marginTop: '2px'
+            }}>
+              Patron of Pure Handloom & Weaver Traditions
+            </div>
+            <p style={{
+              fontSize: '13px',
+              lineHeight: '1.55',
+              color: '#334155',
+              fontWeight: '500',
+              maxWidth: '92%',
+              margin: '6px auto 0 auto',
+              fontStyle: 'italic'
+            }}>
+              "Thank you for supporting authentic handloom weavers. Every saree and fabric we create carries the sacred legacy of Maa Ahilyabai Holkar and the devotion of master artisans. We hope you cherish your exquisite piece."
+            </p>
+          </div>
+
+          {/* Centerpiece: Pit-Loom Artisan Line-Art Illustration */}
+          <div style={{
+            position: 'relative',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            border: '2px solid #dcd3bf',
+            backgroundColor: '#ffffff',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            margin: '0 auto',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}>
+            <img 
+              src="/handloom_loom_heritage.jpg" 
+              alt="Handloom Pit Loom Artisan Weaving" 
+              style={{
+                width: '100%',
+                maxHeight: '230px',
+                objectFit: 'contain',
+                display: 'block'
+              }} 
+            />
+            <div style={{
+              backgroundColor: '#fbf8f1',
+              width: '100%',
+              padding: '5px 0',
+              textAlign: 'center',
+              fontSize: '11px',
+              fontWeight: '800',
+              color: '#78350f',
+              letterSpacing: '1.2px',
+              borderTop: '1px solid #e2e8f0',
+              textTransform: 'uppercase'
+            }}>
+              ★ Handcrafted on Traditional Wooden Pit-Looms on the Banks of Sacred Narmada ★
+            </div>
+          </div>
+
+          {/* 4 Circular Weaving Medallions */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            <div style={{
+              border: '1.5px solid #d97706',
+              borderRadius: '6px',
+              padding: '8px 6px',
+              backgroundColor: '#fffef9',
+              textAlign: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                margin: '0 auto 4px auto',
+                borderRadius: '50%',
+                backgroundColor: '#fef3c7',
+                border: '1.5px solid #b45309',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}>
+                🌊
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                Lehariya
+              </div>
+              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
+                Rhythmic wave motif reflecting holy Narmada ripples
+              </div>
+            </div>
+
+            <div style={{
+              border: '1.5px solid #d97706',
+              borderRadius: '6px',
+              padding: '8px 6px',
+              backgroundColor: '#fffef9',
+              textAlign: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                margin: '0 auto 4px auto',
+                borderRadius: '50%',
+                backgroundColor: '#fef3c7',
+                border: '1.5px solid #b45309',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}>
+                ✨
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                Garbh Reshami
+              </div>
+              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
+                Silk warp & cotton weft blend crafted since 5th century
+              </div>
+            </div>
+
+            <div style={{
+              border: '1.5px solid #d97706',
+              borderRadius: '6px',
+              padding: '8px 6px',
+              backgroundColor: '#fffef9',
+              textAlign: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                margin: '0 auto 4px auto',
+                borderRadius: '50%',
+                backgroundColor: '#fef3c7',
+                border: '1.5px solid #b45309',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}>
+                📐
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                Chatai Weave
+              </div>
+              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
+                Royal geometric mat weave from Holkar court archives
+              </div>
+            </div>
+
+            <div style={{
+              border: '1.5px solid #d97706',
+              borderRadius: '6px',
+              padding: '8px 6px',
+              backgroundColor: '#fffef9',
+              textAlign: 'center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{
+                width: '34px',
+                height: '34px',
+                margin: '0 auto 4px auto',
+                borderRadius: '50%',
+                backgroundColor: '#fef3c7',
+                border: '1.5px solid #b45309',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}>
+                🏛️
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                Bugdi & Rui
+              </div>
+              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
+                Sacred fort spires and cotton blossom zari motifs
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* 3. BOTTOM FOOTER & VERIFICATION DETAILS */}
+        <div style={{ position: 'relative', zIndex: 1, borderTop: '2px solid #b45309', paddingTop: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center', fontSize: '10.5px' }}>
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
+              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Direct Helpline</div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#0f172a', marginTop: '2px' }}>
+                +91 {invoice.shopPhone || settings.shopPhone || '9754124976'}
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
+              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Weaver Store</div>
+              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
+                Maheshwar, M.P.
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
+              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Online Store</div>
+              <div style={{ fontSize: '10.5px', fontWeight: '900', color: '#b45309', marginTop: '2px' }}>
+                {settings.website || 'reotihandloom.com'}
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
+              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>GSTIN / Authenticity</div>
+              <div style={{ fontSize: '10.5px', fontWeight: '900', color: '#0f172a', marginTop: '2px' }}>
+                {effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || '23AAAFR1234A1Z5') : 'Handloom Certified'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', fontSize: '10px', color: '#94a3b8', fontStyle: 'italic', marginTop: '6px' }}>
+            Pure Maheshwari Handloom • Handcrafted with love & devotion in Maheshwar
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const showFront = previewTab === 'all' || previewTab === 'front';
+  const showBack = previewTab === 'all' || previewTab === 'back';
+
+  const printWrapperClass = printMode === 'duplex_2sided' 
+    ? 'duplex-mode' 
+    : (printMode === 'heritage_only' ? 'heritage-only-mode' : 'invoice-only-mode');
+
   return (
     <div className="modal-overlay print-modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '900px', width: '95%' }}>
-        <div className="modal-header no-print">
-          <h3 className="brand-heading">Invoice Options</h3>
-          <div className="d-flex gap-2">
-            <button className="btn btn-emerald btn-sm" onClick={handleDownloadPDF} title="Download PDF for Adobe Acrobat or print utilities">
-              <Download size={16} /> Download PDF (Acrobat)
-            </button>
-            <button className="btn btn-primary btn-sm" onClick={handleDownloadImage} title="Download high-resolution image to share on WhatsApp">
-              <Download size={16} /> Download Image
-            </button>
-            <button className="btn btn-secondary btn-sm" onClick={handlePrint} title="Open printer options">
-              <Printer size={16} /> Print / Save
-            </button>
-            <button className="btn btn-secondary btn-sm" onClick={onClose}>
-              <X size={16} /> Close
-            </button>
+      {/* Local Print Rules to ensure perfect 2-sided duplex output without blank pages */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .page-break-screen-divider {
+            display: none !important;
+          }
+          
+          /* Duplex 2-Sided Mode */
+          .duplex-mode #printable-invoice {
+            display: flex !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          .duplex-mode #printable-invoice-back {
+            display: flex !important;
+            page-break-before: always !important;
+            break-before: page !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          /* Single Page: Invoice Only */
+          .invoice-only-mode #printable-invoice {
+            display: flex !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          .invoice-only-mode #printable-invoice-back {
+            display: none !important;
+          }
+
+          /* Single Page: Heritage Back Only */
+          .heritage-only-mode #printable-invoice {
+            display: none !important;
+          }
+          .heritage-only-mode #printable-invoice-back {
+            display: flex !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+        }
+      `}</style>
+
+      <div className="modal-content" style={{ maxWidth: '920px', width: '96%', maxHeight: '94vh', display: 'flex', flexDirection: 'column' }}>
+        
+        {/* MODAL HEADER & CONTROLS */}
+        <div className="modal-header no-print" style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 18px', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={20} className="text-amber-600" />
+              <div>
+                <h3 className="brand-heading" style={{ margin: 0, fontSize: '18px', color: '#78350f' }}>
+                  Invoice Print & Heritage Options
+                </h3>
+                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                  Double-sided bill printing with luxury heritage card reverse
+                </p>
+              </div>
+            </div>
+
+            <div className="d-flex gap-2 align-items-center">
+              <button 
+                className="btn btn-emerald btn-sm" 
+                onClick={handleDownloadPDF} 
+                title="Download PDF for Adobe Acrobat or archiving"
+                style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <Download size={15} /> Download PDF
+              </button>
+              <button 
+                className="btn btn-primary btn-sm" 
+                onClick={handleDownloadImage} 
+                title="Download high-resolution image for WhatsApp"
+                style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <Download size={15} /> Download Image
+              </button>
+              <button 
+                className="btn btn-secondary btn-sm" 
+                onClick={onClose}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <X size={16} /> Close
+              </button>
+            </div>
           </div>
+
+          {/* Print Mode Action Buttons Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+            
+            {/* Direct Quick Print Triggers */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <button 
+                className="btn btn-sm"
+                onClick={() => handlePrint('duplex_2sided')}
+                style={{
+                  backgroundColor: '#78350f',
+                  color: '#ffffff',
+                  fontWeight: '800',
+                  fontSize: '12.5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 4px rgba(120,53,15,0.25)',
+                  padding: '6px 12px'
+                }}
+                title="Print Page 1 (Bill) and Page 2 (Heritage Card) back-to-back"
+              >
+                <Printer size={15} /> ⚡ Print 2-Sided Bill (Front + Back)
+              </button>
+
+              <button 
+                className="btn btn-sm"
+                onClick={() => handlePrint('invoice_only')}
+                style={{
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 10px'
+                }}
+                title="Print only Page 1 (Bill)"
+              >
+                <FileText size={14} /> 📄 Invoice Only (1-Page)
+              </button>
+
+              <button 
+                className="btn btn-sm"
+                onClick={() => handlePrint('heritage_only')}
+                style={{
+                  backgroundColor: '#d97706',
+                  color: '#ffffff',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 10px'
+                }}
+                title="Print only Page 2 (Heritage Card)"
+              >
+                <Sparkles size={14} /> 🌸 Heritage Back Card Only
+              </button>
+            </div>
+
+            {/* Interactive Preview Tabs */}
+            <div style={{ display: 'flex', backgroundColor: '#e2e8f0', borderRadius: '6px', padding: '2px', gap: '2px' }}>
+              <button
+                type="button"
+                onClick={() => setPreviewTab('all')}
+                style={{
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 10px',
+                  fontSize: '11.5px',
+                  fontWeight: previewTab === 'all' ? '800' : '600',
+                  backgroundColor: previewTab === 'all' ? '#ffffff' : 'transparent',
+                  color: previewTab === 'all' ? '#0f172a' : '#64748b',
+                  boxShadow: previewTab === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Both Pages
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewTab('front')}
+                style={{
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 10px',
+                  fontSize: '11.5px',
+                  fontWeight: previewTab === 'front' ? '800' : '600',
+                  backgroundColor: previewTab === 'front' ? '#ffffff' : 'transparent',
+                  color: previewTab === 'front' ? '#0f172a' : '#64748b',
+                  boxShadow: previewTab === 'front' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Page 1 (Bill)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewTab('back')}
+                style={{
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 10px',
+                  fontSize: '11.5px',
+                  fontWeight: previewTab === 'back' ? '800' : '600',
+                  backgroundColor: previewTab === 'back' ? '#ffffff' : 'transparent',
+                  color: previewTab === 'back' ? '#0f172a' : '#64748b',
+                  boxShadow: previewTab === 'back' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Page 2 (Heritage Back)
+              </button>
+            </div>
+
+          </div>
+
         </div>
 
-        <div className="modal-body print-invoice-layout" id="printable-invoice" style={{ fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif", padding: containerPadding, background: '#fdfaf2', color: '#4a2c11', position: 'relative', border: '3px double #b45309', boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1', borderRadius: '4px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-          {/* Centered background watermark logo */}
-          {!isAmbekarInvoice && (
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
-              height: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
-              backgroundImage: `url(${activeLogo})`,
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'center',
-              opacity: 0.035,
-              pointerEvents: 'none',
-              zIndex: 0
-            }} />
-          )}
+        {/* MODAL SCROLLABLE PREVIEW & PRINTABLE PAGES */}
+        <div 
+          className={`modal-body print-invoice-scroll-container ${printWrapperClass}`} 
+          style={{ 
+            overflowY: 'auto', 
+            padding: '20px', 
+            backgroundColor: '#64748b20', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            gap: '24px' 
+          }}
+        >
+          
+          {/* ════ PAGE 1: TAX INVOICE / BILL ════ */}
+          {showFront && (
+            <div 
+              className={`print-invoice-layout ${printMode === 'duplex_2sided' ? 'print-page-break' : ''}`} 
+              id="printable-invoice" 
+              style={{ 
+                fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif", 
+                padding: containerPadding, 
+                background: '#fdfaf2', 
+                color: '#4a2c11', 
+                position: 'relative', 
+                border: '3px double #b45309', 
+                boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1', 
+                borderRadius: '4px', 
+                boxSizing: 'border-box', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                justifyContent: 'space-between', 
+                minHeight: '1093px',
+                height: '1093px',
+                width: '100%',
+                maxWidth: '764px'
+              }}
+            >
+              {/* Centered background watermark logo */}
+              {!isAmbekarInvoice && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
+                  height: isFewItems ? '320px' : (isMediumItems ? '280px' : '230px'),
+                  backgroundImage: `url(${activeLogo})`,
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  opacity: 0.035,
+                  pointerEvents: 'none',
+                  zIndex: 0
+                }} />
+              )}
 
-          {/* TOP GROUP: Header, Meta Banner, Customer Info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: sectionMarginBottom, flexShrink: 0, position: 'relative', zIndex: 1 }}>
-            {/* Royal Maheshwari Handloom Header */}
-            <div className="print-invoice-header" style={{
-              backgroundColor: '#fffef9',
-              color: '#4a2c11',
-              borderRadius: '6px',
-              padding: headerPadding,
-              display: 'grid',
-              gridTemplateColumns: '1.45fr 1fr',
-              gap: isFewItems ? '16px' : '12px',
-              alignItems: 'center',
-              position: 'relative',
-              zIndex: 1,
-              border: '1px solid #b45309',
-              boxShadow: 'inset 0 0 0 2px #fef3c7, 0 2px 6px rgba(180,83,9,0.08)'
-            }}>
-              {/* Left Brand & Craftsmanship Column */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: isFewItems ? '16px' : '12px' }}>
-                <img src={activeLogo} alt="Logo" style={{ height: logoSize, width: logoSize, objectFit: 'contain', borderRadius: '8px', border: '1px solid #b45309', backgroundColor: '#ffffff', padding: '3px', boxShadow: '0 2px 6px rgba(180,83,9,0.12)', flexShrink: 0 }} />
-                <div>
-                  <h1 className="brand-heading" style={{ fontSize: shopFontSize, color: '#78350f', fontWeight: '800', margin: 0, letterSpacing: isAmbekarInvoice ? '0.2px' : '0.5px', lineHeight: '1.05', whiteSpace: 'nowrap' }}>
-                    {activeShopName}
-                  </h1>
-                  {isAmbekarInvoice ? (
-                    <div style={{ fontSize: isFewItems ? '0.88rem' : '0.8rem', fontWeight: '500', color: '#b45309', fontStyle: 'italic', marginTop: '2px' }}>
-                      -By Reoti Handloom
-                    </div>
-                  ) : (
-                    <div className="gold-badge" style={{ backgroundColor: '#fef3c7', color: '#78350f', border: '1px solid #f59e0b', padding: isFewItems ? '3px 10px' : '2px 6px', borderRadius: '14px', fontSize: isFewItems ? '0.74rem' : '0.68rem', fontWeight: '700', marginTop: '3px', display: 'inline-block', whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                      ✨ Something "MORE" In Maheshwari Handloom
-                    </div>
-                  )}
-                  <p style={{ margin: '3px 0 0 0', fontSize: isFewItems ? '0.82rem' : '0.76rem', fontWeight: '600', color: '#451a03', lineHeight: '1.2' }}>
-                    Manufacturer of Maheshwari Handloom Sarees, Dress Materials, & Dupattas
-                  </p>
-                </div>
-              </div>
-
-              {/* Right Royal Contact & GSTIN Card */}
-              <div style={{
-                backgroundColor: '#fef7e6',
-                border: '1px solid #f59e0b',
-                borderRadius: '6px',
-                padding: isFewItems ? '8px 12px' : '6px 10px',
-                fontSize: isFewItems ? '0.8rem' : '0.75rem',
-                color: '#451a03',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: isFewItems ? '4px' : '2px',
-                boxShadow: '0 1px 4px rgba(180,83,9,0.05)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
-                  <span style={{ color: '#b45309', fontSize: '0.85rem' }}>📍</span>
-                  <span style={{ fontSize: isFewItems ? '0.78rem' : '0.74rem', lineHeight: '1.15', fontWeight: '600', color: '#451a03' }}>{settings.shopAddress}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
-                  <span style={{ color: '#b45309', fontSize: '0.85rem' }}>📞</span>
-                  <span style={{ fontWeight: '700', color: '#451a03' }}>+{settings.shopPhone || '91-9617444445'}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: !isAmbekarInvoice && settings.shopGSTIN ? '1px solid #fed7aa' : 'none', paddingBottom: !isAmbekarInvoice && settings.shopGSTIN ? '3px' : 0 }}>
-                  <span style={{ color: '#b45309', fontSize: '0.85rem' }}>✉️</span>
-                  <span style={{ fontSize: isFewItems ? '0.78rem' : '0.74rem', color: '#451a03', fontWeight: '500' }}>{settings.shopEmail}</span>
-                </div>
-                {!isAmbekarInvoice && settings.shopGSTIN && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ color: '#b45309', fontSize: '0.88rem', fontWeight: '800' }}>🏛️</span>
-                    <span style={{ fontSize: isFewItems ? '0.8rem' : '0.76rem', fontWeight: '800', color: '#78350f' }}>
-                      GSTIN: <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{settings.shopGSTIN}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Invoice / Credit Note / Purchase Note Meta Banner */}
-            {isPurchaseNote ? (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px', backgroundColor: '#f3e8ff', border: '1px solid #8b5cf6', borderRadius: '5px', padding: metaPadding, position: 'relative', zIndex: 1 }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: isFewItems ? '1.15rem' : '1.05rem', fontWeight: '800', color: '#6b21a8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>📦</span> PURCHASE NOTE (खरीद नोट)
-                  </h2>
-                </div>
-                <div style={{ display: 'flex', gap: '10px 14px', flexWrap: 'wrap', fontSize: isFewItems ? '0.88rem' : '0.82rem', color: '#581c87' }}>
-                  <span>Purchase Note No: <strong>{invoice.invoiceNo}</strong></span>
-                  <span>Date: <strong>{formatDateToDDMMYYYY(invoice.date)}</strong></span>
-                </div>
-              </div>
-            ) : isCreditNote ? (
-              <div style={{ backgroundColor: '#fef2f2', border: '1px solid #ef4444', borderRadius: '5px', padding: metaPadding, position: 'relative', zIndex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px', borderBottom: '1px dashed #fca5a5', paddingBottom: '3px', marginBottom: '3px' }}>
-                  <h2 style={{ margin: 0, fontSize: isFewItems ? '1.15rem' : '1.05rem', fontWeight: '800', color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>📑</span> GST CREDIT NOTE
-                  </h2>
-                  <div style={{ display: 'flex', gap: '10px 14px', flexWrap: 'wrap', fontSize: isFewItems ? '0.88rem' : '0.82rem', color: '#991b1b' }}>
-                    <span>Credit Note No: <strong>{invoice.invoiceNo}</strong></span>
-                    <span>Date: <strong>{formatDateToDDMMYYYY(invoice.date)}</strong></span>
-                    <span>HSN: <strong>5208</strong></span>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px 8px', fontSize: isFewItems ? '0.82rem' : '0.78rem', color: '#7f1d1d' }}>
-                  <span>Original Invoice No: <strong>{invoice.originalInvoiceNo || 'N/A'}</strong></span>
-                  {invoice.originalInvoiceDate && <span>Original Invoice Date: <strong>{formatDateToDDMMYYYY(invoice.originalInvoiceDate)}</strong></span>}
-                  <span>Reason for Credit Note: <strong style={{ color: '#dc2626' }}>{invoice.reasonForCN || 'Sales Return'}</strong></span>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px', backgroundColor: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '5px', padding: metaPadding, position: 'relative', zIndex: 1 }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: isFewItems ? '1.15rem' : '1.05rem', fontWeight: '800', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {effectiveHasGST ? 'TAX INVOICE' : 'RETAIL INVOICE'}
-                  </h2>
-                </div>
-                <div style={{ display: 'flex', gap: '10px 14px', flexWrap: 'wrap', fontSize: isFewItems ? '0.88rem' : '0.82rem', color: '#451a03' }}>
-                  <span>Invoice No: <strong>{invoice.invoiceNo}</strong></span>
-                  <span>Date: <strong>{formatDateToDDMMYYYY(invoice.date)}</strong></span>
-                  {effectiveHasGST && <span>HSN Code: <strong>5208</strong></span>}
-                </div>
-              </div>
-            )}
-
-            {/* Customer & Billing Details */}
-            <div className="print-invoice-grid" style={{ fontSize: cellFontSize }}>
-              <div style={{ padding: customerPadding, border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#fffef9' }}>
-                <h4 style={{ margin: '0 0 3px 0', borderBottom: '1px solid #cbd5e1', paddingBottom: '2px', textTransform: 'uppercase', color: '#475569', fontSize: isFewItems ? '0.8rem' : '0.74rem' }}>
-                  {isPurchaseNote ? 'Purchased From (Supplier / Weaver):' : (isCreditNote ? 'Credited To (Customer):' : 'Billed To (Customer):')}
-                </h4>
-                <p style={{ margin: '2px 0', fontWeight: '700' }}>{invoice.customerName || (isPurchaseNote ? 'Weaver / Vendor' : 'Walk-in Customer')}</p>
-                {invoice.customerPhone && <p style={{ margin: '1px 0' }}>Phone: {invoice.customerPhone}</p>}
-                {invoice.customerEmail && <p style={{ margin: '1px 0' }}>Email: {invoice.customerEmail}</p>}
-                {invoice.customerAddress && <p style={{ margin: '1px 0' }}>Address: {invoice.customerAddress}</p>}
-                {invoice.customerGSTIN && (
-                  <p style={{ margin: '2px 0 0 0', fontWeight: '600' }}>
-                    GSTIN: <span style={{ textTransform: 'uppercase' }}>{invoice.customerGSTIN}</span>
-                  </p>
-                )}
-                {invoice.remarks && !isPurchaseNote && (
-                  <p style={{ margin: '3px 0 0 0', borderTop: '1px dashed #cbd5e1', paddingTop: '2px', fontSize: '0.76rem', fontStyle: 'italic', color: '#475569' }}>
-                    Remarks: {invoice.remarks}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* MIDDLE GROUP: Expanding Product Items Table */}
-          <div style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', margin: `${sectionMarginBottom} 0`, position: 'relative', zIndex: 1 }}>
-            <table className="print-table" style={{ width: '100%', borderCollapse: 'collapse', height: '100%' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc' }}>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '4%' }}>#</th>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'left', width: '42%' }}>Item Description</th>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '9%' }}>HSN</th>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '9%' }}>Meter</th>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'right', width: '12%' }}>Rate</th>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '7%' }}>Qty</th>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '7%' }}>Unit</th>
-                  <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'right', width: '10%' }}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, idx) => (
-                  <tr key={idx}>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{idx + 1}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, fontWeight: '500', fontSize: cellFontSize }}>{item.name}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{item.hsn || '5208'}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize, fontWeight: '600' }}>
-                      {item.meter !== undefined && item.meter !== null ? item.meter : (item.cut || '6.20')}
-                    </td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>₹{(parseFloat(item.rate) || 0).toFixed(2)}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>
-                      {typeof item.qty === 'number' && item.qty < 10 ? `0${item.qty}` : item.qty}
-                    </td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{item.unit || 'Pcs'}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>₹{(parseFloat(item.total) || 0).toFixed(2)}</td>
-                  </tr>
-                ))}
-                {/* Empty filler rows to maintain full page grid layout exactly like reference invoice */}
-                {Array.from({ length: emptyRowCount }).map((_, idx) => (
-                  <tr key={`empty-${idx}`} style={{ height: emptyRowHeight }}>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, fontSize: cellFontSize }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>&nbsp;</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr style={{ fontWeight: 'bold', backgroundColor: '#f8fafc' }}>
-                  <td colSpan={5} style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>Total Quantity:</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{totalQty}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: cellPadding }}></td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>₹{taxableValue.toFixed(2)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          {/* BOTTOM GROUP: Anchored Footer Section at Very Bottom */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: sectionMarginBottom, marginTop: 'auto', flexShrink: 0, position: 'relative', zIndex: 1 }}>
-            {/* Subtotals & GST breakup split */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: isFewItems ? '16px' : '10px' }}>
-              {/* Authentic Guarantee Column */}
-              <div>
-                {/* Authentic Handloom Guarantee Box for All Invoices */}
-                <div style={{ border: '1px solid #f59e0b', borderRadius: '4px', padding: isFewItems ? '8px 12px' : '6px 10px', backgroundColor: '#fef3c7', marginBottom: '8px' }}>
-                  <h5 style={{ margin: '0 0 3px 0', color: '#78350f', fontWeight: '700', fontSize: isFewItems ? '0.8rem' : '0.74rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    ✨ AUTHENTIC HANDLOOM GUARANTEE
-                  </h5>
-                  <p style={{ margin: '1px 0', fontSize: isFewItems ? '0.75rem' : '0.68rem', color: '#451a03', fontWeight: '500' }}>
-                    • 100% Authentic Maheshwari Weave (Pure Silk & Cotton)
-                  </p>
-                  <p style={{ margin: '1px 0', fontSize: isFewItems ? '0.75rem' : '0.68rem', color: '#451a03', fontWeight: '500' }}>
-                    • Direct Handcrafted Product from Traditional Weavers of Maheshwar
-                  </p>
-                </div>
-
-                {/* Bank Account Details & PhonePe QR for client */}
-                {!isPurchaseNote && (
-                  <div style={{ display: 'flex', gap: isFewItems ? '12px' : '8px', alignItems: 'center', marginTop: '4px' }}>
-                    <div style={{ flexGrow: 1, fontSize: isFewItems ? '0.82rem' : '0.74rem' }}>
-                      <p style={{ margin: '0 0 3px 0', fontWeight: '700', textDecoration: 'underline', color: '#451a03' }}>Our Bank Account Details:</p>
-                      <p style={{ margin: '2px 0', lineHeight: '1.25' }}>A/C Name: <strong>{acHolderName}</strong></p>
-                      <p style={{ margin: '2px 0', lineHeight: '1.25' }}>Bank: <strong>{settings.bankName || (isAmbekarInvoice ? 'HDFC Bank' : 'HDFC')}</strong></p>
-                      <p style={{ margin: '2px 0', lineHeight: '1.25' }}>Account No: <strong>{settings.bankAccountNo || (isAmbekarInvoice ? '50100394215668' : '99954444444445')}</strong></p>
-                      <p style={{ margin: '2px 0', lineHeight: '1.25' }}>IFSC Code: <strong>{settings.bankIFSC || (isAmbekarInvoice ? 'HDFC0002116' : 'HDFC0002089')}</strong></p>
-                      <p style={{ margin: '2px 0', lineHeight: '1.25' }}>Branch: <strong>{settings.bankBranch || (isAmbekarInvoice ? 'Maheshwar' : 'Maheshwar Branch')}</strong></p>
-                    </div>
-                    <div style={{ textAlign: 'center', flexShrink: 0, border: '1px solid #cbd5e1', borderRadius: '6px', padding: isFewItems ? '5px 8px' : '3px 4px', backgroundColor: '#fffef9' }}>
-                      <p style={{ margin: '0 0 2px 0', fontSize: isFewItems ? '0.72rem' : '0.64rem', fontWeight: '700', color: '#5b21b6' }}>UPI / PhonePe Scan</p>
-                      <img src={isAmbekarInvoice ? "/qr_ambekar.jpg" : "/qr_reoti.jpg"} alt="PhonePe QR Code" style={{ width: qrSize, height: qrSize, objectFit: 'contain' }} />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Calculations Column */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isFewItems ? '0.88rem' : '0.8rem' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>{effectiveHasGST ? 'Total Taxable Value (Pre-tax):' : 'Subtotal (Gross):'}</td>
-                      <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{taxableValue.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Total Quantity:</td>
-                      <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: '600' }}>{totalQty}</td>
-                    </tr>
-                    {effectiveHasGST && (
-                      !isInterState ? (
-                        <>
-                          <tr>
-                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Add CGST @ 2.5%:</td>
-                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{cgstVal.toFixed(2)}</td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Add SGST @ 2.5%:</td>
-                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{sgstVal.toFixed(2)}</td>
-                          </tr>
-                        </>
+              {/* TOP GROUP: Header, Meta Banner, Customer Info */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: sectionMarginBottom, flexShrink: 0, position: 'relative', zIndex: 1 }}>
+                {/* Royal Maheshwari Handloom Header */}
+                <div className="print-invoice-header" style={{
+                  backgroundColor: '#fffef9',
+                  color: '#4a2c11',
+                  borderRadius: '6px',
+                  padding: headerPadding,
+                  display: 'grid',
+                  gridTemplateColumns: '1.45fr 1fr',
+                  gap: isFewItems ? '16px' : '12px',
+                  alignItems: 'center',
+                  position: 'relative',
+                  zIndex: 1,
+                  border: '1px solid #b45309',
+                  boxShadow: 'inset 0 0 0 2px #fef3c7, 0 2px 6px rgba(180,83,9,0.08)'
+                }}>
+                  {/* Left Brand & Craftsmanship Column */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isFewItems ? '16px' : '12px' }}>
+                    <img src={activeLogo} alt="Logo" style={{ height: logoSize, width: logoSize, objectFit: 'contain', borderRadius: '8px', border: '1px solid #b45309', backgroundColor: '#ffffff', padding: '3px', boxShadow: '0 2px 6px rgba(180,83,9,0.12)', flexShrink: 0 }} />
+                    <div>
+                      <h1 className="brand-heading" style={{ fontSize: shopFontSize, color: '#78350f', fontWeight: '800', margin: 0, letterSpacing: isAmbekarInvoice ? '0.2px' : '0.5px', lineHeight: '1.05', whiteSpace: 'nowrap' }}>
+                        {activeShopName}
+                      </h1>
+                      {isAmbekarInvoice ? (
+                        <div style={{ fontSize: isFewItems ? '0.88rem' : '0.8rem', fontWeight: '500', color: '#b45309', fontStyle: 'italic', marginTop: '2px' }}>
+                          -By Reoti Handloom
+                        </div>
                       ) : (
-                        <tr>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Add IGST @ 5%:</td>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{igstVal.toFixed(2)}</td>
-                        </tr>
-                      )
-                    )}
+                        <div className="gold-badge" style={{ backgroundColor: '#fef3c7', color: '#78350f', border: '1px solid #f59e0b', padding: isFewItems ? '3px 10px' : '2px 6px', borderRadius: '14px', fontSize: isFewItems ? '0.74rem' : '0.68rem', fontWeight: '700', marginTop: '3px', display: 'inline-block', whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                          ✨ Something "MORE" In Maheshwari Handloom
+                        </div>
+                      )}
+                      <p style={{ margin: '3px 0 0 0', fontSize: isFewItems ? '0.82rem' : '0.76rem', fontWeight: '600', color: '#451a03', lineHeight: '1.2' }}>
+                        Manufacturer of Maheshwari Handloom Sarees, Dress Materials, & Dupattas
+                      </p>
+                    </div>
+                  </div>
 
-                    {invoice.courierCharges > 0 && (
-                      <tr>
-                        <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', fontWeight: '500' }}>Courier Charges:</td>
-                        <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{parseFloat(invoice.courierCharges).toFixed(2)}</td>
-                      </tr>
+                  {/* Right Royal Contact & GSTIN Card */}
+                  <div style={{
+                    backgroundColor: '#fef7e6',
+                    border: '1px solid #f59e0b',
+                    borderRadius: '6px',
+                    padding: isFewItems ? '8px 12px' : '6px 10px',
+                    fontSize: isFewItems ? '0.8rem' : '0.75rem',
+                    color: '#451a03',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: isFewItems ? '4px' : '2px',
+                    boxShadow: '0 1px 4px rgba(180,83,9,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+                      <span style={{ color: '#b45309', fontSize: '0.85rem' }}>📍</span>
+                      <span style={{ fontSize: isFewItems ? '0.78rem' : '0.74rem', lineHeight: '1.15', fontWeight: '600', color: '#451a03' }}>{settings.shopAddress}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #fed7aa', paddingBottom: '3px' }}>
+                      <span style={{ color: '#b45309', fontSize: '0.85rem' }}>📞</span>
+                      <span style={{ fontWeight: '700', color: '#451a03' }}>+{settings.shopPhone || '91-9617444445'}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: !isAmbekarInvoice && settings.shopGSTIN ? '1px solid #fed7aa' : 'none', paddingBottom: !isAmbekarInvoice && settings.shopGSTIN ? '3px' : 0 }}>
+                      <span style={{ color: '#b45309', fontSize: '0.85rem' }}>✉️</span>
+                      <span style={{ fontSize: isFewItems ? '0.78rem' : '0.74rem', color: '#451a03', fontWeight: '500' }}>{settings.shopEmail}</span>
+                    </div>
+                    {!isAmbekarInvoice && settings.shopGSTIN && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ color: '#b45309', fontSize: '0.88rem', fontWeight: '800' }}>🏛️</span>
+                        <span style={{ fontSize: isFewItems ? '0.8rem' : '0.76rem', fontWeight: '800', color: '#78350f' }}>
+                          GSTIN: <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{settings.shopGSTIN}</span>
+                        </span>
+                      </div>
                     )}
-                    {Math.abs(invoice.roundOff || 0) > 0 && (
-                      <tr>
-                        <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', fontSize: isFewItems ? '0.8rem' : '0.74rem', color: '#475569' }}>Round Off Adjustment:</td>
-                        <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right', fontSize: isFewItems ? '0.85rem' : '0.78rem' }}>₹{(invoice.roundOff || 0).toFixed(2)}</td>
-                      </tr>
+                  </div>
+                </div>
+
+                {/* Invoice / Credit Note / Purchase Note Meta Banner */}
+                {isPurchaseNote ? (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px', backgroundColor: '#f3e8ff', border: '1px solid #8b5cf6', borderRadius: '5px', padding: metaPadding, position: 'relative', zIndex: 1 }}>
+                    <div>
+                      <h2 style={{ margin: 0, fontSize: isFewItems ? '1.15rem' : '1.05rem', fontWeight: '800', color: '#6b21a8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>📦</span> PURCHASE NOTE
+                      </h2>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px 14px', flexWrap: 'wrap', fontSize: isFewItems ? '0.88rem' : '0.82rem', color: '#581c87' }}>
+                      <span>Purchase Note No: <strong>{invoice.invoiceNo}</strong></span>
+                      <span>Date: <strong>{formatDateToDDMMYYYY(invoice.date)}</strong></span>
+                    </div>
+                  </div>
+                ) : isCreditNote ? (
+                  <div style={{ backgroundColor: '#fef2f2', border: '1px solid #ef4444', borderRadius: '5px', padding: metaPadding, position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px', borderBottom: '1px dashed #fca5a5', paddingBottom: '3px', marginBottom: '3px' }}>
+                      <h2 style={{ margin: 0, fontSize: isFewItems ? '1.15rem' : '1.05rem', fontWeight: '800', color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>📑</span> GST CREDIT NOTE
+                      </h2>
+                      <div style={{ display: 'flex', gap: '10px 14px', flexWrap: 'wrap', fontSize: isFewItems ? '0.88rem' : '0.82rem', color: '#991b1b' }}>
+                        <span>Credit Note No: <strong>{invoice.invoiceNo}</strong></span>
+                        <span>Date: <strong>{formatDateToDDMMYYYY(invoice.date)}</strong></span>
+                        <span>HSN: <strong>5208</strong></span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px 8px', fontSize: isFewItems ? '0.82rem' : '0.78rem', color: '#7f1d1d' }}>
+                      <span>Original Invoice No: <strong>{invoice.originalInvoiceNo || 'N/A'}</strong></span>
+                      {invoice.originalInvoiceDate && <span>Original Invoice Date: <strong>{formatDateToDDMMYYYY(invoice.originalInvoiceDate)}</strong></span>}
+                      <span>Reason for Credit Note: <strong style={{ color: '#dc2626' }}>{invoice.reasonForCN || 'Sales Return'}</strong></span>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px', backgroundColor: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '5px', padding: metaPadding, position: 'relative', zIndex: 1 }}>
+                    <div>
+                      <h2 style={{ margin: 0, fontSize: isFewItems ? '1.15rem' : '1.05rem', fontWeight: '800', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {effectiveHasGST ? 'TAX INVOICE' : 'RETAIL INVOICE'}
+                      </h2>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px 14px', flexWrap: 'wrap', fontSize: isFewItems ? '0.88rem' : '0.82rem', color: '#451a03' }}>
+                      <span>Invoice No: <strong>{invoice.invoiceNo}</strong></span>
+                      <span>Date: <strong>{formatDateToDDMMYYYY(invoice.date)}</strong></span>
+                      {effectiveHasGST && <span>HSN Code: <strong>5208</strong></span>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Customer & Billing Details */}
+                <div className="print-invoice-grid" style={{ fontSize: cellFontSize }}>
+                  <div style={{ padding: customerPadding, border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#fffef9' }}>
+                    <h4 style={{ margin: '0 0 3px 0', borderBottom: '1px solid #cbd5e1', paddingBottom: '2px', textTransform: 'uppercase', color: '#475569', fontSize: isFewItems ? '0.8rem' : '0.74rem' }}>
+                      {isPurchaseNote ? 'Purchased From (Supplier / Weaver):' : (isCreditNote ? 'Credited To (Customer):' : 'Billed To (Customer):')}
+                    </h4>
+                    <p style={{ margin: '2px 0', fontWeight: '700' }}>{invoice.customerName || (isPurchaseNote ? 'Weaver / Vendor' : 'Walk-in Customer')}</p>
+                    {invoice.customerPhone && <p style={{ margin: '1px 0' }}>Phone: {invoice.customerPhone}</p>}
+                    {invoice.customerEmail && <p style={{ margin: '1px 0' }}>Email: {invoice.customerEmail}</p>}
+                    {invoice.customerAddress && <p style={{ margin: '1px 0' }}>Address: {invoice.customerAddress}</p>}
+                    {invoice.customerGSTIN && (
+                      <p style={{ margin: '2px 0 0 0', fontWeight: '600' }}>
+                        GSTIN: <span style={{ textTransform: 'uppercase' }}>{invoice.customerGSTIN}</span>
+                      </p>
                     )}
-                    <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '1.02rem' : '0.92rem', backgroundColor: '#f1f5f9' }}>
-                      <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #000' }}>
-                        {advanceAdjustedVal > 0 ? 'Gross Total Amount:' : 'Net Payable Amount:'}
-                      </td>
-                      <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #000', textAlign: 'right' }}>{formatCurrency(finalTotal)}</td>
+                    {invoice.remarks && !isPurchaseNote && (
+                      <p style={{ margin: '3px 0 0 0', borderTop: '1px dashed #cbd5e1', paddingTop: '2px', fontSize: '0.76rem', fontStyle: 'italic', color: '#475569' }}>
+                        Remarks: {invoice.remarks}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* MIDDLE GROUP: Expanding Product Items Table */}
+              <div style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', margin: `${sectionMarginBottom} 0`, position: 'relative', zIndex: 1 }}>
+                <table className="print-table" style={{ width: '100%', borderCollapse: 'collapse', height: '100%' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8fafc' }}>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '4%' }}>#</th>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'left', width: '42%' }}>Item Description</th>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '9%' }}>HSN</th>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '9%' }}>Meter</th>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'right', width: '12%' }}>Rate</th>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '7%' }}>Qty</th>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'center', width: '7%' }}>Unit</th>
+                      <th style={{ border: '1px solid #94a3b8', padding: cellPadding, fontSize: cellFontSize, textAlign: 'right', width: '10%' }}>Amount</th>
                     </tr>
-
-                    {advanceAdjustedVal > 0 && (
-                      <>
-                        <tr style={{ fontWeight: '600', fontSize: isFewItems ? '0.88rem' : '0.8rem', color: '#6d28d9', backgroundColor: '#f5f3ff' }}>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Advance Payment:</td>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>-₹{advanceAdjustedVal.toFixed(2)}</td>
-                        </tr>
-                        <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '1.02rem' : '0.92rem', backgroundColor: '#e0e7ff' }}>
-                          <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #4338ca', color: '#312e81' }}>Net Payable Amount:</td>
-                          <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #4338ca', textAlign: 'right', color: '#312e81' }}>{formatCurrency(netPayableTotal)}</td>
-                        </tr>
-                      </>
-                    )}
-
-                    {/* Payment breakdown on printed receipt */}
-                    {((paidVal !== netPayableTotal) || excessPaidVal > 0) && (
-                      <>
-                        <tr style={{ fontWeight: '600', fontSize: isFewItems ? '0.9rem' : '0.82rem', color: '#16a34a' }}>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Amount Paid Now:</td>
-                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>{formatCurrency(paidVal)}</td>
-                        </tr>
-                        {dueAmountVal > 0 && (
-                          <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '0.95rem' : '0.88rem', color: '#dc2626', backgroundColor: '#fef2f2' }}>
-                            <td style={{ padding: calcCellPadding, border: '2px solid #dc2626' }}>Balance Due Amount:</td>
-                            <td style={{ padding: calcCellPadding, border: '2px solid #dc2626', textAlign: 'right' }}>{formatCurrency(dueAmountVal)}</td>
-                          </tr>
-                        )}
-                        {excessPaidVal > 0 && (
-                          <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '0.95rem' : '0.88rem', color: '#047857', backgroundColor: '#ecfdf5' }}>
-                            <td style={{ padding: calcCellPadding, border: '2px solid #10b981' }}>✨ Excess / Advance Paid:</td>
-                            <td style={{ padding: calcCellPadding, border: '2px solid #10b981', textAlign: 'right' }}>{formatCurrency(excessPaidVal)}</td>
-                          </tr>
-                        )}
-                      </>
-                    )}
+                  </thead>
+                  <tbody>
+                    {items.map((item, idx) => (
+                      <tr key={idx}>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{idx + 1}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, fontWeight: '500', fontSize: cellFontSize }}>{item.name}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{item.hsn || '5208'}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize, fontWeight: '600' }}>
+                          {item.meter !== undefined && item.meter !== null ? item.meter : (item.cut || '6.20')}
+                        </td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>₹{(parseFloat(item.rate) || 0).toFixed(2)}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>
+                          {typeof item.qty === 'number' && item.qty < 10 ? `0${item.qty}` : item.qty}
+                        </td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{item.unit || 'Pcs'}</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>₹{(parseFloat(item.total) || 0).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    {/* Empty filler rows to maintain full page grid layout */}
+                    {Array.from({ length: emptyRowCount }).map((_, idx) => (
+                      <tr key={`empty-${idx}`} style={{ height: emptyRowHeight }}>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, fontSize: cellFontSize }}>&nbsp;</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>&nbsp;</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>&nbsp;</td>
+                        <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>&nbsp;</td>
+                      </tr>
+                    ))}
                   </tbody>
+                  <tfoot>
+                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f8fafc' }}>
+                      <td colSpan={5} style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>Total Quantity:</td>
+                      <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'center', fontSize: cellFontSize }}>{totalQty}</td>
+                      <td style={{ border: '1px solid #cbd5e1', padding: cellPadding }}></td>
+                      <td style={{ border: '1px solid #cbd5e1', padding: cellPadding, textAlign: 'right', fontSize: cellFontSize }}>₹{taxableValue.toFixed(2)}</td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
-            </div>
 
-            {/* Amount In Words */}
-            <div style={{ border: '1px solid #cbd5e1', padding: isFewItems ? '6px 12px' : '4px 8px', borderRadius: '4px', fontSize: isFewItems ? '0.84rem' : '0.78rem', backgroundColor: '#fffef9' }}>
-              <span>Amount Chargeable in Words: </span>
-              <strong style={{ textTransform: 'capitalize' }}>{priceToWords(netPayableTotal)}</strong>
-            </div>
+              {/* BOTTOM GROUP: Anchored Footer Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: sectionMarginBottom, marginTop: 'auto', flexShrink: 0, position: 'relative', zIndex: 1 }}>
+                {/* Subtotals & GST breakup split */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: isFewItems ? '16px' : '10px' }}>
+                  {/* Authentic Guarantee Column */}
+                  <div>
+                    <div style={{ border: '1px solid #f59e0b', borderRadius: '4px', padding: isFewItems ? '8px 12px' : '6px 10px', backgroundColor: '#fef3c7', marginBottom: '8px' }}>
+                      <h5 style={{ margin: '0 0 3px 0', color: '#78350f', fontWeight: '700', fontSize: isFewItems ? '0.8rem' : '0.74rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        ✨ AUTHENTIC HANDLOOM GUARANTEE
+                      </h5>
+                      <p style={{ margin: '1px 0', fontSize: isFewItems ? '0.75rem' : '0.68rem', color: '#451a03', fontWeight: '500' }}>
+                        • 100% Authentic Maheshwari Weave (Pure Silk & Cotton)
+                      </p>
+                      <p style={{ margin: '1px 0', fontSize: isFewItems ? '0.75rem' : '0.68rem', color: '#451a03', fontWeight: '500' }}>
+                        • Direct Handcrafted Product from Traditional Weavers of Maheshwar
+                      </p>
+                    </div>
 
-            {/* Bill Terms and Signatures */}
-            <div className="print-footer-terms" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: isFewItems ? '16px' : '10px', fontSize: isFewItems ? '0.76rem' : '0.7rem', color: '#475569' }}>
-              <div>
-                <h5 style={{ margin: '0 0 2px 0', textTransform: 'uppercase', fontWeight: 'bold', fontSize: isFewItems ? '0.76rem' : '0.7rem' }}>Terms & Conditions:</h5>
-                <div style={{ whiteSpace: 'pre-line', lineHeight: '1.2' }}>
-                  {settings.termsConditions || "1. Goods once sold cannot be taken back.\n2. Interest @ 18% will be charged if bill is not settled within 15 days.\n3. All disputes are subject to Maheshwar jurisdiction."}
+                    {/* Bank Account Details & PhonePe QR */}
+                    {!isPurchaseNote && (
+                      <div style={{ display: 'flex', gap: isFewItems ? '12px' : '8px', alignItems: 'center', marginTop: '4px' }}>
+                        <div style={{ flexGrow: 1, fontSize: isFewItems ? '0.82rem' : '0.74rem' }}>
+                          <p style={{ margin: '0 0 3px 0', fontWeight: '700', textDecoration: 'underline', color: '#451a03' }}>Our Bank Account Details:</p>
+                          <p style={{ margin: '2px 0', lineHeight: '1.25' }}>A/C Name: <strong>{acHolderName}</strong></p>
+                          <p style={{ margin: '2px 0', lineHeight: '1.25' }}>Bank: <strong>{settings.bankName || (isAmbekarInvoice ? 'HDFC Bank' : 'HDFC')}</strong></p>
+                          <p style={{ margin: '2px 0', lineHeight: '1.25' }}>Account No: <strong>{settings.bankAccountNo || (isAmbekarInvoice ? '50100394215668' : '99954444444445')}</strong></p>
+                          <p style={{ margin: '2px 0', lineHeight: '1.25' }}>IFSC Code: <strong>{settings.bankIFSC || (isAmbekarInvoice ? 'HDFC0002116' : 'HDFC0002089')}</strong></p>
+                          <p style={{ margin: '2px 0', lineHeight: '1.25' }}>Branch: <strong>{settings.bankBranch || (isAmbekarInvoice ? 'Maheshwar' : 'Maheshwar Branch')}</strong></p>
+                        </div>
+                        <div style={{ textAlign: 'center', flexShrink: 0, border: '1px solid #cbd5e1', borderRadius: '6px', padding: isFewItems ? '5px 8px' : '3px 4px', backgroundColor: '#fffef9' }}>
+                          <p style={{ margin: '0 0 2px 0', fontSize: isFewItems ? '0.72rem' : '0.64rem', fontWeight: '700', color: '#5b21b6' }}>UPI / PhonePe Scan</p>
+                          <img src={isAmbekarInvoice ? "/qr_ambekar.jpg" : "/qr_reoti.jpg"} alt="PhonePe QR Code" style={{ width: qrSize, height: qrSize, objectFit: 'contain' }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Calculations Column */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: isFewItems ? '0.88rem' : '0.8rem' }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>{effectiveHasGST ? 'Total Taxable Value (Pre-tax):' : 'Subtotal (Gross):'}</td>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{taxableValue.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Total Quantity:</td>
+                          <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: '600' }}>{totalQty}</td>
+                        </tr>
+                        {effectiveHasGST && (
+                          !isInterState ? (
+                            <>
+                              <tr>
+                                <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Add CGST @ 2.5%:</td>
+                                <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{cgstVal.toFixed(2)}</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Add SGST @ 2.5%:</td>
+                                <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{sgstVal.toFixed(2)}</td>
+                              </tr>
+                            </>
+                          ) : (
+                            <tr>
+                              <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Add IGST @ 5%:</td>
+                              <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{igstVal.toFixed(2)}</td>
+                            </tr>
+                          )
+                        )}
+
+                        {invoice.courierCharges > 0 && (
+                          <tr>
+                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', fontWeight: '500' }}>Courier Charges:</td>
+                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>₹{parseFloat(invoice.courierCharges).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        {Math.abs(invoice.roundOff || 0) > 0 && (
+                          <tr>
+                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', fontSize: isFewItems ? '0.8rem' : '0.74rem', color: '#475569' }}>Round Off Adjustment:</td>
+                            <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right', fontSize: isFewItems ? '0.85rem' : '0.78rem' }}>₹{(invoice.roundOff || 0).toFixed(2)}</td>
+                          </tr>
+                        )}
+                        <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '1.02rem' : '0.92rem', backgroundColor: '#f1f5f9' }}>
+                          <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #000' }}>
+                            {advanceAdjustedVal > 0 ? 'Gross Total Amount:' : 'Net Payable Amount:'}
+                          </td>
+                          <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #000', textAlign: 'right' }}>{formatCurrency(finalTotal)}</td>
+                        </tr>
+
+                        {advanceAdjustedVal > 0 && (
+                          <>
+                            <tr style={{ fontWeight: '600', fontSize: isFewItems ? '0.88rem' : '0.8rem', color: '#6d28d9', backgroundColor: '#f5f3ff' }}>
+                              <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Advance Payment:</td>
+                              <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>-₹{advanceAdjustedVal.toFixed(2)}</td>
+                            </tr>
+                            <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '1.02rem' : '0.92rem', backgroundColor: '#e0e7ff' }}>
+                              <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #4338ca', color: '#312e81' }}>Net Payable Amount:</td>
+                              <td style={{ padding: isFewItems ? '7px 8px' : '5px', border: '2px solid #4338ca', textAlign: 'right', color: '#312e81' }}>{formatCurrency(netPayableTotal)}</td>
+                            </tr>
+                          </>
+                        )}
+
+                        {/* Payment breakdown */}
+                        {((paidVal !== netPayableTotal) || excessPaidVal > 0) && (
+                          <>
+                            <tr style={{ fontWeight: '600', fontSize: isFewItems ? '0.9rem' : '0.82rem', color: '#16a34a' }}>
+                              <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1' }}>Amount Paid Now:</td>
+                              <td style={{ padding: calcCellPadding, border: '1px solid #cbd5e1', textAlign: 'right' }}>{formatCurrency(paidVal)}</td>
+                            </tr>
+                            {dueAmountVal > 0 && (
+                              <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '0.95rem' : '0.88rem', color: '#dc2626', backgroundColor: '#fef2f2' }}>
+                                <td style={{ padding: calcCellPadding, border: '2px solid #dc2626' }}>Balance Due Amount:</td>
+                                <td style={{ padding: calcCellPadding, border: '2px solid #dc2626', textAlign: 'right' }}>{formatCurrency(dueAmountVal)}</td>
+                              </tr>
+                            )}
+                            {excessPaidVal > 0 && (
+                              <tr style={{ fontWeight: 'bold', fontSize: isFewItems ? '0.95rem' : '0.88rem', color: '#047857', backgroundColor: '#ecfdf5' }}>
+                                <td style={{ padding: calcCellPadding, border: '2px solid #10b981' }}>✨ Excess / Advance Paid:</td>
+                                <td style={{ padding: calcCellPadding, border: '2px solid #10b981', textAlign: 'right' }}>{formatCurrency(excessPaidVal)}</td>
+                              </tr>
+                            )}
+                          </>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Amount In Words */}
+                <div style={{ border: '1px solid #cbd5e1', padding: isFewItems ? '6px 12px' : '4px 8px', borderRadius: '4px', fontSize: isFewItems ? '0.84rem' : '0.78rem', backgroundColor: '#fffef9' }}>
+                  <span>Amount Chargeable in Words: </span>
+                  <strong style={{ textTransform: 'capitalize' }}>{priceToWords(netPayableTotal)}</strong>
+                </div>
+
+                {/* Bill Terms and Signatures */}
+                <div className="print-footer-terms" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: isFewItems ? '16px' : '10px', fontSize: isFewItems ? '0.76rem' : '0.7rem', color: '#475569' }}>
+                  <div>
+                    <h5 style={{ margin: '0 0 2px 0', textTransform: 'uppercase', fontWeight: 'bold', fontSize: isFewItems ? '0.76rem' : '0.7rem' }}>Terms & Conditions:</h5>
+                    <div style={{ whiteSpace: 'pre-line', lineHeight: '1.2' }}>
+                      {settings.termsConditions || "1. Goods once sold cannot be taken back.\n2. Interest @ 18% will be charged if bill is not settled within 15 days.\n3. All disputes are subject to Maheshwar jurisdiction."}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', textAlign: 'center' }}>
+                    <p style={{ margin: 0, fontSize: isFewItems ? '0.8rem' : '0.74rem' }}>For <strong>{activeShopName}</strong></p>
+                    <img 
+                      src="/signature.png" 
+                      alt="Authorized Signature" 
+                      style={{ 
+                        height: isFewItems ? '48px' : (isMediumItems ? '38px' : '30px'), 
+                        width: 'auto', 
+                        objectFit: 'contain',
+                        margin: '2px 0'
+                      }} 
+                    />
+                    <p style={{ margin: 0, borderTop: '1px solid #cbd5e1', width: '85%', paddingTop: '2px', fontSize: isFewItems ? '0.76rem' : '0.7rem' }}>Authorized Signatory</p>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center', fontSize: isFewItems ? '0.8rem' : '0.74rem', fontStyle: 'italic', color: '#64748b' }}>
+                  Thank you for supporting handloom weavers. Visit again!
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', textAlign: 'center' }}>
-                <p style={{ margin: 0, fontSize: isFewItems ? '0.8rem' : '0.74rem' }}>For <strong>{activeShopName}</strong></p>
-                <img 
-                  src="/signature.png" 
-                  alt="Authorized Signature" 
-                  style={{ 
-                    height: isFewItems ? '48px' : (isMediumItems ? '38px' : '30px'), 
-                    width: 'auto', 
-                    objectFit: 'contain',
-                    margin: '2px 0'
-                  }} 
-                />
-                <p style={{ margin: 0, borderTop: '1px solid #cbd5e1', width: '85%', paddingTop: '2px', fontSize: isFewItems ? '0.76rem' : '0.7rem' }}>Authorized Signatory</p>
-              </div>
             </div>
+          )}
 
-            <div style={{ textAlign: 'center', fontSize: isFewItems ? '0.8rem' : '0.74rem', fontStyle: 'italic', color: '#64748b' }}>
-              Thank you for supporting handloom weavers. Visit again!
+          {/* Screen Divider between Page 1 and Page 2 in 'Both Pages' mode */}
+          {previewTab === 'all' && (
+            <div className="page-break-screen-divider no-print" style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              width: '100%',
+              maxWidth: '764px',
+              color: '#b45309',
+              fontWeight: '800',
+              fontSize: '12px',
+              letterSpacing: '1px',
+              textTransform: 'uppercase'
+            }}>
+              <div style={{ flexGrow: 1, height: '1.5px', backgroundColor: '#cbd5e1' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fef3c7', padding: '4px 12px', borderRadius: '9999px', border: '1px solid #f59e0b' }}>
+                <Layers size={14} /> Page 2: Heritage Back Card (Printed on Reverse Side of Bill)
+              </div>
+              <div style={{ flexGrow: 1, height: '1.5px', backgroundColor: '#cbd5e1' }} />
             </div>
-          </div>
+          )}
+
+          {/* ════ PAGE 2: HERITAGE BACK CARD ════ */}
+          {showBack && (
+            <div style={{ width: '100%', maxWidth: '764px' }}>
+              {renderInvoiceHeritageBack()}
+            </div>
+          )}
+
         </div>
+
       </div>
     </div>
   );

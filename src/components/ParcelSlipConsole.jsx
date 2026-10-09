@@ -659,10 +659,10 @@ export default function ParcelSlipConsole({
           )}
         </div>
 
-        {/* ── SECTION 1: RECIPIENT ("TO / सेवा में") ── */}
+        {/* ── SECTION 1: RECIPIENT ("TO / CONSIGNEE") ── */}
         <div style={{ position: 'relative', zIndex: 1, flexGrow: 1, marginBottom: '6px', display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
           
-          {/* "TO / सेवा में :" Ribbon with horizontal line */}
+          {/* "TO / CONSIGNEE :" Ribbon with horizontal line */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
             <span style={{ 
               fontSize: '14.5px', 
@@ -674,7 +674,7 @@ export default function ParcelSlipConsole({
               letterSpacing: '1px',
               textTransform: 'uppercase'
             }}>
-              TO / सेवा में :
+              DELIVER TO / SHIP TO :
             </span>
             <div style={{ flexGrow: 1, height: '1.5px', backgroundColor: '#94a3b8', opacity: 0.7 }} />
           </div>
@@ -800,7 +800,7 @@ export default function ParcelSlipConsole({
           </span>
         </div>
 
-        {/* ── SECTION 2: SENDER ("FROM / प्रेषक" - ENLARGED & PROMINENT) ── */}
+        {/* ── SECTION 2: SENDER ("FROM / SENDER" - ENLARGED & PROMINENT) ── */}
         <div style={{
           position: 'relative',
           zIndex: 1,
@@ -854,7 +854,7 @@ export default function ParcelSlipConsole({
                 textDecoration: 'underline',
                 textUnderlineOffset: '3px'
               }}>
-                FROM / प्रेषक :
+                FROM / SENDER :
               </div>
 
               {/* Sender Store Name (BIGGER & BOLDER) */}
@@ -1116,7 +1116,7 @@ export default function ParcelSlipConsole({
             marginBottom: '8px'
           }}>
             <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span>🧺</span> HANDLOOM CARE INSTRUCTIONS (देखभाल निर्देश):
+              <span>🧺</span> HANDLOOM WASH & CARE INSTRUCTIONS:
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 14px', fontSize: '11.5px', fontWeight: '700', color: '#1f2937', lineHeight: '1.4' }}>
@@ -1380,7 +1380,7 @@ export default function ParcelSlipConsole({
               textTransform: 'uppercase',
               marginTop: '4px'
             }}>
-              FOR YOUR VALUED PURCHASE • आपकी खरीदारी के लिए सादर धन्यवाद
+              FOR YOUR VALUED PURCHASE • WITH SINCERE GRATITUDE
             </div>
           </div>
 
@@ -1632,7 +1632,7 @@ export default function ParcelSlipConsole({
             textTransform: 'uppercase',
             boxShadow: '0 3px 8px rgba(0,0,0,0.2)'
           }}>
-            ⚜️ माँ अहिल्याबाई होल्कर की धरोहर ⚜️
+            ⚜️ HERITAGE OF RAJMATA AHILYABAI HOLKAR ⚜️
           </div>
         </div>
 
@@ -1678,10 +1678,10 @@ export default function ParcelSlipConsole({
               textAlign: 'center',
               lineHeight: '1.2'
             }}>
-              पुण्यश्लोक राजमाता अहिल्याबाई होल्कर
+              Rajmata Devi Ahilyabai Holkar
             </div>
             <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#b45309', textAlign: 'center', marginTop: '2px' }}>
-              (1725–1795) • Visionary Creator of Maheshwari Weaves
+              (1725–1795) • Visionary Patron & Creator of Maheshwari Weaves
             </div>
             <div style={{
               backgroundColor: '#1e1b4b',
@@ -1709,10 +1709,10 @@ export default function ParcelSlipConsole({
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>👑</span> राजसी शुरुआत (18th Century Royal Origin):
+                <span>👑</span> 18th Century Royal Origin:
               </div>
               <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
-                18वीं सदी में लोकमाता देवी अहिल्याबाई होल्कर ने सूरत, मालवा और मांडू से सिद्धहस्त बुनकरों को अपनी राजधानी महेश्वर में आमंत्रित किया तथा स्वयं अपनी देखरेख में राजसी रेशमी-सूती <em>'गर्भ रेशमी'</em> साड़ियाँ तैयार करवाईं।
+                In the 18th century, the revered ruler Rajmata Ahilyabai Holkar invited master artisan weavers from Surat, Malwa, and Mandu to her capital Maheshwar, establishing the royal handloom weaving of silk-cotton <em>'Garbha Reshmi'</em> sarees for royal dignitaries.
               </div>
             </div>
 
@@ -1724,10 +1724,10 @@ export default function ParcelSlipConsole({
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🏛️</span> महेश्वर किले के नक्काशीदार बॉर्डर (Fort Architecture):
+                <span>🏛️</span> Fort Architecture & Temple Motifs:
               </div>
               <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
-                महेश्वरी साड़ियों के विश्वप्रसिद्ध बॉर्डर—<strong>बुगड़ी, चटाई, चमेली, रुई फूल और नर्मदा की लहरें</strong>—महेश्वर किले, मंदिर छतरियों और नर्मदा घाट की पावन वास्तुकला व नक्काशी के अमर प्रतीक हैं।
+                The iconic borders of Maheshwari sarees—<strong>Bugdi, Chatai, Chameli, Rui Phool, and Narmada Waves</strong>—are directly inspired by the stone carvings, temples, and chhatris of the majestic Maheshwar Fort.
               </div>
             </div>
 
@@ -1739,10 +1739,10 @@ export default function ParcelSlipConsole({
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🧵</span> 100% शुद्ध पारंपरिक हथकरघा (Pure Pit Loom Craft):
+                <span>🧵</span> 100% Traditional Pit-Loom Craft:
               </div>
               <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
-                प्रत्येक वस्त्र पारंपरिक लकड़ी के पिट-लूम (खड्ड करघा) पर कुशल स्थानीय बुनकर परिवारों द्वारा असीम प्रेम, शुद्ध प्राकृतिक धागों और निष्ठा के साथ ताने-बाने में ईश्वर का नाम लेकर बुना जाता है।
+                Each garment is painstakingly handwoven on wooden pit-looms by generational artisan weaver families of Maheshwar with pure natural yarns, precision, and heartfelt devotion in every warp and weft.
               </div>
             </div>
 
@@ -1754,10 +1754,10 @@ export default function ParcelSlipConsole({
               boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>💎</span> रिवर्सिबल बॉर्डर व राजसी शान (Reversible Zari Elegance):
+                <span>💎</span> Reversible Zari Border & Royal Grace:
               </div>
               <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
-                महेश्वरी बुनाई की अनूठी विशेषता इसका दोनों तरफ से पहना जाने वाला रिवर्सिबल बॉर्डर और इसका हल्का, कोमल व राजसी आकर्षण है जो हर पीढ़ी में शान बढ़ाता है।
+                The signature hallmark of Maheshwari weaving is its unique reversible border—wearable on either side—along with its lightweight, glossy texture, and regal elegance celebrated across generations.
               </div>
             </div>
 
@@ -1781,7 +1781,7 @@ export default function ParcelSlipConsole({
           <div style={{ fontSize: '22px' }}>⚜️</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px' }}>
-              {senderProfile.name} — महेश्वर हथकरघा की प्रामाणिक धरोहर
+              {senderProfile.name} — Authentic Heritage of Maheshwar Handloom
             </div>
             <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.4', fontWeight: '600' }}>
               Reoti Handloom is committed to honoring this sacred 250+ year royal craft, providing direct livelihood to traditional master weavers of Maheshwar, and bringing 100% pure, authentic handwoven treasures directly from the looms to you.
@@ -1998,7 +1998,7 @@ export default function ParcelSlipConsole({
             }}>
               <div className="d-flex justify-between align-center mb-3">
                 <label style={{ fontSize: '0.88rem', fontWeight: '800', color: activeSenderPreset === 'reoti' ? 'var(--accent-gold)' : '#ea580c', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Building size={16} /> Sender / भेजने वाला ("From / प्रेषक")
+                  <Building size={16} /> Sender Profile ("From / Sender")
                 </label>
                 <span className="badge" style={{ fontSize: '0.72rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', fontWeight: '700' }}>
                   ✓ 1-Click Switch
@@ -2126,11 +2126,11 @@ export default function ParcelSlipConsole({
               </div>
             </div>
 
-            {/* 2. RECIPIENT ("TO / सेवा में") FIELDS WITH REAL-TIME DATABASE AUTO-FILL */}
+            {/* 2. RECIPIENT ("SHIP TO / CONSIGNEE") FIELDS WITH REAL-TIME DATABASE AUTO-FILL */}
             <div className="d-flex flex-column gap-3">
               <div className="d-flex justify-between align-center">
                 <label style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  👤 Recipient Details ("To / सेवा में")
+                  👤 Recipient Details ("Ship To / Consignee")
                 </label>
                 <button 
                   type="button" 
@@ -2555,21 +2555,22 @@ export default function ParcelSlipConsole({
               </span>
             </div>
 
-            {/* Printable Container in Dark Sage Framing like reference photo */}
+            {/* Printable Container in Clean White/Neutral Paper Desk Framing */}
             <div 
               id="printable-parcel-slip-content" 
               ref={printAreaRef}
               style={{
-                backgroundColor: '#2d3d32', // Dark forest/sage background from photo
-                padding: '16px',
-                borderRadius: '8px',
-                boxShadow: '0 10px 35px rgba(0,0,0,0.4)',
+                backgroundColor: '#f1f5f9', // Clean light desk background
+                padding: '20px',
+                borderRadius: '10px',
+                border: '1px solid #cbd5e1',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
                 boxSizing: 'border-box',
                 maxWidth: '740px',
                 margin: '0 auto',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px'
+                gap: '24px'
               }}
             >
               {/* ────────────────────────────────────────────────── */}
@@ -2579,10 +2580,11 @@ export default function ParcelSlipConsole({
                 <div 
                   className="parcel-slip-wrapper-sheet parcel-slip-page-1"
                   style={{
-                    backgroundColor: '#faf7f0',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                    backgroundColor: '#ffffff',
+                    padding: '0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+                    overflow: 'hidden'
                   }}
                 >
                   {/* Top Half: Parcel Address Slip */}
@@ -2600,11 +2602,12 @@ export default function ParcelSlipConsole({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          position: 'relative'
+                          position: 'relative',
+                          backgroundColor: '#faf6ed'
                         }}
                       >
                         <span style={{
-                          backgroundColor: '#faf7f0',
+                          backgroundColor: '#faf6ed',
                           padding: '0 12px',
                           fontSize: '11px',
                           fontWeight: '900',
@@ -2635,11 +2638,12 @@ export default function ParcelSlipConsole({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          position: 'relative'
+                          position: 'relative',
+                          backgroundColor: '#faf6ed'
                         }}
                       >
                         <span style={{
-                          backgroundColor: '#faf7f0',
+                          backgroundColor: '#faf6ed',
                           padding: '0 12px',
                           fontSize: '11px',
                           fontWeight: '800',
@@ -2649,7 +2653,7 @@ export default function ParcelSlipConsole({
                           gap: '6px',
                           marginTop: '-8px'
                         }}>
-                          ✂️ CUT ALONG DOTTED LINE / यहाँ से काटें ✂️
+                          ✂️ CUT ALONG DOTTED LINE ✂️
                         </span>
                       </div>
 
@@ -2665,10 +2669,11 @@ export default function ParcelSlipConsole({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      position: 'relative'
+                      position: 'relative',
+                      backgroundColor: '#faf6ed'
                     }}>
                       <span style={{
-                        backgroundColor: '#faf7f0',
+                        backgroundColor: '#faf6ed',
                         padding: '0 10px',
                         fontSize: '11px',
                         fontWeight: '800',
@@ -2689,26 +2694,29 @@ export default function ParcelSlipConsole({
                 <div 
                   className="parcel-slip-wrapper-sheet duplex-blank-spacer"
                   style={{
-                    backgroundColor: '#faf7f0',
-                    padding: '16px',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                    backgroundColor: '#ffffff',
+                    padding: '24px 16px',
+                    borderRadius: '8px',
+                    border: '1.5px dashed #cbd5e1',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   <div className="no-print" style={{
                     textAlign: 'center',
-                    padding: '30px 16px',
-                    border: '2px dashed #cbd5e1',
+                    padding: '24px 16px',
                     borderRadius: '8px',
                     backgroundColor: '#f8fafc',
                     margin: 'auto',
                     maxWidth: '480px'
                   }}>
-                    <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e293b', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e293b', marginBottom: '6px' }}>
                       📄 Sheet 1 Back Side (Blank Spacer for 2-Sided Duplex Printers)
                     </div>
                     <div style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
-                      Yeh blank page automatic ensure karta hai ki <strong>Sheet 1 (Parcel Slip)</strong> akeli nikle aur <strong>Sheet 2</strong> par <strong>Front: Thank You</strong> aur <strong>Back: Maa Ahilya</strong> double-sided nikle!
+                      This blank page ensures that <strong>Sheet 1 (Parcel Slip)</strong> prints as a single sheet, while <strong>Sheet 2</strong> prints <strong>Thank You (Front)</strong> and <strong>Maa Ahilya (Back)</strong> on a separate 2-sided paper!
                     </div>
                   </div>
                 </div>
@@ -2732,10 +2740,11 @@ export default function ParcelSlipConsole({
                 <div 
                   className="parcel-slip-wrapper-sheet parcel-slip-page-2"
                   style={{
-                    backgroundColor: '#faf7f0',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                    backgroundColor: '#ffffff',
+                    padding: '0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+                    overflow: 'hidden'
                   }}
                 >
                   {renderHeritageThankYouFront(recipient)}
@@ -2760,10 +2769,11 @@ export default function ParcelSlipConsole({
                 <div 
                   className="parcel-slip-wrapper-sheet parcel-slip-page-3"
                   style={{
-                    backgroundColor: '#faf7f0',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                    backgroundColor: '#ffffff',
+                    padding: '0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+                    overflow: 'hidden'
                   }}
                 >
                   {renderAhilyaMaHeritageBack(recipient)}
@@ -2971,7 +2981,7 @@ export default function ParcelSlipConsole({
           html, body {
             margin: 0 !important;
             padding: 0 !important;
-            background: #2b3d30 !important;
+            background: #ffffff !important;
             height: auto !important;
             overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
@@ -2995,7 +3005,8 @@ export default function ParcelSlipConsole({
             box-sizing: border-box !important;
             box-shadow: none !important;
             border: none !important;
-            background-color: transparent !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
             display: block !important;
           }
           .parcel-slip-wrapper-sheet {
@@ -3006,9 +3017,10 @@ export default function ParcelSlipConsole({
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
-            padding: 2.5mm !important;
+            padding: 0 !important;
             margin: 0 0 0 0 !important;
-            background-color: #2b3d30 !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
             box-shadow: none !important;
             border-radius: 0 !important;
             box-sizing: border-box !important;
@@ -3027,7 +3039,8 @@ export default function ParcelSlipConsole({
             min-height: 290mm !important;
             max-height: 290mm !important;
             width: 100% !important;
-            background-color: transparent !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
             box-shadow: none !important;
             border: none !important;
             page-break-after: always !important;
