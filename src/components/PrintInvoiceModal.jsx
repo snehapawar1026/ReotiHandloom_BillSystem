@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Printer, Download, Sparkles, Layers, FileText, CheckCircle, Globe, Phone, MapPin, Award } from 'lucide-react';
+import { X, Printer, Download, Sparkles, Layers, FileText, MapPin, Phone, Mail, Award } from 'lucide-react';
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
 import html2canvas from 'html2canvas';
 import { formatCurrency, priceToWords } from '../utils';
@@ -51,7 +51,6 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                        invoice.accountHolderName || 
                        (isAmbekarInvoice ? 'Shivam Ambekar' : 'Reoti Handloom');
 
-  const rateToDisplay = 5;
   const cgstVal = effectiveHasGST ? (invoice.totalCGST !== undefined && invoice.totalCGST !== null ? invoice.totalCGST : (isInterState ? 0 : parseFloat((taxableValue * 0.025).toFixed(2)))) : 0;
   const sgstVal = effectiveHasGST ? (invoice.totalSGST !== undefined && invoice.totalSGST !== null ? invoice.totalSGST : (isInterState ? 0 : parseFloat((taxableValue * 0.025).toFixed(2)))) : 0;
   const igstVal = effectiveHasGST ? (invoice.totalIGST !== undefined && invoice.totalIGST !== null ? invoice.totalIGST : (isInterState ? parseFloat((taxableValue * 0.05).toFixed(2)) : 0)) : 0;
@@ -66,16 +65,13 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
 
   // Multi-tier dynamic scaling based on item count to guarantee 100% full A4 page utilization & single-page fit without any cutoff
   const itemCount = items.length;
-
   const tier = itemCount <= 4 ? 1 : (itemCount <= 8 ? 2 : (itemCount <= 12 ? 3 : (itemCount <= 16 ? 4 : 5)));
 
   const cellPadding = tier === 1 ? '7.5px 10px' : (tier === 2 ? '5.5px 9px' : (tier === 3 ? '4.5px 8px' : (tier === 4 ? '3.5px 6px' : '2px 4px')));
   const cellFontSize = tier === 1 ? '0.86rem' : (tier === 2 ? '0.80rem' : (tier === 3 ? '0.76rem' : (tier === 4 ? '0.72rem' : '0.68rem')));
   
   const logoSize = tier === 1 ? '85px' : (tier === 2 ? '75px' : (tier === 3 ? '64px' : (tier === 4 ? '54px' : '46px')));
-  const shopFontSize = isAmbekarInvoice 
-    ? (tier === 1 ? '1.75rem' : (tier === 2 ? '1.5rem' : (tier === 3 ? '1.35rem' : (tier === 4 ? '1.2rem' : '1.1rem'))))
-    : (tier === 1 ? '1.75rem' : (tier === 2 ? '1.5rem' : (tier === 3 ? '1.35rem' : (tier === 4 ? '1.2rem' : '1.1rem'))));
+  const shopFontSize = tier === 1 ? '1.75rem' : (tier === 2 ? '1.5rem' : (tier === 3 ? '1.35rem' : (tier === 4 ? '1.2rem' : '1.1rem')));
 
   const qrSize = tier === 1 ? '78px' : (tier === 2 ? '70px' : (tier === 3 ? '60px' : (tier === 4 ? '50px' : '44px')));
   const containerPadding = tier === 1 ? '12px 16px' : (tier === 2 ? '10px 14px' : (tier === 3 ? '8px 12px' : (tier === 4 ? '6px 10px' : '5px 8px')));
@@ -87,7 +83,6 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
   const isFewItems = tier <= 2;
   const isMediumItems = tier === 3;
 
-  // Dynamic grid rows to fill vertical page height seamlessly without blank holes or footer cutoff
   const baseTargetRows = tier === 1 ? 8 : (tier === 2 ? 9 : (tier === 3 ? 10 : itemCount));
   const targetGridRows = effectiveHasGST ? Math.max(itemCount, baseTargetRows - 1) : baseTargetRows;
   const emptyRowCount = Math.max(0, targetGridRows - itemCount);
@@ -105,7 +100,6 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     const backEl = document.getElementById('printable-invoice-back');
     if (!frontEl && !backEl) return;
 
-    // Create an isolated off-screen container with exact A4 printable dimensions (764px)
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.left = '-9999px';
@@ -121,7 +115,6 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
       if (frontEl) {
         const cloneFront = frontEl.cloneNode(true);
         cloneFront.style.height = '1093px';
-        cloneFront.style.marginBottom = '20px';
         cloneFront.style.pageBreakAfter = 'always';
         cloneFront.style.breakAfter = 'page';
         container.appendChild(cloneFront);
@@ -236,7 +229,122 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     }
   };
 
-  // Render the Luxury Heritage Card (Reverse Back Page of the Bill)
+  // Render individual 3D Weaving Swatch Medallion with metallic bezel
+  const renderMedallion = (type, title) => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+        <div style={{
+          width: '76px',
+          height: '76px',
+          borderRadius: '50%',
+          padding: '3px',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #cbd5e1 30%, #64748b 70%, #94a3b8 100%)',
+          boxShadow: '0 5px 12px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.9), inset 0 -2px 3px rgba(0,0,0,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px solid #94a3b8'
+        }}>
+          <div style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)',
+            backgroundColor: '#ffffff'
+          }}>
+            {/* Lehariya Swatch: Golden Zari Wave Ripples */}
+            {type === 'lehariya' && (
+              <svg width="100%" height="100%" viewBox="0 0 100 100">
+                <defs>
+                  <pattern id="lehariya-pat" width="18" height="18" patternTransform="rotate(35 0 0)" patternUnits="userSpaceOnUse">
+                    <line x1="0" y1="0" x2="0" y2="18" stroke="#d97706" strokeWidth="2.5" />
+                    <line x1="3.5" y1="0" x2="3.5" y2="18" stroke="#fbbf24" strokeWidth="2" />
+                    <line x1="7" y1="0" x2="7" y2="18" stroke="#fef08a" strokeWidth="1.8" />
+                    <line x1="11" y1="0" x2="11" y2="18" stroke="#b45309" strokeWidth="2.5" />
+                    <line x1="15" y1="0" x2="15" y2="18" stroke="#92400e" strokeWidth="1.5" />
+                  </pattern>
+                  <linearGradient id="leh-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#d97706" />
+                    <stop offset="50%" stopColor="#fef08a" />
+                    <stop offset="100%" stopColor="#b45309" />
+                  </linearGradient>
+                </defs>
+                <rect width="100" height="100" fill="url(#leh-grad)" />
+                <rect width="100" height="100" fill="url(#lehariya-pat)" opacity="0.95" />
+              </svg>
+            )}
+
+            {/* Garbh Reshami Swatch 1: Crimson Silk with Gold Floral Diamond Motif */}
+            {type === 'garbh1' && (
+              <svg width="100%" height="100%" viewBox="0 0 100 100">
+                <defs>
+                  <pattern id="garbh-pat1" width="16" height="16" patternUnits="userSpaceOnUse">
+                    <rect width="16" height="16" fill="#881337" />
+                    <path d="M8 0 L16 8 L8 16 L0 8 Z" fill="none" stroke="#fbbf24" strokeWidth="1" />
+                    <circle cx="8" cy="8" r="2.2" fill="#fde68a" />
+                    <circle cx="0" cy="0" r="1.5" fill="#fde68a" />
+                    <circle cx="16" cy="0" r="1.5" fill="#fde68a" />
+                    <circle cx="0" cy="16" r="1.5" fill="#fde68a" />
+                    <circle cx="16" cy="16" r="1.5" fill="#fde68a" />
+                  </pattern>
+                </defs>
+                <rect width="100" height="100" fill="url(#garbh-pat1)" />
+              </svg>
+            )}
+
+            {/* Chatai Swatch: Traditional Geometric Mat Weave */}
+            {type === 'chatai' && (
+              <svg width="100%" height="100%" viewBox="0 0 100 100">
+                <defs>
+                  <pattern id="chatai-pat" width="16" height="16" patternUnits="userSpaceOnUse">
+                    <rect width="16" height="16" fill="#b45309" />
+                    <rect x="0" y="0" width="8" height="8" fill="#fde68a" />
+                    <rect x="8" y="8" width="8" height="8" fill="#fef08a" />
+                    <line x1="0" y1="4" x2="8" y2="4" stroke="#78350f" strokeWidth="0.8" />
+                    <line x1="8" y1="12" x2="16" y2="12" stroke="#78350f" strokeWidth="0.8" />
+                    <line x1="4" y1="0" x2="4" y2="8" stroke="#78350f" strokeWidth="0.8" />
+                    <line x1="12" y1="8" x2="12" y2="16" stroke="#78350f" strokeWidth="0.8" />
+                  </pattern>
+                </defs>
+                <rect width="100" height="100" fill="url(#chatai-pat)" />
+              </svg>
+            )}
+
+            {/* Garbh Reshami Swatch 2: Gold Temple Spire / Bugdi Borders */}
+            {type === 'garbh2' && (
+              <svg width="100%" height="100%" viewBox="0 0 100 100">
+                <defs>
+                  <pattern id="garbh-pat2" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <rect width="20" height="20" fill="#7f1d1d" />
+                    <path d="M0 10 Q5 2 10 10 T20 10" fill="none" stroke="#fde047" strokeWidth="1.4" />
+                    <path d="M0 16 Q5 8 10 16 T20 16" fill="none" stroke="#f59e0b" strokeWidth="1" />
+                    <polygon points="10,2 7,8 13,8" fill="#fef08a" />
+                    <polygon points="0,2 -3,8 3,8" fill="#fef08a" />
+                    <polygon points="20,2 17,8 23,8" fill="#fef08a" />
+                  </pattern>
+                </defs>
+                <rect width="100" height="100" fill="url(#garbh-pat2)" />
+              </svg>
+            )}
+          </div>
+        </div>
+        <div style={{
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontSize: '13px',
+          fontWeight: '700',
+          color: '#451a03',
+          letterSpacing: '0.4px',
+          textAlign: 'center',
+          marginTop: '2px'
+        }}>
+          {title}
+        </div>
+      </div>
+    );
+  };
+
+  // Render the Luxury Heritage Card (Full A4 Drawn Heritage Art Reverse Page)
   const renderInvoiceHeritageBack = () => {
     return (
       <div 
@@ -244,12 +352,12 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         className="print-invoice-back-page"
         style={{
           fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, Helvetica, sans-serif",
-          padding: '16px 20px',
-          background: '#fdfaf2',
-          color: '#4a2c11',
+          padding: '24px 28px',
+          background: '#fffdfa',
+          color: '#451a03',
           position: 'relative',
-          border: '3px double #b45309',
-          boxShadow: 'inset 0 0 0 2px #d4af37, inset 0 0 0 4px #fdfaf2, inset 0 0 0 5px #cbd5e1',
+          border: '2px solid #b45309',
+          boxShadow: 'inset 0 0 0 4px #fffdfa, inset 0 0 0 6px #d4af37, inset 0 0 0 8px #fffdfa, inset 0 0 0 9px #cbd5e1',
           borderRadius: '4px',
           boxSizing: 'border-box',
           display: 'flex',
@@ -261,322 +369,371 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           overflow: 'hidden'
         }}
       >
-        {/* Subtle Watermark */}
+        {/* Subtle Watermark Monogram */}
         <div style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: '380px',
-          height: '380px',
+          width: '420px',
+          height: '420px',
           backgroundImage: `url(${activeLogo})`,
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          opacity: 0.035,
+          opacity: 0.028,
           pointerEvents: 'none',
           zIndex: 0
         }} />
 
-        {/* 1. TOP ORNAMENTAL HEADER */}
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', borderBottom: '2px solid #b45309', paddingBottom: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '6px' }}>
-            <img 
-              src={activeLogo} 
-              alt={activeShopName} 
-              style={{ 
-                width: '64px', 
-                height: '64px', 
-                objectFit: 'contain', 
-                borderRadius: '50%', 
-                border: '2px solid #d97706', 
-                padding: '2px', 
-                backgroundColor: '#fff',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-              }} 
-            />
-            <div style={{ textAlign: 'left' }}>
-              <h1 style={{ 
-                margin: 0, 
-                fontSize: '26px', 
+        {/* 1. TOP 3D METALLIC GOLD BADGE & ROYAL CALLIGRAPHY TITLE */}
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          
+          {/* 3D Metallic Gold Embossed Square Emblem */}
+          <div style={{
+            width: '125px',
+            height: '90px',
+            margin: '0 auto 10px auto',
+            background: 'linear-gradient(135deg, #fef08a 0%, #eab308 25%, #ca8a04 55%, #fef08a 85%, #854d0e 100%)',
+            borderRadius: '12px',
+            padding: '2.5px',
+            boxShadow: '0 6px 14px rgba(161,98,7,0.35), inset 0 1.5px 3px rgba(255,255,255,0.85), inset 0 -2px 3px rgba(113,63,18,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid #a16207'
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '9px',
+              border: '1px solid rgba(255,255,255,0.6)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '3px 6px',
+              background: 'linear-gradient(135deg, rgba(254,240,138,0.3) 0%, rgba(202,138,4,0.1) 100%)'
+            }}>
+              <img 
+                src={activeLogo} 
+                alt="Emblem" 
+                style={{ 
+                  width: '36px', 
+                  height: '36px', 
+                  objectFit: 'contain', 
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' 
+                }} 
+              />
+              <div style={{ 
+                fontSize: '10.5px', 
                 fontWeight: '900', 
-                letterSpacing: '1.5px', 
-                color: '#78350f', 
-                textTransform: 'uppercase',
-                fontFamily: "'Playfair Display', Georgia, serif"
+                color: '#451a03', 
+                letterSpacing: '0.6px', 
+                marginTop: '2px', 
+                textTransform: 'uppercase', 
+                lineHeight: '1.1' 
               }}>
                 {activeShopName}
-              </h1>
-              <p style={{ 
-                margin: '2px 0 0 0', 
-                fontSize: '11px', 
-                fontWeight: '800', 
-                letterSpacing: '2px', 
-                color: '#b45309', 
-                textTransform: 'uppercase' 
+              </div>
+              <div style={{ 
+                fontSize: '7.5px', 
+                fontWeight: '700', 
+                color: '#78350f', 
+                letterSpacing: '0.4px', 
+                marginTop: '1px' 
               }}>
-                A Legacy of Maheshwari Handloom • Maheshwar (M.P.)
-              </p>
+                — Something "MORE" —
+              </div>
             </div>
           </div>
 
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: '#fef3c7',
-            border: '1px solid #f59e0b',
-            borderRadius: '9999px',
-            padding: '3px 16px',
-            fontSize: '10.5px',
+          {/* Large Calligraphy Brand Title & Heritage Subtitle */}
+          <h1 style={{ 
+            fontFamily: "'Playfair Display', 'Cinzel', Georgia, serif", 
+            fontSize: '44px', 
+            color: '#854d0e', 
+            letterSpacing: '1.8px', 
+            margin: '0', 
             fontWeight: '800',
-            color: '#92400e',
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase'
+            lineHeight: '1.05'
           }}>
-            ✦ AUTHENTIC HANDLOOM WEAVING HERITAGE ✦
-          </div>
+            <span style={{ 
+              fontFamily: "'Playfair Display', Georgia, serif", 
+              fontStyle: 'italic', 
+              fontWeight: '900', 
+              color: '#78350f' 
+            }}>
+              {isAmbekarInvoice ? 'Ambekar' : 'Reoti'}
+            </span>{' '}
+            HANDLOOM
+          </h1>
+          <p style={{ 
+            fontFamily: "'Playfair Display', Georgia, serif", 
+            fontSize: '18px', 
+            fontWeight: '600', 
+            letterSpacing: '1.2px', 
+            color: '#451a03', 
+            margin: '4px 0 0 0' 
+          }}>
+            A Legacy of Maheshwari Handloom
+          </p>
         </div>
 
-        {/* 2. MIDDLE SECTION: Calligraphy Gratitude, Pit-Loom Art & 4 Weaving Medallions */}
-        <div style={{ position: 'relative', zIndex: 1, margin: '8px 0', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px' }}>
+        {/* 2. CENTER SECTION: Pit-Loom Artisan Drawing flanked by 4 Weaving Medallions */}
+        <div style={{ 
+          position: 'relative', 
+          zIndex: 1, 
+          display: 'grid', 
+          gridTemplateColumns: '100px 1fr 100px', 
+          alignItems: 'center', 
+          gap: '12px',
+          margin: '12px 0'
+        }}>
           
-          {/* Gratitude & Patron Note */}
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontStyle: 'italic',
-              fontSize: '34px',
-              fontWeight: '900',
-              color: '#1e293b',
-              lineHeight: '1.1'
-            }}>
-              Thank You for Your Trust!
-            </div>
-            <div style={{
-              fontSize: '12px',
-              fontWeight: '800',
-              color: '#b45309',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              marginTop: '2px'
-            }}>
-              Patron of Pure Handloom & Weaver Traditions
-            </div>
-            <p style={{
-              fontSize: '13px',
-              lineHeight: '1.55',
-              color: '#334155',
-              fontWeight: '500',
-              maxWidth: '92%',
-              margin: '6px auto 0 auto',
-              fontStyle: 'italic'
-            }}>
-              "Thank you for supporting authentic handloom weavers. Every saree and fabric we create carries the sacred legacy of Maa Ahilyabai Holkar and the devotion of master artisans. We hope you cherish your exquisite piece."
-            </p>
+          {/* Left Column: 2 Swatch Medallions (Lehariya, Garbh Reshami) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '38px', alignItems: 'center' }}>
+            {renderMedallion('lehariya', 'Lehariya')}
+            {renderMedallion('garbh1', 'Garbh Reshami')}
           </div>
 
-          {/* Centerpiece: Pit-Loom Artisan Line-Art Illustration */}
-          <div style={{
+          {/* Middle Column: Handcrafted Pit-Loom Master Artisan Line-Art Artwork */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
             position: 'relative',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            border: '2px solid #dcd3bf',
-            backgroundColor: '#ffffff',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            margin: '0 auto',
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
+            width: '100%'
           }}>
-            <img 
-              src="/handloom_loom_heritage.jpg" 
-              alt="Handloom Pit Loom Artisan Weaving" 
-              style={{
-                width: '100%',
-                maxHeight: '230px',
-                objectFit: 'contain',
-                display: 'block'
-              }} 
-            />
-            <div style={{
-              backgroundColor: '#fbf8f1',
-              width: '100%',
-              padding: '5px 0',
-              textAlign: 'center',
-              fontSize: '11px',
-              fontWeight: '800',
-              color: '#78350f',
-              letterSpacing: '1.2px',
-              borderTop: '1px solid #e2e8f0',
-              textTransform: 'uppercase'
-            }}>
-              ★ Handcrafted on Traditional Wooden Pit-Looms on the Banks of Sacred Narmada ★
+            <svg 
+              viewBox="0 0 500 380" 
+              style={{ width: '100%', maxHeight: '380px', display: 'block' }}
+            >
+              <defs>
+                {/* Gold Gradient for Shuttle & Zari Borders */}
+                <linearGradient id="gold-stroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#d97706" />
+                  <stop offset="50%" stopColor="#fbbf24" />
+                  <stop offset="100%" stopColor="#92400e" />
+                </linearGradient>
+
+                {/* Fabric Weave Zari Border Pattern */}
+                <pattern id="fabric-zari" width="12" height="12" patternUnits="userSpaceOnUse">
+                  <rect width="12" height="12" fill="#fffbeb" />
+                  <path d="M0 6 L6 0 L12 6 L6 12 Z" fill="none" stroke="#d97706" strokeWidth="0.8" />
+                  <circle cx="6" cy="6" r="1.2" fill="#ca8a04" />
+                </pattern>
+              </defs>
+
+              {/* ── LOOM HANGING CORDS & PULLEYS (TOP) ── */}
+              <g stroke="#78350f" strokeWidth="1.2" strokeLinecap="round">
+                <line x1="210" y1="15" x2="210" y2="70" />
+                <line x1="245" y1="15" x2="245" y2="65" />
+                <line x1="275" y1="15" x2="275" y2="75" />
+                
+                {/* Pulley wheels */}
+                <ellipse cx="210" cy="74" rx="5" ry="9" fill="#fef3c7" />
+                <ellipse cx="245" cy="69" rx="5" ry="9" fill="#fef3c7" />
+                <ellipse cx="275" cy="79" rx="5" ry="9" fill="#fef3c7" />
+                
+                <line x1="210" y1="83" x2="210" y2="125" />
+                <line x1="245" y1="78" x2="245" y2="120" />
+                <line x1="275" y1="88" x2="275" y2="130" />
+              </g>
+
+              {/* ── WARP THREADS SPREAD (TANTI / TANA) ── */}
+              <g stroke="#ca8a04" strokeWidth="0.6" opacity="0.65">
+                {Array.from({ length: 28 }).map((_, i) => (
+                  <line 
+                    key={`warp-${i}`} 
+                    x1={165 + i * 4.5} 
+                    y1={130 - (i * 0.8)} 
+                    x2={195 + i * 6.5} 
+                    y2={205 + (i * 1.8)} 
+                  />
+                ))}
+              </g>
+
+              {/* ── HEALD FRAMES & REED BEATER (HATHA) ── */}
+              <g stroke="#451a03" strokeWidth="1.6" strokeLinejoin="round" fill="#fef3c7">
+                {/* Wooden Upper Reed Bar */}
+                <polygon points="190,120 305,155 300,165 185,130" fill="#fef9c3" />
+                
+                {/* Reed Fine Teeth (Konghi) */}
+                <g stroke="#92400e" strokeWidth="0.7">
+                  {Array.from({ length: 30 }).map((_, i) => (
+                    <line 
+                      key={`reed-${i}`} 
+                      x1={190 + i * 3.8} 
+                      y1={128 + i * 1.15} 
+                      x2={190 + i * 3.8} 
+                      y2={158 + i * 1.15} 
+                    />
+                  ))}
+                </g>
+
+                {/* Wooden Lower Reed Sley */}
+                <polygon points="185,158 300,193 294,204 179,169" fill="#fde047" stroke="#451a03" strokeWidth="1.5" />
+
+                {/* Sley Sword Arms */}
+                <line x1="187" y1="125" x2="181" y2="164" stroke="#451a03" strokeWidth="2.5" />
+                <line x1="303" y1="160" x2="297" y2="198" stroke="#451a03" strokeWidth="2.5" />
+              </g>
+
+              {/* ── WOVEN MAHESHWARI CLOTH EXTENDING FORWARD ── */}
+              <g>
+                <polygon 
+                  points="218,198 335,232 305,305 180,265" 
+                  fill="url(#fabric-zari)" 
+                  stroke="#451a03" 
+                  strokeWidth="1.4" 
+                />
+                
+                {/* Royal Border Zari Strip on Saree Edge */}
+                <polygon 
+                  points="305,223 335,232 305,305 278,295" 
+                  fill="#fef08a" 
+                  stroke="#b45309" 
+                  strokeWidth="1.2" 
+                />
+                
+                {/* Woven Fringe / Pallu Edge Accent */}
+                <line x1="180" y1="265" x2="305" y2="305" stroke="#ca8a04" strokeWidth="2" strokeDasharray="3,2" />
+              </g>
+
+              {/* ── PIT-LOOM WEAVER'S ARMS & HANDS ── */}
+              <g fill="#fff7ed" stroke="#451a03" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                
+                {/* Left Arm & Hand sliding the Reed Beater */}
+                {/* Sleeve */}
+                <path d="M375,185 Q350,195 325,205 L330,225 Q355,215 385,200 Z" fill="#ffffff" />
+                {/* Forearm & Wrist */}
+                <path d="M325,205 Q295,215 275,210 Q255,206 242,204" />
+                {/* Hand & Fingers grasping sley */}
+                <path d="M242,204 Q232,203 226,208 Q223,214 230,217 Q240,218 252,216 Q265,220 285,222 L330,225" />
+                {/* Thumb */}
+                <path d="M240,204 Q233,197 228,201 Q225,205 233,208" />
+
+                {/* Right Arm & Seated Artisan Torso Silhouette */}
+                <path d="M360,240 Q340,270 330,310 L355,335 Q375,290 395,255 Z" fill="#ffffff" />
+                {/* Right Hand passing shuttle through shed */}
+                <path d="M330,310 Q310,325 290,320 Q280,315 272,305 Q278,298 288,300 Q305,305 325,298" />
+              </g>
+
+              {/* ── THREAD PIRN / BOBBIN (NARI) ── */}
+              <g transform="translate(195, 275)" stroke="#451a03" strokeWidth="1.3" fill="#fef3c7">
+                <ellipse cx="10" cy="5" rx="3" ry="5" />
+                <path d="M10,0 L60,3 L60,7 L10,10 Z" fill="#fde68a" />
+                <ellipse cx="60" cy="5" rx="3" ry="5" />
+                {/* Wound silk thread lines */}
+                <g stroke="#b45309" strokeWidth="0.8">
+                  <line x1="20" y1="1" x2="20" y2="9" />
+                  <line x1="28" y1="1.5" x2="28" y2="8.5" />
+                  <line x1="36" y1="2" x2="36" y2="8" />
+                  <line x1="44" y1="2.5" x2="44" y2="7.5" />
+                  <line x1="52" y1="3" x2="52" y2="7" />
+                </g>
+                <line x1="60" y1="5" x2="72" y2="5" stroke="#451a03" strokeWidth="1.5" />
+              </g>
+
+              {/* ── TRADITIONAL BOAT SHUTTLE (NAUKA) ── */}
+              <g transform="translate(240, 310)" stroke="#451a03" strokeWidth="1.4">
+                {/* Aerodynamic Wooden Boat Shuttle Body */}
+                <path 
+                  d="M0,14 Q45,-2 90,14 Q45,28 0,14 Z" 
+                  fill="#fef9c3" 
+                  stroke="url(#gold-stroke)" 
+                  strokeWidth="1.8" 
+                />
+                {/* Center Cavity with Silk Bobbin inside */}
+                <ellipse cx="45" cy="14" rx="26" ry="6" fill="#fffbeb" stroke="#78350f" strokeWidth="1" />
+                <rect x="28" y="11" width="34" height="6" rx="2" fill="#ca8a04" stroke="#451a03" strokeWidth="0.8" />
+                <line x1="45" y1="14" x2="68" y2="7" stroke="#d97706" strokeWidth="0.9" />
+              </g>
+
+              {/* ── INSET SKETCH: WEAVER'S HANDS TYING SILK WARP THREADS ── */}
+              <g transform="translate(330, 260) scale(0.75)" stroke="#451a03" strokeWidth="1.4" fill="#fff7ed">
+                {/* Circular Inset Frame */}
+                <circle cx="50" cy="50" r="45" fill="#fffdfa" stroke="#cbd5e1" strokeWidth="1.2" strokeDasharray="3,2" />
+                {/* Two hands precisely joining threads */}
+                <path d="M20,65 Q35,50 48,45 Q55,42 60,48 Q55,55 42,60 Z" />
+                <path d="M80,65 Q65,50 52,45 Q45,42 40,48 Q45,55 58,60 Z" />
+                {/* Crossing threads */}
+                <line x1="10" y1="35" x2="90" y2="55" stroke="#ca8a04" strokeWidth="1.2" />
+                <line x1="10" y1="55" x2="90" y2="35" stroke="#b45309" strokeWidth="1.2" />
+                <circle cx="50" cy="45" r="2.5" fill="#fde047" stroke="#451a03" strokeWidth="1" />
+              </g>
+            </svg>
+          </div>
+
+          {/* Right Column: 2 Swatch Medallions (Chatai, Garbh Reshami) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '38px', alignItems: 'center' }}>
+            {renderMedallion('chatai', 'Chatai')}
+            {renderMedallion('garbh2', 'Garbh Reshami')}
+          </div>
+
+        </div>
+
+        {/* 3. ELEGANT SCRIPT GRATITUDE MESSAGE */}
+        <div style={{
+          textAlign: 'center',
+          fontFamily: "'Playfair Display', 'Brush Script MT', 'Great Vibes', Georgia, cursive",
+          fontStyle: 'italic',
+          fontSize: '21px',
+          color: '#292524',
+          letterSpacing: '0.4px',
+          lineHeight: '1.35',
+          margin: '8px 0 16px 0',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          Thank you for supporting handloom weavers. We hope you cherish your exquisite piece.
+        </div>
+
+        {/* 4. BOTTOM ADDRESS & VERIFIED CONTACT DETAILS */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          borderTop: '1px solid #b45309',
+          paddingTop: '12px',
+          display: 'grid',
+          gridTemplateColumns: '1.2fr 1fr',
+          gap: '20px',
+          alignItems: 'center',
+          fontSize: '11.5px',
+          color: '#451a03'
+        }}>
+          
+          {/* Left Column: Physical Store Address in Maheshwar */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <MapPin size={16} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ lineHeight: '1.4' }}>
+              <strong style={{ color: '#78350f', fontSize: '12px', display: 'block', marginBottom: '1px' }}>
+                {activeShopName}
+              </strong>
+              {settings.shopAddress || "73, LaxmiBai Marg, Maheshwar, Madhya Pradesh - 451224"}
             </div>
           </div>
 
-          {/* 4 Circular Weaving Medallions */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-            <div style={{
-              border: '1.5px solid #d97706',
-              borderRadius: '6px',
-              padding: '8px 6px',
-              backgroundColor: '#fffef9',
-              textAlign: 'center',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{
-                width: '34px',
-                height: '34px',
-                margin: '0 auto 4px auto',
-                borderRadius: '50%',
-                backgroundColor: '#fef3c7',
-                border: '1.5px solid #b45309',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
-              }}>
-                🌊
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-                Lehariya
-              </div>
-              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
-                Rhythmic wave motif reflecting holy Narmada ripples
-              </div>
+          {/* Right Column: Phone, Email & GSTIN */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', lineHeight: '1.3' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Phone size={13} color="#b45309" />
+              <span>Phone: <strong>+91 {invoice.shopPhone || settings.shopPhone || "9617444445"}</strong></span>
             </div>
-
-            <div style={{
-              border: '1.5px solid #d97706',
-              borderRadius: '6px',
-              padding: '8px 6px',
-              backgroundColor: '#fffef9',
-              textAlign: 'center',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{
-                width: '34px',
-                height: '34px',
-                margin: '0 auto 4px auto',
-                borderRadius: '50%',
-                backgroundColor: '#fef3c7',
-                border: '1.5px solid #b45309',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
-              }}>
-                ✨
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-                Garbh Reshami
-              </div>
-              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
-                Silk warp & cotton weft blend crafted since 5th century
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Mail size={13} color="#b45309" />
+              <span>Email: <strong>{settings.shopEmail || "contact@reotihandloom.com"}</strong></span>
             </div>
-
-            <div style={{
-              border: '1.5px solid #d97706',
-              borderRadius: '6px',
-              padding: '8px 6px',
-              backgroundColor: '#fffef9',
-              textAlign: 'center',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{
-                width: '34px',
-                height: '34px',
-                margin: '0 auto 4px auto',
-                borderRadius: '50%',
-                backgroundColor: '#fef3c7',
-                border: '1.5px solid #b45309',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
-              }}>
-                📐
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-                Chatai Weave
-              </div>
-              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
-                Royal geometric mat weave from Holkar court archives
-              </div>
-            </div>
-
-            <div style={{
-              border: '1.5px solid #d97706',
-              borderRadius: '6px',
-              padding: '8px 6px',
-              backgroundColor: '#fffef9',
-              textAlign: 'center',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{
-                width: '34px',
-                height: '34px',
-                margin: '0 auto 4px auto',
-                borderRadius: '50%',
-                backgroundColor: '#fef3c7',
-                border: '1.5px solid #b45309',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
-              }}>
-                🏛️
-              </div>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#78350f', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-                Bugdi & Rui
-              </div>
-              <div style={{ fontSize: '9.5px', color: '#64748b', marginTop: '2px', lineHeight: '1.25', fontWeight: '500' }}>
-                Sacred fort spires and cotton blossom zari motifs
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Award size={13} color="#b45309" />
+              <span>GSTIN: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || "23AAAFR1234A1Z5") : "Pure Handloom Certified"}</strong></span>
             </div>
           </div>
 
         </div>
 
-        {/* 3. BOTTOM FOOTER & VERIFICATION DETAILS */}
-        <div style={{ position: 'relative', zIndex: 1, borderTop: '2px solid #b45309', paddingTop: '8px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center', fontSize: '10.5px' }}>
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
-              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Direct Helpline</div>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#0f172a', marginTop: '2px' }}>
-                +91 {invoice.shopPhone || settings.shopPhone || '9754124976'}
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
-              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Weaver Store</div>
-              <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
-                Maheshwar, M.P.
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
-              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Online Store</div>
-              <div style={{ fontSize: '10.5px', fontWeight: '900', color: '#b45309', marginTop: '2px' }}>
-                {settings.website || 'reotihandloom.com'}
-              </div>
-            </div>
-
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '5px', padding: '5px 4px', backgroundColor: '#ffffff' }}>
-              <div style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>GSTIN / Authenticity</div>
-              <div style={{ fontSize: '10.5px', fontWeight: '900', color: '#0f172a', marginTop: '2px' }}>
-                {effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || '23AAAFR1234A1Z5') : 'Handloom Certified'}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ textAlign: 'center', fontSize: '10px', color: '#94a3b8', fontStyle: 'italic', marginTop: '6px' }}>
-            Pure Maheshwari Handloom • Handcrafted with love & devotion in Maheshwar
-          </div>
-        </div>
       </div>
     );
   };
