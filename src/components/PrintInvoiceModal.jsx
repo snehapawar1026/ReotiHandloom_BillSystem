@@ -467,8 +467,8 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             justifyContent: 'center'
           }}>
             <img 
-              src="/ahilyabai_vintage_sketch.jpg" 
-              alt="Rajmata Devi Ahilyabai Holkar & Maheshwar Ghat" 
+              src={backTheme === 'pit_loom' ? "/maheshwari_pit_loom_sketch.jpg" : "/ahilyabai_vintage_sketch.jpg"} 
+              alt={backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom Artisan Weaving" : "Rajmata Devi Ahilyabai Holkar & Maheshwar Ghat"} 
               style={{
                 width: '100%',
                 maxHeight: '480px',
@@ -487,7 +487,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             letterSpacing: '0.6px',
             textTransform: 'uppercase'
           }}>
-            Rajmata Devi Ahilyabai Holkar
+            {backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom" : "Rajmata Devi Ahilyabai Holkar"}
           </div>
           <div style={{
             fontSize: '10.5px',
@@ -495,7 +495,9 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             color: '#92400e',
             letterSpacing: '0.3px'
           }}>
-            Visionary Patron & Pioneer of Maheshwari Handloom Craft
+            {backTheme === 'pit_loom' 
+              ? "Authentic Handcrafted Weaves by Master Artisans of Maheshwar" 
+              : "Visionary Patron & Pioneer of Maheshwari Handloom Craft"}
           </div>
         </div>
 
@@ -514,7 +516,9 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             margin: '0 0 3px 0',
             fontStyle: 'italic'
           }}>
-            "Revived in the 18th century under the visionary patronage of Rajmata Ahilyabai Holkar, every Maheshwari weave carries a royal legacy of timeless elegance and master craftsmanship."
+            {backTheme === 'pit_loom'
+              ? '"Painstakingly woven on traditional wooden pit-looms using pure natural yarns, every warp and weft preserves a sacred 700-year-old living weaving heritage."'
+              : '"Revived in the 18th century under the visionary patronage of Rajmata Ahilyabai Holkar, every Maheshwari weave carries a royal legacy of timeless elegance and master craftsmanship."'}
           </p>
           <p style={{
             fontFamily: "'Playfair Display', 'Brush Script MT', 'Great Vibes', Georgia, cursive",
@@ -877,6 +881,24 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                 </button>
                 <button
                   type="button"
+                  onClick={() => setBackTheme('pit_loom')}
+                  style={{
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '3.5px 8px',
+                    fontSize: '11px',
+                    fontWeight: backTheme === 'pit_loom' ? '800' : '600',
+                    backgroundColor: backTheme === 'pit_loom' ? '#78350f' : 'transparent',
+                    color: backTheme === 'pit_loom' ? '#ffffff' : '#78350f',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Traditional Wooden Pit-Loom Handloom Weaver Vintage Sketch"
+                >
+                  🧵 Pit-Loom Weaving
+                </button>
+                <button
+                  type="button"
                   onClick={() => setBackTheme('weaving_loom')}
                   style={{
                     border: 'none',
@@ -891,7 +913,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                   }}
                   title="Authentic Handloom Loom & 4 Weaving Medallions Designer Card"
                 >
-                  🧵 Weaving Loom Card
+                  📜 Heritage Card
                 </button>
               </div>
 
