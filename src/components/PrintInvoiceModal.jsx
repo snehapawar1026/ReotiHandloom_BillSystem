@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Printer, Download, Sparkles, Layers, FileText, Phone, Mail, Award, MapPin } from 'lucide-react';
+import { X, Printer, Download, Sparkles, Layers, FileText, Phone, Mail, Award, MapPin, ArrowLeft } from 'lucide-react';
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
 import html2canvas from 'html2canvas';
 import { formatCurrency, priceToWords } from '../utils';
@@ -24,8 +24,17 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     } else {
       document.body.classList.remove('modal-open');
     }
-    return () => document.body.classList.remove('modal-open');
-  }, [isOpen]);
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.classList.remove('modal-open');
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen || !invoice) return null;
 
@@ -459,7 +468,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
     : (printMode === 'heritage_only' ? 'heritage-only-mode' : 'invoice-only-mode');
 
   return (
-    <div className="modal-overlay print-modal-overlay">
+    <div className="modal-overlay print-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       {/* Local Print Rules to ensure perfect 2-sided duplex output without blank pages */}
       <style>{`
         @media print {
@@ -518,25 +527,53 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
         }
       `}</style>
 
-      <div className="modal-content" style={{ maxWidth: '960px', width: '96%', maxHeight: '96vh', display: 'flex', flexDirection: 'column' }}>
+      <div className="modal-content" style={{ maxWidth: '980px', width: '96%', maxHeight: '96vh', display: 'flex', flexDirection: 'column' }}>
         
         {/* MODAL HEADER & CONTROLS */}
         <div className="modal-header no-print" style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 18px', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={20} className="text-amber-600" />
-              <div>
-                <h3 className="brand-heading" style={{ margin: 0, fontSize: '18px', color: '#78350f' }}>
-                  Invoice Print & Heritage Options
-                </h3>
-                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                  Double-sided bill printing with luxury heritage card reverse
-                </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', width: '100%' }}>
+            
+            {/* Left: Prominent Back Button & Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button 
+                type="button"
+                onClick={onClose}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: '#334155',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.15)',
+                  transition: 'background-color 0.2s'
+                }}
+                title="Go back / Close preview (Escape)"
+              >
+                <ArrowLeft size={16} /> Back / वापस जाएं
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={18} className="text-amber-600" />
+                <div>
+                  <h3 className="brand-heading" style={{ margin: 0, fontSize: '17px', color: '#78350f' }}>
+                    Invoice Print & Heritage Options
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#64748b' }}>
+                    Double-sided bill printing with luxury heritage reverse
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="d-flex gap-2 align-items-center">
+            {/* Right: Actions & Close */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button 
                 className="btn btn-emerald btn-sm" 
                 onClick={handleDownloadPDF} 
@@ -554,9 +591,23 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                 <Download size={15} /> Download Image
               </button>
               <button 
-                className="btn btn-secondary btn-sm" 
+                type="button"
                 onClick={onClose}
-                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(220,38,38,0.25)'
+                }}
+                title="Close modal (Escape)"
               >
                 <X size={16} /> Close
               </button>
