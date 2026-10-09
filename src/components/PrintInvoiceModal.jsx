@@ -444,7 +444,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             </p>
           </div>
 
-          {/* 2. CENTER HERO ARTWORK: CLEAN CROPPED HERITAGE MURAL (FILLING ENTIRE CENTER SPACE) */}
+          {/* 2. CENTER HERO ARTWORK: CLEAN CROPPED HERITAGE MURAL (FILLING 100% OF FRAME EDGE-TO-EDGE) */}
           <div style={{
             position: 'relative',
             zIndex: 1,
@@ -452,16 +452,19 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            margin: '4px 0',
+            margin: '6px 0',
             flexGrow: 1,
             width: '100%'
           }}>
             <div style={{
               width: '100%',
+              height: '100%',
+              minHeight: '680px',
+              maxHeight: '740px',
               background: '#ffffff',
               border: '2px solid #b45309',
               borderRadius: '8px',
-              padding: '6px',
+              padding: '2px',
               boxShadow: '0 4px 18px rgba(120,53,15,0.12)',
               display: 'flex',
               flexDirection: 'column',
@@ -477,10 +480,10 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                 style={{
                   width: '100%',
                   height: '100%',
-                  maxHeight: '560px',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
                   display: 'block',
-                  borderRadius: '4px'
+                  borderRadius: '6px'
                 }} 
               />
             </div>
