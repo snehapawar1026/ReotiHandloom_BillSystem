@@ -409,10 +409,13 @@ export default function App() {
   };
 
   const handleDeleteInvoice = (invoiceNo) => {
-    alert("⚠️ Data deletion is disabled to protect database records.\nContact admin if you need to remove an entry.");
-    return; // Deletion disabled - data is protected
+    // UI se remove hoga, lekin database file safe rahegi (no API DELETE)
+    const updated = invoices.filter(inv => inv.invoiceNo !== invoiceNo);
+    setInvoices(updated);
+    if (!currentInvoice || !currentInvoice.isEditing) {
+      handleCreateNewBlankInvoice(updated, settings, false);
+    }
   };
-
 
   const handleEditInvoice = (invoice) => {
     setCurrentInvoice({ ...invoice, isEditing: true });
@@ -459,10 +462,9 @@ export default function App() {
   };
 
   const handleDeleteProduct = (id) => {
-    alert("⚠️ Data deletion is disabled to protect database records.\nContact admin if you need to remove an entry.");
-    return; // Deletion disabled - data is protected
+    // UI se remove hoga, lekin database file safe rahegi (no DB sync)
+    setInventory(prev => prev.filter(p => p.id !== id));
   };
-
 
   // Ledger Voucher handlers
   const handleSaveLedgerEntry = (newEntry) => {
@@ -486,10 +488,14 @@ export default function App() {
   };
 
   const handleDeleteLedgerEntry = (id) => {
-    alert("⚠️ Data deletion is disabled to protect database records.\nContact admin if you need to remove an entry.");
-    return; // Deletion disabled - data is protected
+    // UI se remove hoga, lekin database file safe rahegi (no API DELETE)
+    setLedgerEntries(prev => {
+      const updated = prev.filter(e => e.id !== id);
+      const ledgerKey = `rh_ledger_${systemMode}`;
+      localStorage.setItem(ledgerKey, JSON.stringify(updated));
+      return updated;
+    });
   };
-
 
 
   if (!systemMode) {
