@@ -146,7 +146,7 @@ export default function ParcelSlipConsole({
     addressLine1: '',
     addressLine2: '',
     city: '',
-    state: 'Madhya Pradesh',
+    state: '',
     pincode: '',
     mobile: '',
     alternateMobile: '',
@@ -432,7 +432,7 @@ export default function ParcelSlipConsole({
       addressLine1: '',
       addressLine2: '',
       city: '',
-      state: 'Madhya Pradesh',
+      state: '',
       pincode: '',
       mobile: '',
       alternateMobile: '',
@@ -718,22 +718,26 @@ export default function ParcelSlipConsole({
               marginTop: '4px',
               marginBottom: '6px'
             }}>
-              <span>
-                {[recipData.city, recipData.state].filter(Boolean).join(', ') || (isEmp ? 'Madhya Pradesh' : '')}
-              </span>
+              {[recipData.city, recipData.state].filter(Boolean).join(', ') ? (
+                <span>
+                  {[recipData.city, recipData.state].filter(Boolean).join(', ')}
+                </span>
+              ) : null}
 
-              <span style={{
-                backgroundColor: '#1e1b4b',
-                color: '#ffffff',
-                padding: '2px 10px',
-                borderRadius: '4px',
-                letterSpacing: '1px',
-                fontSize: '16px',
-                fontWeight: '900',
-                display: 'inline-block'
-              }}>
-                PIN: {recipData.pincode || (isEmp ? '416119' : '')}
-              </span>
+              {(recipData.pincode || isEmp) ? (
+                <span style={{
+                  backgroundColor: '#1e1b4b',
+                  color: '#ffffff',
+                  padding: '2px 10px',
+                  borderRadius: '4px',
+                  letterSpacing: '1px',
+                  fontSize: '16px',
+                  fontWeight: '900',
+                  display: 'inline-block'
+                }}>
+                  PIN: {recipData.pincode || (isEmp ? '416119' : '')}
+                </span>
+              ) : null}
             </div>
 
             {/* 4. Mobile Phone Bar (100% Guaranteed Crisp Capture in PDF & Print) */}
@@ -2869,7 +2873,7 @@ export default function ParcelSlipConsole({
                                 addressLine1: addr.addressLine1 || '',
                                 addressLine2: addr.addressLine2 || '',
                                 city: addr.city || '',
-                                state: addr.state || 'Madhya Pradesh',
+                                state: addr.state || '',
                                 pincode: addr.pincode || '',
                                 mobile: addr.mobile || '',
                                 alternateMobile: addr.alternateMobile || ''
