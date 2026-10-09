@@ -16,8 +16,7 @@ const formatDateToDDMMYYYY = (dateStr) => {
 
 export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, hasGST = true }) {
   const [printMode, setPrintMode] = useState('duplex_2sided'); // 'duplex_2sided' | 'invoice_only' | 'heritage_only'
-  const [previewTab, setPreviewTab] = useState('all'); // 'all' | 'front' | 'back'
-  const [backTheme, setBackTheme] = useState('ahilyabai_sketch'); // 'ahilyabai_sketch' | 'weaving_loom'
+  const [backTheme, setBackTheme] = useState('merged_heritage'); // 'merged_heritage' | 'ahilyabai_sketch' | 'pit_loom' | 'weaving_loom'
   const [showPdfDropdown, setShowPdfDropdown] = useState(false); // PDF download options dropdown
 
   useEffect(() => {
@@ -444,73 +443,185 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           </p>
         </div>
 
-        {/* 2. CENTER HERO ARTWORK: VINTAGE HAND-DRAWN SKETCH */}
-        <div style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '6px 0',
-          flexGrow: 1
-        }}>
+        {/* 2. CENTER HERO ARTWORK: VINTAGE HAND-DRAWN SKETCHES (MERGED OR INDIVIDUAL) */}
+        {backTheme === 'merged_heritage' ? (
           <div style={{
-            border: '2px solid #b45309',
-            padding: '3px',
-            background: '#ffffff',
-            boxShadow: '0 4px 12px rgba(120,53,15,0.12)',
-            borderRadius: '4px',
-            maxWidth: '430px',
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            margin: '4px 0',
+            flexGrow: 1,
+            width: '100%'
           }}>
-            <img 
-              src={backTheme === 'pit_loom' ? "/maheshwari_pit_loom_sketch.jpg" : "/ahilyabai_vintage_sketch.jpg"} 
-              alt={backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom Artisan Weaving" : "Rajmata Devi Ahilyabai Holkar & Maheshwar Ghat"} 
-              style={{
-                width: '100%',
-                maxHeight: '480px',
-                objectFit: 'contain',
-                display: 'block',
-                borderRadius: '2px'
-              }} 
-            />
+            {/* Dual Merged Side-by-Side Frames */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '14px',
+              width: '100%',
+              maxWidth: '680px',
+              margin: '0 auto'
+            }}>
+              {/* Left Frame: Rajmata Ahilyabai Holkar */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                background: '#ffffff',
+                border: '2px solid #b45309',
+                borderRadius: '6px',
+                padding: '8px',
+                boxShadow: '0 4px 14px rgba(120,53,15,0.12)'
+              }}>
+                <img 
+                  src="/ahilyabai_vintage_sketch.jpg" 
+                  alt="Rajmata Devi Ahilyabai Holkar" 
+                  style={{
+                    width: '100%',
+                    height: '350px',
+                    objectFit: 'contain',
+                    display: 'block',
+                    borderRadius: '3px'
+                  }} 
+                />
+                <div style={{
+                  marginTop: '8px',
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  fontWeight: '900',
+                  color: '#78350f',
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase'
+                }}>
+                  Rajmata Devi Ahilyabai Holkar
+                </div>
+                <div style={{
+                  fontSize: '10px',
+                  fontStyle: 'italic',
+                  color: '#92400e',
+                  textAlign: 'center',
+                  lineHeight: '1.2'
+                }}>
+                  Visionary Royal Patron (18th Century)
+                </div>
+              </div>
+
+              {/* Right Frame: Traditional Pit-Loom Master Weaver */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                background: '#ffffff',
+                border: '2px solid #b45309',
+                borderRadius: '6px',
+                padding: '8px',
+                boxShadow: '0 4px 14px rgba(120,53,15,0.12)'
+              }}>
+                <img 
+                  src="/maheshwari_pit_loom_sketch.jpg" 
+                  alt="Traditional Maheshwari Pit-Loom Weaver" 
+                  style={{
+                    width: '100%',
+                    height: '350px',
+                    objectFit: 'contain',
+                    display: 'block',
+                    borderRadius: '3px'
+                  }} 
+                />
+                <div style={{
+                  marginTop: '8px',
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  fontWeight: '900',
+                  color: '#78350f',
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase'
+                }}>
+                  Traditional Pit-Loom Weaving
+                </div>
+                <div style={{
+                  fontSize: '10px',
+                  fontStyle: 'italic',
+                  color: '#92400e',
+                  textAlign: 'center',
+                  lineHeight: '1.2'
+                }}>
+                  700+ Years Living Artisan Heritage
+                </div>
+              </div>
+            </div>
           </div>
+        ) : (
           <div style={{
-            marginTop: '6px',
-            textAlign: 'center',
-            fontSize: '13px',
-            fontWeight: '800',
-            color: '#78350f',
-            letterSpacing: '0.6px',
-            textTransform: 'uppercase'
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '6px 0',
+            flexGrow: 1
           }}>
-            {backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom" : "Rajmata Devi Ahilyabai Holkar"}
+            <div style={{
+              border: '2px solid #b45309',
+              padding: '3px',
+              background: '#ffffff',
+              boxShadow: '0 4px 12px rgba(120,53,15,0.12)',
+              borderRadius: '4px',
+              maxWidth: '430px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <img 
+                src={backTheme === 'pit_loom' ? "/maheshwari_pit_loom_sketch.jpg" : "/ahilyabai_vintage_sketch.jpg"} 
+                alt={backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom Artisan Weaving" : "Rajmata Devi Ahilyabai Holkar & Maheshwar Ghat"} 
+                style={{
+                  width: '100%',
+                  maxHeight: '460px',
+                  objectFit: 'contain',
+                  display: 'block',
+                  borderRadius: '2px'
+                }} 
+              />
+            </div>
+            <div style={{
+              marginTop: '6px',
+              textAlign: 'center',
+              fontSize: '13px',
+              fontWeight: '800',
+              color: '#78350f',
+              letterSpacing: '0.6px',
+              textTransform: 'uppercase'
+            }}>
+              {backTheme === 'pit_loom' ? "Traditional Maheshwari Pit-Loom" : "Rajmata Devi Ahilyabai Holkar"}
+            </div>
+            <div style={{
+              fontSize: '10.5px',
+              fontStyle: 'italic',
+              color: '#92400e',
+              letterSpacing: '0.3px'
+            }}>
+              {backTheme === 'pit_loom' 
+                ? "Authentic Handcrafted Weaves by Master Artisans of Maheshwar" 
+                : "Visionary Patron & Pioneer of Maheshwari Handloom Craft"}
+            </div>
           </div>
-          <div style={{
-            fontSize: '10.5px',
-            fontStyle: 'italic',
-            color: '#92400e',
-            letterSpacing: '0.3px'
-          }}>
-            {backTheme === 'pit_loom' 
-              ? "Authentic Handcrafted Weaves by Master Artisans of Maheshwar" 
-              : "Visionary Patron & Pioneer of Maheshwari Handloom Craft"}
-          </div>
-        </div>
+        )}
 
         {/* 3. HERITAGE STORY & GRATITUDE MESSAGE */}
         <div style={{
           textAlign: 'center',
-          margin: '2px 0 8px 0',
+          margin: '2px 0 6px 0',
           position: 'relative',
           zIndex: 1
         }}>
           <p style={{
             fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: '12px',
+            fontSize: '11.5px',
             color: '#334155',
             lineHeight: '1.4',
             margin: '0 0 3px 0',
@@ -518,12 +629,14 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           }}>
             {backTheme === 'pit_loom'
               ? '"Painstakingly woven on traditional wooden pit-looms using pure natural yarns, every warp and weft preserves a sacred 700-year-old living weaving heritage."'
+              : backTheme === 'merged_heritage'
+              ? '"Initiated by Rajmata Devi Ahilyabai Holkar and preserved across generations by master pit-loom weavers of Maheshwar, every drape carries royal elegance and soulful craftsmanship."'
               : '"Revived in the 18th century under the visionary patronage of Rajmata Ahilyabai Holkar, every Maheshwari weave carries a royal legacy of timeless elegance and master craftsmanship."'}
           </p>
           <p style={{
             fontFamily: "'Playfair Display', 'Brush Script MT', 'Great Vibes', Georgia, cursive",
             fontStyle: 'italic',
-            fontSize: '17px',
+            fontSize: '16.5px',
             color: '#78350f',
             margin: 0,
             fontWeight: '700'
@@ -857,10 +970,28 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               
               {/* Theme Pill Toggle */}
-              <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', border: '1px solid #fde68a', borderRadius: '6px', padding: '2px', gap: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fef3c7', border: '1px solid #fde68a', borderRadius: '6px', padding: '2px', gap: '2px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '11px', fontWeight: '800', color: '#92400e', padding: '0 5px' }}>
                   Back Theme:
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setBackTheme('merged_heritage')}
+                  style={{
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '3.5px 8px',
+                    fontSize: '11px',
+                    fontWeight: backTheme === 'merged_heritage' ? '800' : '600',
+                    backgroundColor: backTheme === 'merged_heritage' ? '#78350f' : 'transparent',
+                    color: backTheme === 'merged_heritage' ? '#ffffff' : '#78350f',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Merged: Rajmata Ahilyabai Holkar & Traditional Pit-Loom Weaving side-by-side"
+                >
+                  👑 Merged Dual (Ahilyabai + Pit-Loom)
+                </button>
                 <button
                   type="button"
                   onClick={() => setBackTheme('ahilyabai_sketch')}
@@ -877,7 +1008,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                   }}
                   title="Royal Devi Ahilyabai Holkar & Maheshwar Ghat Vintage Sketch"
                 >
-                  🏛️ Ahilyabai Sketch
+                  🏛️ Ahilyabai
                 </button>
                 <button
                   type="button"
@@ -895,7 +1026,7 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
                   }}
                   title="Traditional Wooden Pit-Loom Handloom Weaver Vintage Sketch"
                 >
-                  🧵 Pit-Loom Weaving
+                  🧵 Pit-Loom
                 </button>
                 <button
                   type="button"
