@@ -240,13 +240,15 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
 
   // Render the Authentic Luxury Heritage Card (Exact Reoti Handloom Reference Design)
   const renderInvoiceHeritageBack = () => {
+    const activeMainCard = isAmbekarInvoice ? '/ambekar_heritage_main_card.jpg' : '/reoti_heritage_main_card.jpg';
+
     return (
       <div 
         id="printable-invoice-back"
         className="print-invoice-back-page"
         style={{
           fontFamily: "'Playfair Display', Georgia, serif",
-          padding: '24px 30px',
+          padding: '16px 22px 14px 22px',
           background: '#fcfaf6',
           color: '#451a03',
           position: 'relative',
@@ -263,175 +265,49 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           overflow: 'hidden'
         }}
       >
-        {/* Subtle Watermark Monogram */}
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '420px',
-          height: '420px',
-          backgroundImage: `url(${activeLogo})`,
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          opacity: 0.025,
-          pointerEvents: 'none',
-          zIndex: 0
-        }} />
-
-        {/* 1. TOP 3D METALLIC GOLD BADGE & BRAND TITLE */}
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          
-          {/* 3D Metallic Gold Embossed Square Emblem */}
-          <div style={{
-            width: '130px',
-            height: '92px',
-            margin: '0 auto 8px auto',
-            background: 'linear-gradient(135deg, #fef08a 0%, #eab308 25%, #ca8a04 55%, #fef08a 85%, #854d0e 100%)',
-            borderRadius: '12px',
-            padding: '2.5px',
-            boxShadow: '0 6px 14px rgba(161,98,7,0.35), inset 0 1.5px 3px rgba(255,255,255,0.85), inset 0 -2px 3px rgba(113,63,18,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px solid #a16207'
-          }}>
-            <div style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '9px',
-              border: '1px solid rgba(255,255,255,0.6)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '3px 6px',
-              background: 'linear-gradient(135deg, rgba(254,240,138,0.3) 0%, rgba(202,138,4,0.1) 100%)'
-            }}>
-              <img 
-                src={activeLogo} 
-                alt="Emblem" 
-                style={{ 
-                  width: '38px', 
-                  height: '38px', 
-                  objectFit: 'contain', 
-                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))' 
-                }} 
-              />
-              <div style={{ 
-                fontSize: '11px', 
-                fontWeight: '900', 
-                color: '#451a03', 
-                letterSpacing: '0.6px', 
-                marginTop: '2px', 
-                textTransform: 'uppercase', 
-                lineHeight: '1.1' 
-              }}>
-                {activeShopName}
-              </div>
-              <div style={{ 
-                fontSize: '8px', 
-                fontWeight: '700', 
-                color: '#78350f', 
-                letterSpacing: '0.4px', 
-                marginTop: '1px' 
-              }}>
-                — Something "MORE" —
-              </div>
-            </div>
-          </div>
-
-          {/* Large Calligraphy Brand Title & Subtitle */}
-          <h1 style={{ 
-            fontFamily: "'Playfair Display', Georgia, serif", 
-            fontSize: '46px', 
-            color: '#854d0e', 
-            letterSpacing: '1.8px', 
-            margin: '0', 
-            fontWeight: '800',
-            lineHeight: '1.05'
-          }}>
-            <span style={{ 
-              fontStyle: 'italic', 
-              fontWeight: '900', 
-              color: '#78350f' 
-            }}>
-              {isAmbekarInvoice ? 'Ambekar' : 'Reoti'}
-            </span>{' '}
-            HANDLOOM
-          </h1>
-          <p style={{ 
-            fontFamily: "'Playfair Display', Georgia, serif", 
-            fontSize: '19px', 
-            fontWeight: '600', 
-            letterSpacing: '1.2px', 
-            color: '#451a03', 
-            margin: '4px 0 0 0' 
-          }}>
-            A Legacy of Maheshwari Handloom
-          </p>
-        </div>
-
-        {/* 2. CENTER ARTWORK: 4 WEAVING MEDALLIONS & PIT-LOOM WEAVER ILLUSTRATION */}
+        {/* Main Authentic Luxury Heritage Art Card */}
         <div style={{ 
           position: 'relative', 
           zIndex: 1, 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center',
-          margin: '6px 0',
           width: '100%',
-          flexGrow: 1
+          flexGrow: 1,
+          overflow: 'hidden'
         }}>
           <img 
-            src="/reoti_heritage_art_core.jpg" 
-            alt="Handloom Weaving Heritage Artwork & Medallions" 
+            src={activeMainCard} 
+            alt="Reoti Handloom Heritage Card" 
             style={{
               width: '100%',
-              maxHeight: '520px',
+              maxHeight: '920px',
               objectFit: 'contain',
               display: 'block'
             }} 
           />
         </div>
 
-        {/* 3. ELEGANT SCRIPT GRATITUDE MESSAGE */}
-        <div style={{
-          textAlign: 'center',
-          fontFamily: "'Playfair Display', 'Brush Script MT', 'Great Vibes', Georgia, cursive",
-          fontStyle: 'italic',
-          fontSize: '22px',
-          color: '#1e293b',
-          letterSpacing: '0.4px',
-          lineHeight: '1.3',
-          margin: '4px 0 12px 0',
-          position: 'relative',
-          zIndex: 1
-        }}>
-          Thank you for supporting handloom weavers. We hope you cherish your exquisite piece.
-        </div>
-
-        {/* 4. BOTTOM ADDRESS & VERIFIED CONTACT DETAILS */}
+        {/* Dynamic Store Address & Contact Details Block */}
         <div style={{
           position: 'relative',
           zIndex: 1,
-          borderTop: '1px solid #b45309',
-          paddingTop: '12px',
+          borderTop: '1.5px solid #b45309',
+          paddingTop: '10px',
+          marginTop: '4px',
           display: 'grid',
           gridTemplateColumns: '1.2fr 1fr',
-          gap: '20px',
+          gap: '16px',
           alignItems: 'center',
-          fontSize: '12px',
+          fontSize: '11.5px',
           color: '#451a03',
           fontFamily: "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif"
         }}>
-          
-          {/* Left Column: Physical Store Address */}
+          {/* Left Column: Store Name & Physical Address */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-            <MapPin size={17} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div style={{ lineHeight: '1.4' }}>
-              <strong style={{ color: '#78350f', fontSize: '13px', display: 'block', marginBottom: '2px' }}>
+            <MapPin size={16} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ lineHeight: '1.35' }}>
+              <strong style={{ color: '#78350f', fontSize: '12.5px', display: 'block', marginBottom: '2px' }}>
                 {activeShopName}
               </strong>
               {settings.shopAddress || "73, LaxmiBai Marg, Maheshwar, Madhya Pradesh - 451224"}
@@ -439,21 +315,20 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
           </div>
 
           {/* Right Column: Phone, Email & GSTIN */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', lineHeight: '1.3' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', lineHeight: '1.3' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Phone size={14} color="#b45309" />
+              <Phone size={13} color="#b45309" />
               <span>Phone: <strong>+91 {invoice.shopPhone || settings.shopPhone || "9617444445"}</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Mail size={14} color="#b45309" />
+              <Mail size={13} color="#b45309" />
               <span>Email: <strong>{settings.shopEmail || "contact@reotihandloom.com"}</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Award size={14} color="#b45309" />
+              <Award size={13} color="#b45309" />
               <span>GSTIN: <strong style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>{effectiveHasGST ? (invoice.shopGSTIN || settings.shopGSTIN || "23AAAFR1234A1Z5") : "Pure Handloom Certified"}</strong></span>
             </div>
           </div>
-
         </div>
 
       </div>
