@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-09T09:34:55.733Z",
+  "timestamp": "2026-10-09T10:48:41.256Z",
   "invoices": [
     {
       "invoiceNo": "RH-2025-JS01",
@@ -10677,7 +10677,7 @@
       "customerName": "Sara Silk Studio",
       "customerPhone": "7744079808 / 8208660345",
       "customerEmail": "",
-      "customerAddress": "Kapad Prth, Balaji Chouk, Main Road, Sangli- 416416",
+      "customerAddress": "Kapad Peth, Balaji Chouk, Main Road, Sangli- 416416",
       "customerGSTIN": "27APPPL9425G1ZF",
       "items": [
         {
@@ -10763,7 +10763,7 @@
       "paymentStatus": "Paid",
       "remarks": "",
       "isInterState": true,
-      "isEditing": false,
+      "isEditing": true,
       "bankDetails": "HDFC, A/C: 99954444444445, IFSC: HDFC0002089",
       "subtotal": 72450,
       "totalDiscount": 0,

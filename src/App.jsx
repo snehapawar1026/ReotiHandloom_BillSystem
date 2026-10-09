@@ -409,19 +409,10 @@ export default function App() {
   };
 
   const handleDeleteInvoice = (invoiceNo) => {
-    const updated = invoices.filter(inv => inv.invoiceNo !== invoiceNo);
-    setInvoices(updated);
-
-    fetch('/api/invoices', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: systemMode, invoiceNo })
-    }).catch(console.error);
-
-    if (!currentInvoice || !currentInvoice.isEditing) {
-      handleCreateNewBlankInvoice(updated, settings, false);
-    }
+    alert("⚠️ Data deletion is disabled to protect database records.\nContact admin if you need to remove an entry.");
+    return; // Deletion disabled - data is protected
   };
+
 
   const handleEditInvoice = (invoice) => {
     setCurrentInvoice({ ...invoice, isEditing: true });
@@ -468,12 +459,10 @@ export default function App() {
   };
 
   const handleDeleteProduct = (id) => {
-    setInventory(prev => {
-      const updated = prev.filter(p => p.id !== id);
-      syncInventoryToDb(updated);
-      return updated;
-    });
+    alert("⚠️ Data deletion is disabled to protect database records.\nContact admin if you need to remove an entry.");
+    return; // Deletion disabled - data is protected
   };
+
 
   // Ledger Voucher handlers
   const handleSaveLedgerEntry = (newEntry) => {
@@ -497,22 +486,10 @@ export default function App() {
   };
 
   const handleDeleteLedgerEntry = (id) => {
-    setLedgerEntries(prev => {
-      const updated = prev.filter(e => e.id !== id);
-      const ledgerKey = `rh_ledger_${systemMode}`;
-      localStorage.setItem(ledgerKey, JSON.stringify(updated));
-      return updated;
-    });
-
-    fetch('/api/ledger', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: systemMode, id })
-    }).then(() => {
-      setDbStatus('🟢 MySQL/SQLite Database Synced');
-      alert("✅ Voucher deleted from Database.");
-    }).catch(console.error);
+    alert("⚠️ Data deletion is disabled to protect database records.\nContact admin if you need to remove an entry.");
+    return; // Deletion disabled - data is protected
   };
+
 
 
   if (!systemMode) {
