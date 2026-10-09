@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   Building,
   Scissors,
-  Sparkles
+  Sparkles,
+  Tag
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js/dist/html2pdf.min.js';
 
@@ -156,7 +157,8 @@ export default function ParcelSlipConsole({
   });
 
   // 4. Print Layout & Design Styles
-  const [layoutMode, setLayoutMode] = useState('half_with_thankyou');
+  const [layoutMode, setLayoutMode] = useState('duplex_2sheets'); // 'duplex_2sheets' | 'pages_3_full' | 'heritage_2sided_full' | 'slip_only' | 'half_with_thankyou' | 'half_a4' | 'double_a4'
+  const [previewPageFilter, setPreviewPageFilter] = useState('all'); // 'all' | 'page1' | 'page2' | 'page3'
   const [fontSizeScale, setFontSizeScale] = useState('huge');
   const [showLogo, setShowLogo] = useState(true);
   const [showFragileBadge, setShowFragileBadge] = useState(true);
@@ -441,7 +443,7 @@ export default function ParcelSlipConsole({
     });
   };
 
-  // Direct Browser Print Trigger
+  // Direct Browser Print Trigger (Current View)
   const handlePrint = () => {
     if (!recipient.partyName.trim()) {
       alert('Please fill recipient party name before printing.');
@@ -450,6 +452,29 @@ export default function ParcelSlipConsole({
     logDispatchHistory();
     window.print();
   };
+
+  // Specific Print Mode Trigger with automatic layout selection
+  const handlePrintWithMode = (mode, filter = 'all') => {
+    if (!recipient.partyName.trim()) {
+      alert('Please fill recipient party name before printing.');
+      return;
+    }
+    logDispatchHistory();
+    setLayoutMode(mode);
+    setPreviewPageFilter(filter);
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
+  // 1-Click Trigger: Auto 2-Sheet Duplex Package (Sheet 1: Slip alone, Sheet 2: Front & Back Leaflet)
+  const handlePrintAutoDuplex = () => handlePrintWithMode('duplex_2sheets', 'all');
+
+  // 1-Click Trigger: Sheet 1 Only (Parcel Slip - Single Sheet)
+  const handlePrintSlipOnly = () => handlePrintWithMode('slip_only', 'page1');
+
+  // 1-Click Trigger: Sheet 2 Only (2-Sided Heritage Leaflet - Front & Back)
+  const handlePrintLeafletOnly = () => handlePrintWithMode('heritage_2sided_full', 'all');
 
   // PDF Export
   const handleDownloadPDF = () => {
@@ -465,10 +490,10 @@ export default function ParcelSlipConsole({
 
     const opt = {
       margin: 0,
-      filename: `Parcel_Slip_${senderProfile.name.replace(/\s+/g, '_')}_${recipient.partyName.replace(/\s+/g, '_')}.pdf`,
+      filename: `Parcel_Package_${senderProfile.name.replace(/\s+/g, '_')}_${(recipient.partyName || 'Customer').replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
-        scale: 2.2, 
+        scale: 2.0, 
         useCORS: true, 
         logging: false,
         scrollY: 0,
@@ -479,7 +504,7 @@ export default function ParcelSlipConsole({
         format: 'a4', 
         orientation: 'portrait'
       },
-      pagebreak: { mode: 'avoid-all' }
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(element).save();
@@ -1216,6 +1241,626 @@ export default function ParcelSlipConsole({
     );
   };
 
+  // ── 3. RENDER FULL A4 PAGE: "THANK YOU FOR YOUR PURCHASE" INSERT LEAFLET FRONT (MAHESHWAR FORT SKETCH) ──
+  const renderHeritageThankYouFront = (recipData) => {
+    return (
+      <div 
+        className="full-a4-thankyou-front"
+        style={{
+          backgroundColor: '#faf6ed',
+          color: '#1e293b',
+          border: '3.5px double #b45309',
+          borderRadius: '10px',
+          padding: '24px 28px',
+          fontFamily: "'Outfit', 'Segoe UI', Arial, sans-serif",
+          boxSizing: 'border-box',
+          position: 'relative',
+          width: '100%',
+          minHeight: '1040px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          pageBreakInside: 'avoid',
+          margin: '0 auto',
+          overflow: 'hidden'
+        }}
+      >
+        {/* ── 4 ORNATE CORNER FLOURISHES ── */}
+        <svg style={{ position: 'absolute', top: '7px', left: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8 }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+        <svg style={{ position: 'absolute', top: '7px', right: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scaleX(-1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+        <svg style={{ position: 'absolute', bottom: '7px', left: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scaleY(-1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+        <svg style={{ position: 'absolute', bottom: '7px', right: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scale(-1, -1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+
+        {/* Delicate Inner Dashed Gold Frame */}
+        <div style={{
+          position: 'absolute',
+          top: '6px',
+          left: '6px',
+          right: '6px',
+          bottom: '6px',
+          border: '2px dashed #b45309',
+          borderRadius: '8px',
+          pointerEvents: 'none',
+          opacity: 0.65
+        }} />
+
+        {/* ── 1. TOP HEADER & PROMINENT BRANDING ── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#f6f2e6',
+          border: '2px solid #dcd3bf',
+          borderRadius: '8px',
+          padding: '12px 18px',
+          gap: '14px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img 
+              src={currentStoreLogo} 
+              alt={senderProfile.name} 
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '3px solid #b45309',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.18)'
+              }} 
+            />
+            <div>
+              {/* BIG BRAND NAME */}
+              <div style={{ fontSize: '26px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase', letterSpacing: '0.8px', lineHeight: '1.1' }}>
+                {senderProfile.name}
+              </div>
+              <div style={{ fontSize: '13px', fontWeight: '800', color: '#b45309', marginTop: '3px' }}>
+                Pure Maheshwari Handloom Sarees, Suits & Dupattas • Maheshwar (M.P.)
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: '#1e1b4b',
+            color: '#fef3c7',
+            padding: '8px 20px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: '900',
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            boxShadow: '0 3px 8px rgba(0,0,0,0.2)'
+          }}>
+            ✦ AUTHENTIC HANDLOOM INSERT ✦
+          </div>
+        </div>
+
+        {/* ── 2. CALLIGRAPHY TITLE & GRATITUDE MESSAGE (FULL SIZED & SPACIOUS) ── */}
+        <div style={{ position: 'relative', zIndex: 1, margin: '14px 0', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          
+          <div style={{ textAlign: 'center', margin: '4px 0 8px 0' }}>
+            <div style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontStyle: 'italic',
+              fontSize: '56px',
+              fontWeight: '900',
+              color: '#0f172a',
+              lineHeight: '1.05',
+              letterSpacing: '0.5px'
+            }}>
+              Thank You!
+            </div>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: '900',
+              letterSpacing: '3px',
+              color: '#b45309',
+              textTransform: 'uppercase',
+              marginTop: '4px'
+            }}>
+              FOR YOUR VALUED PURCHASE • आपकी खरीदारी के लिए सादर धन्यवाद
+            </div>
+          </div>
+
+          {/* Dynamic Patron Greeting */}
+          <div style={{ fontSize: '18px', fontWeight: '900', color: '#1e1b4b', margin: '6px 0 8px 0', textAlign: 'center' }}>
+            🌸 Dear <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px', color: '#0f172a' }}>{recipData.partyName || 'Valued Handloom Patron'}</span>,
+          </div>
+
+          {/* Heartfelt Message */}
+          <div style={{
+            fontSize: '15px',
+            lineHeight: '1.7',
+            color: '#334155',
+            textAlign: 'center',
+            fontWeight: '600',
+            maxWidth: '92%',
+            margin: '0 auto 12px auto'
+          }}>
+            Thank you for buying from <strong style={{ color: '#0f172a', fontWeight: '900', fontSize: '16px' }}>{senderProfile.name}</strong> and being a cherished part of our community. Your purchase is directly helping us preserve this centuries-old sustainable weaving culture. We feel deeply grateful to have you encourage and empower the traditional master weavers of the sacred <strong style={{ color: '#b45309', fontWeight: '900', fontSize: '16px' }}>"Maheshwar"</strong> heritage.
+          </div>
+
+          {/* ── 3. LARGE MAHESHWAR FORT & GHATS ARCHITECTURAL SKETCH ILLUSTRATION (FULL CANVAS) ── */}
+          <div style={{
+            position: 'relative',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            border: '2px solid #dcd3bf',
+            backgroundColor: '#ffffff',
+            boxShadow: '0 4px 18px rgba(0,0,0,0.08)',
+            margin: '0 auto 10px auto',
+            width: '100%',
+            maxHeight: '360px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <img 
+              src="/maheshwar_fort_sketch.jpg" 
+              alt="Maheshwar Fort Sketch" 
+              style={{
+                width: '100%',
+                maxHeight: '320px',
+                objectFit: 'contain',
+                display: 'block'
+              }} 
+            />
+            <div style={{
+              backgroundColor: '#fbf8f1',
+              width: '100%',
+              padding: '6px 0',
+              textAlign: 'center',
+              fontSize: '12px',
+              fontWeight: '900',
+              color: '#78350f',
+              letterSpacing: '1px',
+              borderTop: '1.5px solid #e2e8f0',
+              textTransform: 'uppercase'
+            }}>
+              ★ The Majestic Ahilya Fort & Sacred Narmada Ghats • Maheshwar (M.P.) ★
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── 4. BOTTOM HIGH-CONTRAST HIGHLIGHTED WEBSITE & CONTACT PILLS ── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          borderTop: '2px solid #cbd5e1',
+          paddingTop: '14px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+              {/* HIGHLIGHTED WEBSITE BADGE */}
+              <span style={{
+                backgroundColor: '#fef08a',
+                color: '#1e1b4b',
+                border: '2px solid #b45309',
+                padding: '6px 18px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '900',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(180,83,9,0.2)'
+              }}>
+                🌐 Website: www.reotihandloom.com
+              </span>
+
+              {/* HIGHLIGHTED WHATSAPP BADGE */}
+              <span style={{
+                backgroundColor: '#dcfce7',
+                color: '#14532d',
+                border: '2px solid #16a34a',
+                padding: '6px 16px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '900',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                💬 WhatsApp / Helpline: {senderProfile.phone}
+              </span>
+            </div>
+            
+            <div style={{ fontSize: '12px', color: '#475569', fontWeight: '700' }}>
+              📍 73, Laxmibai Marg, Maheshwar (Madhya Pradesh) - 451224
+            </div>
+          </div>
+
+          <div style={{
+            border: '2px dashed #b45309',
+            backgroundColor: '#fffbeb',
+            padding: '8px 20px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: '900',
+            color: '#b45309',
+            textTransform: 'uppercase',
+            letterSpacing: '0.8px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+          }}>
+            ★ 100% PURE HANDWOVEN WEAVES ★
+          </div>
+        </div>
+
+      </div>
+    );
+  };
+
+  // ── 4. RENDER FULL A4 PAGE: "RAJMATA AHILYABAI HOLKAR & MAHESHWAR FORT HERITAGE TRIBUTE" (BACK SIDE) ──
+  const renderAhilyaMaHeritageBack = (recipData) => {
+    return (
+      <div 
+        className="full-a4-ahilyama-back"
+        style={{
+          backgroundColor: '#faf6ed',
+          color: '#1e293b',
+          border: '3.5px double #b45309',
+          borderRadius: '10px',
+          padding: '24px 28px',
+          fontFamily: "'Outfit', 'Segoe UI', Arial, sans-serif",
+          boxSizing: 'border-box',
+          position: 'relative',
+          width: '100%',
+          minHeight: '1040px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          pageBreakInside: 'avoid',
+          margin: '0 auto',
+          overflow: 'hidden'
+        }}
+      >
+        {/* ── 4 ORNATE CORNER FLOURISHES ── */}
+        <svg style={{ position: 'absolute', top: '7px', left: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8 }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+        <svg style={{ position: 'absolute', top: '7px', right: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scaleX(-1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+        <svg style={{ position: 'absolute', bottom: '7px', left: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scaleY(-1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+        <svg style={{ position: 'absolute', bottom: '7px', right: '7px', width: '50px', height: '50px', pointerEvents: 'none', zIndex: 1, opacity: 0.8, transform: 'scale(-1, -1)' }} viewBox="0 0 40 40" fill="none" stroke="#b45309" strokeWidth="1.5">
+          <path d="M 4 36 L 4 12 C 4 6 6 4 12 4 L 36 4" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M 8 36 L 8 16 C 8 10 10 8 16 8 L 36 8" strokeWidth="1.2" opacity="0.6" />
+          <path d="M 4 4 C 10 10 18 10 24 4 C 20 12 20 20 26 26 C 20 20 12 20 4 24 Z" fill="#b45309" fillOpacity="0.35" />
+          <circle cx="12" cy="12" r="2.8" fill="#b45309" />
+        </svg>
+
+        {/* Inner Dashed Gold Accent Frame */}
+        <div style={{
+          position: 'absolute',
+          top: '6px',
+          left: '6px',
+          right: '6px',
+          bottom: '6px',
+          border: '2px dashed #b45309',
+          borderRadius: '8px',
+          pointerEvents: 'none',
+          opacity: 0.65
+        }} />
+
+        {/* ── 1. TOP ROYAL STORE HEADER & MAA AHILYA BANNER ── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#f6f2e6',
+          border: '2px solid #dcd3bf',
+          borderRadius: '8px',
+          padding: '12px 18px',
+          gap: '14px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img 
+              src={currentStoreLogo} 
+              alt={senderProfile.name} 
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '3px solid #b45309',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.18)'
+              }} 
+            />
+            <div>
+              {/* BIG BRAND NAME */}
+              <div style={{ fontSize: '26px', fontWeight: '900', color: '#1e1b4b', textTransform: 'uppercase', letterSpacing: '0.8px', lineHeight: '1.1' }}>
+                {senderProfile.name}
+              </div>
+              <div style={{ fontSize: '13px', fontWeight: '800', color: '#b45309', marginTop: '3px' }}>
+                The Sacred Weaves of Maheshwar • 250+ Years Royal Living Tradition
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: '#1e1b4b',
+            color: '#fef3c7',
+            padding: '8px 18px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: '900',
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            boxShadow: '0 3px 8px rgba(0,0,0,0.2)'
+          }}>
+            ⚜️ माँ अहिल्याबाई होल्कर की धरोहर ⚜️
+          </div>
+        </div>
+
+        {/* ── 2. TWO-COLUMN HERO SECTION: PORTRAIT (LEFT) + 4 EXPANDED CHRONICLE CARDS (RIGHT) ── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'grid',
+          gridTemplateColumns: '290px 1fr',
+          gap: '20px',
+          margin: '14px 0',
+          alignItems: 'stretch',
+          flexGrow: 1
+        }}>
+          
+          {/* LEFT: RAJMATA AHILYABAI HOLKAR & FORT PORTRAIT (LARGE DISPLAY) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f6f2e6', border: '2px solid #dcd3bf', borderRadius: '10px', padding: '14px 10px' }}>
+            <div style={{
+              width: '265px',
+              height: '355px',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              border: '3px solid #b45309',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+              backgroundColor: '#ffffff'
+            }}>
+              <img 
+                src="/ahilyabai_portrait.jpg" 
+                alt="Rajmata Ahilyabai Holkar & Maheshwar Fort" 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block'
+                }} 
+              />
+            </div>
+            <div style={{
+              fontSize: '15px',
+              fontWeight: '900',
+              color: '#0f172a',
+              marginTop: '10px',
+              textAlign: 'center',
+              lineHeight: '1.2'
+            }}>
+              पुण्यश्लोक राजमाता अहिल्याबाई होल्कर
+            </div>
+            <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#b45309', textAlign: 'center', marginTop: '2px' }}>
+              (1725–1795) • Visionary Creator of Maheshwari Weaves
+            </div>
+            <div style={{
+              backgroundColor: '#1e1b4b',
+              color: '#fef3c7',
+              padding: '3px 12px',
+              borderRadius: '4px',
+              fontSize: '10px',
+              fontWeight: '900',
+              marginTop: '6px',
+              letterSpacing: '0.6px',
+              textTransform: 'uppercase'
+            }}>
+              ★ ORIGINATED ON THE BANKS OF NARMADA ★
+            </div>
+          </div>
+
+          {/* RIGHT: 4 EXPANDED HERITAGE CHRONICLE CARDS (FILLING VERTICAL HEIGHT) */}
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+            
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #dcd3bf',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>👑</span> राजसी शुरुआत (18th Century Royal Origin):
+              </div>
+              <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
+                18वीं सदी में लोकमाता देवी अहिल्याबाई होल्कर ने सूरत, मालवा और मांडू से सिद्धहस्त बुनकरों को अपनी राजधानी महेश्वर में आमंत्रित किया तथा स्वयं अपनी देखरेख में राजसी रेशमी-सूती <em>'गर्भ रेशमी'</em> साड़ियाँ तैयार करवाईं।
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #dcd3bf',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>🏛️</span> महेश्वर किले के नक्काशीदार बॉर्डर (Fort Architecture):
+              </div>
+              <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
+                महेश्वरी साड़ियों के विश्वप्रसिद्ध बॉर्डर—<strong>बुगड़ी, चटाई, चमेली, रुई फूल और नर्मदा की लहरें</strong>—महेश्वर किले, मंदिर छतरियों और नर्मदा घाट की पावन वास्तुकला व नक्काशी के अमर प्रतीक हैं।
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #dcd3bf',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>🧵</span> 100% शुद्ध पारंपरिक हथकरघा (Pure Pit Loom Craft):
+              </div>
+              <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
+                प्रत्येक वस्त्र पारंपरिक लकड़ी के पिट-लूम (खड्ड करघा) पर कुशल स्थानीय बुनकर परिवारों द्वारा असीम प्रेम, शुद्ध प्राकृतिक धागों और निष्ठा के साथ ताने-बाने में ईश्वर का नाम लेकर बुना जाता है।
+              </div>
+            </div>
+
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1.5px solid #dcd3bf',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ fontSize: '13.5px', fontWeight: '900', color: '#1e1b4b', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>💎</span> रिवर्सिबल बॉर्डर व राजसी शान (Reversible Zari Elegance):
+              </div>
+              <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.45', fontWeight: '600' }}>
+                महेश्वरी बुनाई की अनूठी विशेषता इसका दोनों तरफ से पहना जाने वाला रिवर्सिबल बॉर्डर और इसका हल्का, कोमल व राजसी आकर्षण है जो हर पीढ़ी में शान बढ़ाता है।
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ── 3. REOTI HANDLOOM MISSION / HERITAGE COMMITMENT BOX ── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          backgroundColor: '#f1f5f9',
+          border: '1.5px solid #cbd5e1',
+          borderRadius: '8px',
+          padding: '10px 16px',
+          margin: '4px 0 10px 0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <div style={{ fontSize: '22px' }}>⚜️</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '13px', fontWeight: '900', color: '#1e1b4b', marginBottom: '2px' }}>
+              {senderProfile.name} — महेश्वर हथकरघा की प्रामाणिक धरोहर
+            </div>
+            <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.4', fontWeight: '600' }}>
+              Reoti Handloom is committed to honoring this sacred 250+ year royal craft, providing direct livelihood to traditional master weavers of Maheshwar, and bringing 100% pure, authentic handwoven treasures directly from the looms to you.
+            </div>
+          </div>
+        </div>
+
+        {/* ── 4. BOTTOM HIGH-CONTRAST HIGHLIGHTED WEBSITE & CONTACT PILLS ── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          borderTop: '2px solid #cbd5e1',
+          paddingTop: '14px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+              {/* HIGHLIGHTED WEBSITE BADGE */}
+              <span style={{
+                backgroundColor: '#fef08a',
+                color: '#1e1b4b',
+                border: '2px solid #b45309',
+                padding: '6px 18px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '900',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(180,83,9,0.2)'
+              }}>
+                🌐 Website: www.reotihandloom.com
+              </span>
+
+              {/* HIGHLIGHTED WHATSAPP BADGE */}
+              <span style={{
+                backgroundColor: '#dcfce7',
+                color: '#14532d',
+                border: '2px solid #16a34a',
+                padding: '6px 16px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '900',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                💬 WhatsApp / Helpline: {senderProfile.phone}
+              </span>
+            </div>
+            
+            <div style={{ fontSize: '12px', color: '#475569', fontWeight: '700' }}>
+              📍 73, Laxmibai Marg, Maheshwar (Madhya Pradesh) - 451224
+            </div>
+          </div>
+
+          <div style={{
+            border: '2px dashed #b45309',
+            backgroundColor: '#fffbeb',
+            padding: '8px 20px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: '900',
+            color: '#b45309',
+            textTransform: 'uppercase',
+            letterSpacing: '0.8px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+          }}>
+            👑 DIRECT FROM WEAVERS OF MAHESHWAR 👑
+          </div>
+        </div>
+
+      </div>
+    );
+  };
+
   return (
     <div className="parcel-slip-container" style={{ padding: '10px 0 40px 0' }}>
       
@@ -1252,30 +1897,50 @@ export default function ParcelSlipConsole({
             className="btn btn-secondary"
             onClick={handleClearForm}
             title="Clear Form to create a new slip"
-            style={{ fontSize: '0.9rem' }}
+            style={{ fontSize: '0.85rem' }}
           >
-            <RotateCcw size={16} /> New Slip
+            <RotateCcw size={14} /> New Slip
           </button>
 
           <button 
             className="btn btn-secondary"
             onClick={handleDownloadPDF}
-            style={{ fontSize: '0.9rem', color: 'var(--accent-emerald)' }}
+            style={{ fontSize: '0.85rem', color: 'var(--accent-emerald)' }}
+            title="Download crisp PDF document"
           >
-            <Download size={16} /> Save PDF
+            <Download size={14} /> Save PDF
           </button>
 
           <button 
-            className="btn btn-primary"
-            onClick={handlePrint}
+            className={`btn ${layoutMode === 'slip_only' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={handlePrintSlipOnly}
+            title="Print ONLY Page 1 (Parcel Dispatch Slip & Care Card on 1 Sheet)"
+            style={{ fontSize: '0.86rem', fontWeight: '700' }}
+          >
+            <Tag size={15} /> 🏷️ 1. Print Slip (Sheet 1)
+          </button>
+
+          <button 
+            className={`btn ${layoutMode === 'heritage_2sided_full' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={handlePrintLeafletOnly}
+            title="Print Page 2 (Thank You Front) & Page 3 (Maa Ahilya Back) as a 2-sided Leaflet"
+            style={{ fontSize: '0.86rem', fontWeight: '700', color: layoutMode === 'heritage_2sided_full' ? '#ffffff' : 'var(--accent-gold)' }}
+          >
+            <Sparkles size={15} /> 🌸 2. Print 2-Sided Leaflet (Sheet 2)
+          </button>
+
+          <button 
+            className={`btn ${layoutMode === 'duplex_2sheets' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={handlePrintAutoDuplex}
+            title="1-Click Auto Duplex Print: Sheet 1 = Slip alone, Sheet 2 = Front & Back Leaflet"
             style={{ 
-              padding: '10px 24px', 
-              fontSize: '1rem', 
-              fontWeight: '700',
-              boxShadow: '0 4px 15px rgba(212, 175, 55, 0.35)' 
+              padding: '9px 18px', 
+              fontSize: '0.92rem', 
+              fontWeight: '800',
+              boxShadow: layoutMode === 'duplex_2sheets' ? '0 4px 15px rgba(212, 175, 55, 0.35)' : 'none'
             }}
           >
-            <Printer size={18} /> Print 1-Sheet A4 (Slip + Thank You Card)
+            <Printer size={16} /> ⚡ Auto 2-Sheet Duplex Package
           </button>
         </div>
       </div>
@@ -1754,36 +2419,72 @@ export default function ParcelSlipConsole({
             {/* 3. PRINT & SIZE CONFIGURATIONS */}
             <div className="mt-4 pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--accent-gold)', marginBottom: '8px', display: 'block' }}>
-                ⚙️ Page Sizing & Card Combination
+                ⚙️ Page Sizing & Print Modes
               </label>
 
               {/* Size Buttons */}
               <div className="d-flex flex-wrap gap-2 mb-3">
                 <button
                   type="button"
-                  onClick={() => setLayoutMode('half_with_thankyou')}
+                  onClick={() => { setLayoutMode('duplex_2sheets'); setPreviewPageFilter('all'); }}
+                  className={`btn ${layoutMode === 'duplex_2sheets' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: '1 1 100%', fontSize: '0.85rem', padding: '9px 8px', fontWeight: '800' }}
+                >
+                  ⚡ Auto 2-Sheet Duplex (Sheet 1: Slip alone • Sheet 2: Front & Back Leaflet)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setLayoutMode('slip_only'); setPreviewPageFilter('page1'); }}
+                  className={`btn ${layoutMode === 'slip_only' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: '1 1 48%', fontSize: '0.82rem', padding: '8px 8px', fontWeight: '700' }}
+                >
+                  🏷️ Sheet 1 Only (Slip + Care)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setLayoutMode('heritage_2sided_full'); setPreviewPageFilter('all'); }}
+                  className={`btn ${layoutMode === 'heritage_2sided_full' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: '1 1 48%', fontSize: '0.82rem', padding: '8px 8px', fontWeight: '800', color: layoutMode === 'heritage_2sided_full' ? '#ffffff' : 'var(--accent-gold)' }}
+                >
+                  🌸 Sheet 2 (2-Sided Leaflet)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setLayoutMode('pages_3_full'); setPreviewPageFilter('all'); }}
+                  className={`btn ${layoutMode === 'pages_3_full' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ flex: '1 1 100%', fontSize: '0.80rem', padding: '7px 8px' }}
+                >
+                  🌟 3 Sequential Pages (Page 1: Slip + Page 2: Thank You + Page 3: Maa Ahilya)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setLayoutMode('half_with_thankyou'); setPreviewPageFilter('page1'); }}
                   className={`btn ${layoutMode === 'half_with_thankyou' ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ flex: '1 1 100%', fontSize: '0.82rem', padding: '8px 6px', fontWeight: '800' }}
+                  style={{ flex: '1 1 100%', fontSize: '0.78rem', padding: '7px 6px' }}
                 >
-                  🌟 1 A4 Sheet: Top Slip (Outer) + Bottom Thank You Card (Inside)
+                  📄 1 A4 Sheet: Top Slip + Bottom Care Card
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setLayoutMode('half_a4')}
+                  onClick={() => { setLayoutMode('half_a4'); setPreviewPageFilter('page1'); }}
                   className={`btn ${layoutMode === 'half_a4' ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ flex: '1 1 45%', fontSize: '0.76rem', padding: '6px 4px' }}
+                  style={{ flex: '1 1 48%', fontSize: '0.76rem', padding: '6px 4px' }}
                 >
-                  <Scissors size={13} style={{ marginRight: '4px' }} /> Only Top Slip (Half A4)
+                  <Scissors size={13} style={{ marginRight: '4px' }} /> Top Slip Only (Half A4)
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setLayoutMode('double_a4')}
+                  onClick={() => { setLayoutMode('double_a4'); setPreviewPageFilter('page1'); }}
                   className={`btn ${layoutMode === 'double_a4' ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ flex: '1 1 45%', fontSize: '0.76rem', padding: '6px 4px' }}
+                  style={{ flex: '1 1 48%', fontSize: '0.76rem', padding: '6px 4px' }}
                 >
-                  📄 2 Identical Slips on 1 A4
+                  📄 2 Slips on 1 A4
                 </button>
               </div>
 
@@ -1804,10 +2505,50 @@ export default function ParcelSlipConsole({
 
           {/* ── RIGHT COLUMN: REAL-TIME PRINT PREVIEW SHEET ── */}
           <div style={{ flex: '1 1 540px', minWidth: '320px' }}>
-            <div className="d-flex justify-between align-center mb-2 no-print">
-              <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-muted)' }}>
-                🖨️ A4 SHEET PRINT PREVIEW (Top: Parcel Slip + Bottom: Thank You Card)
-              </span>
+            
+            {/* Preview Page Filter Tabs */}
+            <div className="d-flex justify-between align-center mb-2 no-print flex-wrap gap-2">
+              <div className="d-flex gap-1 flex-wrap">
+                <button 
+                  type="button" 
+                  onClick={() => setPreviewPageFilter('all')}
+                  className={`btn ${previewPageFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                >
+                  📑 All Pages
+                </button>
+                {layoutMode !== 'heritage_2sided_full' && (
+                  <button 
+                    type="button" 
+                    onClick={() => setPreviewPageFilter('page1')}
+                    className={`btn ${previewPageFilter === 'page1' ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                  >
+                    🏷️ Sheet 1 (Parcel Slip)
+                  </button>
+                )}
+                {(layoutMode === 'duplex_2sheets' || layoutMode === 'pages_3_full' || layoutMode === 'heritage_2sided_full') && (
+                  <>
+                    <button 
+                      type="button" 
+                      onClick={() => setPreviewPageFilter('page2')}
+                      className={`btn ${previewPageFilter === 'page2' ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    >
+                      🌸 Sheet 2 Front (Thank You)
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setPreviewPageFilter('page3')}
+                      className={`btn ${previewPageFilter === 'page3' ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    >
+                      👑 Sheet 2 Back (Maa Ahilya)
+                    </button>
+                  </>
+                )}
+              </div>
+
               <span style={{ fontSize: '0.75rem', color: activeSenderPreset === 'reoti' ? 'var(--accent-gold)' : '#ea580c', fontWeight: '700' }}>
                 From: {senderProfile.name}
               </span>
@@ -1824,124 +2565,236 @@ export default function ParcelSlipConsole({
                 boxShadow: '0 10px 35px rgba(0,0,0,0.4)',
                 boxSizing: 'border-box',
                 maxWidth: '740px',
-                margin: '0 auto'
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px'
               }}
             >
-              {/* Paper Sheet in Clean Solid Ivory */}
-              <div 
-                className="parcel-slip-wrapper-sheet"
-                style={{
-                  backgroundColor: '#faf7f0',
-                  padding: '12px',
-                  borderRadius: '6px',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-                }}
-              >
-                {/* Top Half: Parcel Address Slip */}
-                {renderParcelSlipCard(recipient)}
+              {/* ────────────────────────────────────────────────── */}
+              {/* ── SHEET 1: PARCEL DISPATCH SLIP SHEET ──────────── */}
+              {/* ────────────────────────────────────────────────── */}
+              {layoutMode !== 'heritage_2sided_full' && (previewPageFilter === 'all' || previewPageFilter === 'page1') && (
+                <div 
+                  className="parcel-slip-wrapper-sheet parcel-slip-page-1"
+                  style={{
+                    backgroundColor: '#faf7f0',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  {/* Top Half: Parcel Address Slip */}
+                  {renderParcelSlipCard(recipient)}
 
-                {/* Middle Divider & Bottom Half: Customer Thank You & Care Note */}
-                {layoutMode === 'half_with_thankyou' && (
-                  <>
-                    {/* Scissor Cut Guideline */}
-                    <div 
-                      className="scissor-cut-divider"
-                      style={{
-                        margin: '10px 0',
-                        borderTop: '1.5px dashed #475569',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative'
-                      }}
-                    >
+                  {/* Middle Divider & Bottom Half: Customer Thank You & Care Note */}
+                  {(layoutMode === 'duplex_2sheets' || layoutMode === 'half_with_thankyou' || layoutMode === 'pages_3_full' || layoutMode === 'slip_only') && (
+                    <>
+                      {/* Scissor Cut Guideline */}
+                      <div 
+                        className="scissor-cut-divider"
+                        style={{
+                          margin: '10px 0',
+                          borderTop: '1.5px dashed #475569',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative'
+                        }}
+                      >
+                        <span style={{
+                          backgroundColor: '#faf7f0',
+                          padding: '0 12px',
+                          fontSize: '11px',
+                          fontWeight: '900',
+                          color: '#1e293b',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginTop: '-8px',
+                          letterSpacing: '0.4px'
+                        }}>
+                          ✂️ CUT HERE ✂️ (Top: Paste on Outer Parcel • Bottom: Insert Inside Parcel)
+                        </span>
+                      </div>
+
+                      {/* Bottom Half: Thank You & Care Insert Card */}
+                      {renderThankYouInsertCard(recipient)}
+                    </>
+                  )}
+
+                  {/* Second Slip if 2-up Double Slip layout selected */}
+                  {layoutMode === 'double_a4' && (
+                    <>
+                      <div 
+                        className="scissor-cut-divider"
+                        style={{
+                          margin: '10px 0',
+                          borderTop: '1.5px dashed #000000',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative'
+                        }}
+                      >
+                        <span style={{
+                          backgroundColor: '#faf7f0',
+                          padding: '0 12px',
+                          fontSize: '11px',
+                          fontWeight: '800',
+                          color: '#000000',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginTop: '-8px'
+                        }}>
+                          ✂️ CUT ALONG DOTTED LINE / यहाँ से काटें ✂️
+                        </span>
+                      </div>
+
+                      {renderParcelSlipCard(recipient)}
+                    </>
+                  )}
+
+                  {/* Single Half-A4 Cut Guide when printing ONLY 1 slip */}
+                  {layoutMode === 'half_a4' && (
+                    <div className="no-print-screen scissor-cut-divider" style={{
+                      marginTop: '20px',
+                      borderTop: '2px dashed #666666',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative'
+                    }}>
                       <span style={{
                         backgroundColor: '#faf7f0',
-                        padding: '0 12px',
-                        fontSize: '11px',
-                        fontWeight: '900',
-                        color: '#1e293b',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        marginTop: '-8px',
-                        letterSpacing: '0.4px'
-                      }}>
-                        ✂️ CUT HERE ✂️ (Top: Paste on Outer Parcel • Bottom: Insert Inside Parcel)
-                      </span>
-                    </div>
-
-                    {/* Bottom Half: Thank You & Care Insert Card */}
-                    {renderThankYouInsertCard(recipient)}
-                  </>
-                )}
-
-                {/* Second Slip if 2-up Double Slip layout selected */}
-                {layoutMode === 'double_a4' && (
-                  <>
-                    <div 
-                      className="scissor-cut-divider"
-                      style={{
-                        margin: '10px 0',
-                        borderTop: '1.5px dashed #000000',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative'
-                      }}
-                    >
-                      <span style={{
-                        backgroundColor: '#faf7f0',
-                        padding: '0 12px',
+                        padding: '0 10px',
                         fontSize: '11px',
                         fontWeight: '800',
-                        color: '#000000',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        marginTop: '-8px'
+                        color: '#666666',
+                        marginTop: '-9px'
                       }}>
-                        ✂️ CUT ALONG DOTTED LINE / यहाँ से काटें ✂️
+                        ✂️ CUT HERE & PASTE TOP HALF ON PARCEL ✂️
                       </span>
                     </div>
+                  )}
+                </div>
+              )}
 
-                    {renderParcelSlipCard(recipient)}
-                  </>
-                )}
-
-                {/* Single Half-A4 Cut Guide when printing ONLY 1 slip */}
-                {layoutMode === 'half_a4' && (
-                  <div className="no-print-screen scissor-cut-divider" style={{
-                    marginTop: '20px',
-                    borderTop: '2px dashed #666666',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative'
+              {/* ───────────────────────────────────────────────────────────── */}
+              {/* ── SHEET 1 BACK: BLANK SPACER (FOR 2-SHEET AUTO DUPLEX) ────── */}
+              {/* ───────────────────────────────────────────────────────────── */}
+              {layoutMode === 'duplex_2sheets' && previewPageFilter === 'all' && (
+                <div 
+                  className="parcel-slip-wrapper-sheet duplex-blank-spacer"
+                  style={{
+                    backgroundColor: '#faf7f0',
+                    padding: '16px',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <div className="no-print" style={{
+                    textAlign: 'center',
+                    padding: '30px 16px',
+                    border: '2px dashed #cbd5e1',
+                    borderRadius: '8px',
+                    backgroundColor: '#f8fafc',
+                    margin: 'auto',
+                    maxWidth: '480px'
                   }}>
-                    <span style={{
-                      backgroundColor: '#faf7f0',
-                      padding: '0 10px',
-                      fontSize: '11px',
-                      fontWeight: '800',
-                      color: '#666666',
-                      marginTop: '-9px'
-                    }}>
-                      ✂️ CUT HERE & PASTE TOP HALF ON PARCEL ✂️
-                    </span>
+                    <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e293b', marginBottom: '6px' }}>
+                      📄 Sheet 1 Back Side (Blank Spacer for 2-Sided Duplex Printers)
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
+                      Yeh blank page automatic ensure karta hai ki <strong>Sheet 1 (Parcel Slip)</strong> akeli nikle aur <strong>Sheet 2</strong> par <strong>Front: Thank You</strong> aur <strong>Back: Maa Ahilya</strong> double-sided nikle!
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* ────────────────────────────────────────────────── */}
+              {/* ── VISUAL SEPARATOR: SHEET 2 (FRONT SIDE) ──────── */}
+              {/* ────────────────────────────────────────────────── */}
+              {(layoutMode === 'duplex_2sheets' || layoutMode === 'pages_3_full') && previewPageFilter === 'all' && (
+                <div className="no-print text-center py-2" style={{ borderTop: '2px dashed rgba(212, 175, 55, 0.4)', borderBottom: '2px dashed rgba(212, 175, 55, 0.4)', margin: '4px 0' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--accent-gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    ✦ SHEET 2 (FRONT SIDE): FULL A4 THANK YOU LEAFLET ✦
+                  </span>
+                </div>
+              )}
+
+              {/* ────────────────────────────────────────────────── */}
+              {/* ── SHEET 2 FRONT: FULL A4 THANK YOU LEAFLET ────── */}
+              {/* ────────────────────────────────────────────────── */}
+              {(layoutMode === 'duplex_2sheets' || layoutMode === 'pages_3_full' || layoutMode === 'heritage_2sided_full') && (previewPageFilter === 'all' || previewPageFilter === 'page2') && (
+                <div 
+                  className="parcel-slip-wrapper-sheet parcel-slip-page-2"
+                  style={{
+                    backgroundColor: '#faf7f0',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  {renderHeritageThankYouFront(recipient)}
+                </div>
+              )}
+
+              {/* ────────────────────────────────────────────────── */}
+              {/* ── VISUAL SEPARATOR: SHEET 2 (BACK SIDE) ───────── */}
+              {/* ────────────────────────────────────────────────── */}
+              {(layoutMode === 'duplex_2sheets' || layoutMode === 'pages_3_full' || layoutMode === 'heritage_2sided_full') && previewPageFilter === 'all' && (
+                <div className="no-print text-center py-2" style={{ borderTop: '2px dashed rgba(212, 175, 55, 0.4)', borderBottom: '2px dashed rgba(212, 175, 55, 0.4)', margin: '4px 0' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--accent-gold)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    ✦ SHEET 2 (BACK SIDE): FULL A4 MAA AHILYA & MAHESHWAR FORT HERITAGE ✦
+                  </span>
+                </div>
+              )}
+
+              {/* ────────────────────────────────────────────────── */}
+              {/* ── SHEET 2 BACK: FULL A4 MAA AHILYA & FORT ─────── */}
+              {/* ────────────────────────────────────────────────── */}
+              {(layoutMode === 'duplex_2sheets' || layoutMode === 'pages_3_full' || layoutMode === 'heritage_2sided_full') && (previewPageFilter === 'all' || previewPageFilter === 'page3') && (
+                <div 
+                  className="parcel-slip-wrapper-sheet parcel-slip-page-3"
+                  style={{
+                    backgroundColor: '#faf7f0',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  {renderAhilyaMaHeritageBack(recipient)}
+                </div>
+              )}
+
             </div>
 
-            {/* Bottom Quick Print Button */}
-            <div className="text-center mt-4 no-print">
+            {/* Bottom Quick Print Action Bar */}
+            <div className="text-center mt-4 no-print d-flex justify-center gap-2 flex-wrap">
+              <button 
+                className="btn btn-secondary"
+                onClick={handlePrintSlipOnly}
+                style={{ padding: '12px 20px', fontSize: '0.95rem', fontWeight: '800' }}
+              >
+                🏷️ 1. Print Slip (Sheet 1)
+              </button>
+
+              <button 
+                className="btn btn-secondary"
+                onClick={handlePrintLeafletOnly}
+                style={{ padding: '12px 20px', fontSize: '0.95rem', fontWeight: '800', color: 'var(--accent-gold)' }}
+              >
+                🌸 2. Print 2-Sided Leaflet (Sheet 2 Front & Back)
+              </button>
+
               <button 
                 className="btn btn-primary"
-                onClick={handlePrint}
-                style={{ padding: '14px 36px', fontSize: '1.1rem', fontWeight: '800' }}
+                onClick={handlePrintAutoDuplex}
+                style={{ padding: '12px 28px', fontSize: '1rem', fontWeight: '800' }}
               >
-                <Printer size={20} /> Print 1-Sheet A4 (Slip + Thank You Card)
+                <Printer size={18} /> ⚡ Auto 2-Sheet Duplex Package
               </button>
             </div>
           </div>
@@ -2118,8 +2971,8 @@ export default function ParcelSlipConsole({
             margin: 0 !important;
             padding: 0 !important;
             background: #2b3d30 !important;
-            height: 100% !important;
-            overflow: hidden !important;
+            height: auto !important;
+            overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -2136,59 +2989,78 @@ export default function ParcelSlipConsole({
             top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            height: 291mm !important;
             margin: 0 !important;
-            padding: 2.5mm !important;
+            padding: 0 !important;
             box-sizing: border-box !important;
             box-shadow: none !important;
             border: none !important;
-            background-color: #2b3d30 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: space-between !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            background-color: transparent !important;
+            display: block !important;
           }
           .parcel-slip-wrapper-sheet {
-            height: 100% !important;
+            height: 290mm !important;
+            min-height: 290mm !important;
+            max-height: 290mm !important;
             width: 100% !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
-            padding: 2mm !important;
-            margin: 0 !important;
-            background-color: #faf6ed !important;
+            padding: 2.5mm !important;
+            margin: 0 0 0 0 !important;
+            background-color: #2b3d30 !important;
             box-shadow: none !important;
-            border-radius: 6px !important;
+            border-radius: 0 !important;
             box-sizing: border-box !important;
+            page-break-after: always !important;
+            break-after: page !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .parcel-slip-paper {
-            height: 139.5mm !important;
-            min-height: 139.5mm !important;
-            max-height: 139.5mm !important;
+          .parcel-slip-wrapper-sheet:last-of-type,
+          .parcel-slip-page-3 {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+          }
+          .duplex-blank-spacer {
+            height: 290mm !important;
+            min-height: 290mm !important;
+            max-height: 290mm !important;
+            width: 100% !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            visibility: hidden !important;
+          }
+          .full-a4-thankyou-front,
+          .full-a4-ahilyama-back {
+            height: 285mm !important;
+            min-height: 285mm !important;
+            max-height: 285mm !important;
             box-sizing: border-box !important;
             background-color: #faf6ed !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
+            padding: 7mm 9mm !important;
             page-break-inside: avoid !important;
-            page-break-after: avoid !important;
+            break-inside: avoid !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          .parcel-slip-paper,
           .thankyou-insert-card {
-            height: 139.5mm !important;
-            min-height: 139.5mm !important;
-            max-height: 139.5mm !important;
+            height: 139mm !important;
+            min-height: 139mm !important;
+            max-height: 139mm !important;
             box-sizing: border-box !important;
             background-color: #faf6ed !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
             page-break-inside: avoid !important;
-            page-break-after: avoid !important;
+            break-inside: avoid !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -2199,6 +3071,7 @@ export default function ParcelSlipConsole({
             align-items: center !important;
             justify-content: center !important;
             page-break-inside: avoid !important;
+            break-inside: avoid !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -2207,7 +3080,7 @@ export default function ParcelSlipConsole({
           }
           @page {
             size: A4 portrait;
-            margin: 3mm;
+            margin: 3.5mm;
           }
         }
       `}</style>
