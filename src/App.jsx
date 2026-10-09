@@ -409,9 +409,15 @@ export default function App() {
   };
 
   const handleDeleteInvoice = (invoiceNo) => {
-    // UI se remove hoga, lekin database file safe rahegi (no API DELETE)
     const updated = invoices.filter(inv => inv.invoiceNo !== invoiceNo);
     setInvoices(updated);
+
+    fetch('/api/invoices', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: systemMode, invoiceNo })
+    }).catch(console.error);
+
     if (!currentInvoice || !currentInvoice.isEditing) {
       handleCreateNewBlankInvoice(updated, settings, false);
     }
@@ -462,8 +468,11 @@ export default function App() {
   };
 
   const handleDeleteProduct = (id) => {
-    // UI se remove hoga, lekin database file safe rahegi (no DB sync)
-    setInventory(prev => prev.filter(p => p.id !== id));
+    setInventory(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      syncInventoryToDb(updated);
+      return updated;
+    });
   };
 
   // Ledger Voucher handlers
@@ -488,13 +497,21 @@ export default function App() {
   };
 
   const handleDeleteLedgerEntry = (id) => {
-    // UI se remove hoga, lekin database file safe rahegi (no API DELETE)
     setLedgerEntries(prev => {
       const updated = prev.filter(e => e.id !== id);
       const ledgerKey = `rh_ledger_${systemMode}`;
       localStorage.setItem(ledgerKey, JSON.stringify(updated));
       return updated;
     });
+
+    fetch('/api/ledger', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: systemMode, id })
+    }).then(() => {
+      setDbStatus('🟢 MySQL/SQLite Database Synced');
+      alert("✅ Voucher deleted from Database.");
+    }).catch(console.error);
   };
 
 
