@@ -16,6 +16,7 @@ const formatDateToDDMMYYYY = (dateStr) => {
 
 export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, hasGST = true }) {
   const [printMode, setPrintMode] = useState('duplex_2sided'); // 'duplex_2sided' | 'invoice_only' | 'heritage_only'
+  const [previewTab, setPreviewTab] = useState('all'); // 'all' | 'front' | 'back'
   const [backTheme, setBackTheme] = useState('merged_heritage'); // 'merged_heritage' | 'ahilyabai_sketch' | 'pit_loom' | 'weaving_loom'
   const [showPdfDropdown, setShowPdfDropdown] = useState(false); // PDF download options dropdown
 
