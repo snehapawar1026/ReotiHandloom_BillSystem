@@ -453,37 +453,37 @@ export default function PrintInvoiceModal({ isOpen, invoice, settings, onClose, 
             justifyContent: 'center',
             flex: 1,
             width: '100%',
-            margin: '6px 0',
+            margin: '4px 0',
             minHeight: 0
           }}>
             <div style={{
               width: '100%',
               height: '100%',
               maxHeight: '720px',
-              background: '#ffffff',
+              background: '#ede3ce',
               border: '2px solid #b45309',
-              borderRadius: '8px',
-              padding: '6px',
-              boxShadow: '0 4px 20px rgba(120,53,15,0.15)',
+              borderRadius: '6px',
+              padding: '2px',
+              boxShadow: '0 4px 18px rgba(120,53,15,0.18)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              overflow: 'hidden'
             }}>
               <img 
-                src="/maheshwar_heritage_mural_full.png" 
+                src="/maheshwar_heritage_mural_portrait.png" 
                 alt="Rajmata Devi Ahilyabai Holkar & Traditional Maheshwari Pit-Loom Weaving Heritage Mural" 
                 style={{
-                width: '100%',
-                height: '100%',
-                maxHeight: '700px',
-                objectFit: 'contain',
-                display: 'block',
-                borderRadius: '4px'
-              }} 
-            />
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  borderRadius: '4px'
+                }} 
+              />
+            </div>
           </div>
-        </div>
 
         {/* 3. HERITAGE STORY & GRATITUDE MESSAGE */}
         <div style={{
