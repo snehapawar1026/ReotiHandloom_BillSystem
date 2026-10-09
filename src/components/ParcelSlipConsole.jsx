@@ -682,66 +682,73 @@ export default function ParcelSlipConsole({
           <div style={{ paddingLeft: '6px' }}>
             
             {/* 1. Customer Name (NAVY BLUE EXTRA BOLD UPPERCASE) */}
-            <div style={{ 
-              fontSize: '32px', 
-              fontWeight: '900', 
-              color: '#1e1b4b', // Deep Navy Blue
-              lineHeight: '1.15',
-              letterSpacing: '0.6px',
-              marginBottom: '4px',
-              textTransform: 'uppercase'
-            }}>
-              {recipData.partyName || (isEmp ? <span style={{ color: '#1e1b4b', fontWeight: '900' }}>JAGDAMBA CREATION</span> : '')}
-            </div>
+            {/* 1. Recipient Name */}
+            {recipData.partyName ? (
+              <div style={{ 
+                fontSize: '32px', 
+                fontWeight: '900', 
+                color: '#1e1b4b', // Deep Navy Blue
+                lineHeight: '1.15',
+                letterSpacing: '0.6px',
+                marginBottom: '4px',
+                textTransform: 'uppercase'
+              }}>
+                {recipData.partyName}
+              </div>
+            ) : null}
 
-            {/* 2. Delivery Address */}
-            <div style={{ 
-              fontSize: '17.5px', 
-              fontWeight: '700', 
-              color: '#1f2937', 
-              lineHeight: '1.38',
-              marginBottom: '4px'
-            }}>
-              {recipData.addressLine1 || (isEmp ? <span style={{ color: '#374151', fontStyle: 'normal', fontWeight: '700' }}>Shop No.01, Swami Shanti Prakash Shopping Center, Lohiya Market, Gandhinagar, Kolhapur-416119</span> : '')}
-              {recipData.addressLine2 ? `, ${recipData.addressLine2}` : ''}
-            </div>
+            {/* 2. Delivery Address (Strictly user-filled) */}
+            {recipData.addressLine1 ? (
+              <div style={{ 
+                fontSize: '17.5px', 
+                fontWeight: '700', 
+                color: '#1f2937', 
+                lineHeight: '1.38',
+                marginBottom: '4px'
+              }}>
+                {recipData.addressLine1}
+                {recipData.addressLine2 ? `, ${recipData.addressLine2}` : ''}
+              </div>
+            ) : null}
 
-            {/* 3. State & PINCODE Badge */}
-            <div style={{ 
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '8px',
-              fontSize: '17px', 
-              fontWeight: '800', 
-              color: '#111827', 
-              marginTop: '4px',
-              marginBottom: '6px'
-            }}>
-              {[recipData.city, recipData.state].filter(Boolean).join(', ') ? (
-                <span>
-                  {[recipData.city, recipData.state].filter(Boolean).join(', ')}
-                </span>
-              ) : null}
+            {/* 3. City / State & PINCODE (Only if entered by user) */}
+            {([recipData.city, recipData.state].filter(Boolean).length > 0 || recipData.pincode) ? (
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                fontSize: '17px', 
+                fontWeight: '800', 
+                color: '#111827', 
+                marginTop: '4px',
+                marginBottom: '6px'
+              }}>
+                {[recipData.city, recipData.state].filter(Boolean).length > 0 ? (
+                  <span>
+                    {[recipData.city, recipData.state].filter(Boolean).join(', ')}
+                  </span>
+                ) : null}
 
-              {(recipData.pincode || isEmp) ? (
-                <span style={{
-                  backgroundColor: '#1e1b4b',
-                  color: '#ffffff',
-                  padding: '2px 10px',
-                  borderRadius: '4px',
-                  letterSpacing: '1px',
-                  fontSize: '16px',
-                  fontWeight: '900',
-                  display: 'inline-block'
-                }}>
-                  PIN: {recipData.pincode || (isEmp ? '416119' : '')}
-                </span>
-              ) : null}
-            </div>
+                {recipData.pincode ? (
+                  <span style={{
+                    backgroundColor: '#1e1b4b',
+                    color: '#ffffff',
+                    padding: '2px 10px',
+                    borderRadius: '4px',
+                    letterSpacing: '1px',
+                    fontSize: '16px',
+                    fontWeight: '900',
+                    display: 'inline-block'
+                  }}>
+                    PIN: {recipData.pincode}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
 
-            {/* 4. Mobile Phone Bar (100% Guaranteed Crisp Capture in PDF & Print) */}
-            {(recipData.mobile || isEmp) ? (
+            {/* 4. Mobile Phone Bar */}
+            {recipData.mobile ? (
               <div style={{ 
                 marginTop: '8px',
                 display: 'inline-block',
@@ -771,7 +778,7 @@ export default function ParcelSlipConsole({
                   verticalAlign: 'middle',
                   fontFamily: "'Outfit', 'Segoe UI', Arial, sans-serif"
                 }}>
-                  {recipData.mobile || (isEmp ? '8888991994' : '')}
+                  {recipData.mobile}
                   {recipData.alternateMobile ? ` / ${recipData.alternateMobile}` : ''}
                 </span>
               </div>
@@ -1097,7 +1104,7 @@ export default function ParcelSlipConsole({
               alignItems: 'center',
               gap: '6px'
             }}>
-              <span>🌸 Dear <strong style={{ color: '#1e1b4b', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{recipData.partyName || 'Jagdamba Creation'}</strong>,</span>
+              <span>🌸 Dear <strong style={{ color: '#1e1b4b', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{recipData.partyName || 'Valued Patron'}</strong>,</span>
             </div>
 
             <p style={{ 
